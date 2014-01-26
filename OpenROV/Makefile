@@ -1,5 +1,4 @@
-BOARD_TAG    = atmega328p
-MCU          = atmega328p
+BOARD_TAG    = uno
 ARDUINO_PORT = /dev/cu.usb*
 ARDUINO_LIBS = SPI
 
