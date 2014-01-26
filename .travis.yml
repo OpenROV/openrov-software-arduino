@@ -15,4 +15,4 @@ script:
   - "test `grep -c fail results` -eq 0"
 
 env:
-  - ARDUINO_IDE_VERSION='1.0.3'
+  - ARDUINO_IDE_VERSION='1.0.5'
