@@ -1,7 +1,7 @@
 language: python
 before_script:
   - "curl -s http://arduino.googlecode.com/files/arduino-${ARDUINO_IDE_VERSION}-linux64.tgz | sudo tar xz -C /opt"
-  - "git clone -q https://github.com/errordeveloper/hwci-scripts ../hwci-scripts && ../hwci-scripts/bin/setup.sh"
+  - "git clone -q https://github.com/BrianAdams/hwci-scripts ../hwci-scripts && ../hwci-scripts/bin/setup.sh"
 script:
   - "   env \
         USER_LIB_PATH=$PWD/../ \
