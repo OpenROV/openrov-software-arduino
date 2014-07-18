@@ -22,5 +22,5 @@ after_success:
       -n openrov-arduino-firmware \
       -v 1.0-$TRAVIS_BRANCH \
       --description 'OpenROV Arduino Firmware' \
-      .
+      .=/opt/openrov/arduino
   "
