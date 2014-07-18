@@ -16,10 +16,10 @@ script:
   - "cut -d: -f1 results | sort | uniq -c"
   - "test `grep -c fail results` -eq 0"
 env:
-  - ARDUINO_IDE_VERSION='1.0.5'
-
+  global:
+    - ARDUINO_IDE_VERSION='1.0.5'
+    - VERSION_NUMBER="`git describe --tags`"
 after_success:
-  - "VERSION_NUMBER=\"`git describe --tags`\""  
   - "fpm -f -m info@openrov.com -s dir -t deb -a all \
       -n openrov-arduino-firmware \
       -v 1.$VERSION_NUMBER-$TRAVIS_BRANCH \
