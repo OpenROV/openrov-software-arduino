@@ -69,23 +69,6 @@ void Thrusters::device_setup(){
 }
 
 void Thrusters::device_loop(Command command){
-  if (command.cmp("mtrmod")) {
-      Motors::motor_positive_modifer[0] = command.args[1]/100;
-      Motors::motor_positive_modifer[1] = command.args[2]/100;
-      Motors::motor_positive_modifer[2] = command.args[3]/100;
-      Motors::motor_negative_modifer[0] = command.args[4]/100;
-      Motors::motor_negative_modifer[1] = command.args[5]/100;
-      Motors::motor_negative_modifer[2] = command.args[6]/100;
-  }
-  if (command.cmp("rmtrmod")) {
-      Serial.print(F("mtrmod:"));
-      Serial.print(String(Motors::motor_positive_modifer[0]) + ",");
-      Serial.print(String(Motors::motor_positive_modifer[1]) + ",");
-      Serial.print(String(Motors::motor_positive_modifer[2]) + ",");
-      Serial.print(String(Motors::motor_negative_modifer[0]) + ",");
-      Serial.print(String(Motors::motor_negative_modifer[1]) + ",");
-      Serial.println(String(Motors::motor_negative_modifer[2]) + ";");
-  }
 
   if (command.cmp("go")) {
       //ignore corrupt data
@@ -237,7 +220,3 @@ void Thrusters::device_loop(Command command){
   }
 }
 #endif
-
-
-
-
