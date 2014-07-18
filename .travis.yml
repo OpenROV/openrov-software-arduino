@@ -17,10 +17,11 @@ script:
   - "test `grep -c fail results` -eq 0"
 env:
   - ARDUINO_IDE_VERSION='1.0.5'
+  - VERSION_NUMBER="`git describe --tags`"
 after_success:
   - "fpm -f -m info@openrov.com -s dir -t deb -a all \
       -n openrov-arduino-firmware \
-      -v 1.(git describe --tags)-$TRAVIS_BRANCH \
+      -v 1.$VERSION_NUMBER-$TRAVIS_BRANCH \
       --description 'OpenROV Arduino Firmware' \
       .=/opt/openrov/arduino
   "
