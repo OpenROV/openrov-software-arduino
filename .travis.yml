@@ -14,11 +14,8 @@ script:
   - "cat results"
   - "cut -d: -f1 results | sort | uniq -c"
   - "test `grep -c fail results` -eq 0"
-
-
 env:
   - ARDUINO_IDE_VERSION='1.0.5'
-
 after_success:
 - "fpm -f -m info@openrov.com -s dir -t deb -a all \
       -n openrov-arduino-firmware \
