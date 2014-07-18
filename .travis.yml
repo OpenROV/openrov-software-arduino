@@ -17,9 +17,9 @@ script:
 env:
   - ARDUINO_IDE_VERSION='1.0.5'
 after_success:
-- "fpm -f -m info@openrov.com -s dir -t deb -a all \
+  - "fpm -f -m info@openrov.com -s dir -t deb -a all \
       -n openrov-arduino-firmware \
       -v 1.0-$TRAVIS_BRANCH \
-      --description "OpenROV Arduino Firmware" \
+      --description 'OpenROV Arduino Firmware' \
       .
   "
