@@ -11,3 +11,13 @@
 *.lai
 *.la
 *.a
+
+OpenROV/Debug/*
+
+*.atsln
+
+*.atsuo
+
+*.cppproj
+
+OpenROV/Visual Micro/*
