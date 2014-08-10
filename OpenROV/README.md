@@ -12,7 +12,7 @@ This code is configured be default to enable the components that ship on the Ope
     <tr>
         <td>Pilot</td>
         <td>On</td>
-        <td>Place holder for fly by wire type behavior</td>
+        <td>Basic advanced control such as depth hold and heading hold.</td>
         <td>58b</td>
         <td>tbd</td>        
     </tr>
@@ -38,6 +38,13 @@ This code is configured be default to enable the components that ship on the Ope
         <td>tbd</td>            
     </tr>
     <tr>
+        <td>contollerboard25</td>
+        <td>On</td>
+        <td>Emits all of the sensor data regarding the ATMEGA2560 and the OpenROV controllerboard.</td>
+        <td>tbd</td>
+        <td>tbd</td>            
+    </tr>    
+    <tr>
         <td>Lights</td>
         <td>On</td>
         <td>Controls the lights on the ROV</td>
@@ -58,6 +65,20 @@ This code is configured be default to enable the components that ship on the Ope
         <td>10,122b</td>
         <td>tbd</td>            
     </tr>
+    <tr>
+        <td>MPU9150</td>
+        <td>Off</td>
+        <td>The Invensence [MPU-9150](http://www.invensense.com/mems/gyro/documents/PS-MPU-9150A-00v4_3.pdf) for compass and orientation.</td>
+        <td>tbd</td>
+        <td>tbd</td>            
+    </tr>
+    <tr>
+        <td>MS5803_14</td>
+        <td>Off</td>
+        <td>Measurement Specialties [MS5803_14] (http://www.meas-spec.com/product/t_product.aspx?id=8684) Depth sensor and water temperature sensor.</td>
+        <td>tbd</td>
+        <td>tbd</td>            
+    </tr>  
 </table>
 OpenROV Arduino cade base sketch size with zero components enabled: 13,524b
 
@@ -100,4 +121,4 @@ Standardised SI Units for Sensor DataA key part of the unified sensor driver sys
 - voltage: values are in volts (V)
 - color: values are in 0..1.0 RGB channel luminosity and 32-bit RGBA format
  
-Please note that the ATMega328 has a max of 32K for loading code.  If you enable to many devices you can exceed that number and the code will fail to upload.  You can use the Arduino IDE and do a verify to check the size of the sketch.
+Cape Users: Please note that the ATMega328 has a max of 32K for loading code.  If you enable to many devices you can exceed that number and the code will fail to upload.  You can use the Arduino IDE and do a verify to check the size of the sketch.
