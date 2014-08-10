@@ -80,7 +80,7 @@ This code is configured be default to enable the components that ship on the Ope
         <td>tbd</td>            
     </tr>  
 </table>
-OpenROV Arduino cade base sketch size with zero components enabled: 13,524b
+OpenROV Arduino cape base sketch size with zero components enabled: 13,524b
 
 
 Adding Sensors and Devices
