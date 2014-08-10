@@ -90,7 +90,7 @@ The code is laid out to enable easy addition of sensors or custom modules.  You 
 
 The diagram below shows all of the current modules along with the commands they are ready to receive and the data they update or send.
 
-![Component Brakout](http://yuml.me/291bafca "Major areas of the Arduino code")[edit](http://yuml.me/edit/291bafca)
+![Component Brakout](http://yuml.med94c04de "Major areas of the Arduino code")[edit](http://yuml.me/edit/e626013d)
 Note: This was last updated for the 2.4 stable release and needs updating.
 
 If you want to add your own module you need to:
