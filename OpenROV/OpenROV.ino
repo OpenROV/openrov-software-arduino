@@ -82,6 +82,8 @@ Settings settings;
   MS5803_14BA DeapthSensor;
 #endif
 
+// include plugins
+#include "PluginConfig.h"
 
 Command cmd;
 
