@@ -155,6 +155,7 @@ void loop(){
     Serial.print(loops_per_sec);
     Serial.println(';');
     loops_per_sec = 0;
+    Serial.print(F("nackp:")); Serial.print(Wire.nackpercent()); Serial.print(';');
   }
   if (Output100ms.elapsed(100)) {
     OutputNavData();
