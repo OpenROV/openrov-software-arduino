@@ -153,7 +153,10 @@ void loop(){
     Serial.print(loops_per_sec);
     Serial.println(';');
     loops_per_sec = 0;
-    Serial.print(F("nackp:")); Serial.print(Wire.nackpercent()); Serial.print(';');
+    //Line below is commented out because it requires updated arduino library
+    //which is on the ROV but might not be in a desktop Arduino project. Should
+    //be able to handle this with define statements somehow.
+    //Serial.print(F("nackp:")); Serial.print(Wire.nackpercent()); Serial.print(';');
   }
   if (Output100ms.elapsed(100)) {
     OutputNavData();

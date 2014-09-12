@@ -4,7 +4,7 @@
 #include "Pin.h"
 #include "Thrusters2X1.h"
 #include "Settings.h"
-#include "Motors.h"
+#include "Motor.h"
 #include "Timer.h"
 
 //Motors motors(9, 10, 11);

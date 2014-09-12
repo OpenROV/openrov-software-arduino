@@ -8,8 +8,8 @@
 #define CAMERAMOUNT_PIN 11
 #define CALIBRATIONLASERS_PIN 45
 #define PORT_PIN 6
-#define VERTICLE_PIN 7
-#define STARBORD_PIN 8
+#define VERTICAL_PIN 7
+#define STARBOARD_PIN 8
 #define ESCPOWER_PIN 16
 class Controller25 : public Device {
   private:
