@@ -9,7 +9,9 @@
 
 //Motors motors(9, 10, 11);
 //Motors motors(6, 7, 8);
-Motors motors(PORT_PIN,VERTICLE_PIN,STARBORD_PIN);
+Motor port_motor(PORT_PIN);
+Motor vertical_motor(VERTICAL_PIN);
+Motor starboard_motor(STARBOARD_PIN);
 
 int new_p = MIDPOINT;
 int new_s = MIDPOINT;
@@ -57,7 +59,9 @@ int smoothAdjustedServoPosition(int target, int current){
 }
 
 void Thrusters::device_setup(){
-  motors.reset();
+  port_motor.reset();
+  vertical_motor.reset();
+  starboard_motor.reset();
   thrusterOutput.reset();
   controltime.reset();
   bypasssmoothing = false;
@@ -70,26 +74,26 @@ void Thrusters::device_setup(){
 
 void Thrusters::device_loop(Command command){
   if (command.cmp("mtrmod")) {
-      Motors::motor_positive_modifer[0] = command.args[1]/100;
-      Motors::motor_positive_modifer[1] = command.args[2]/100;
-      Motors::motor_positive_modifer[2] = command.args[3]/100;
-      Motors::motor_negative_modifer[0] = command.args[4]/100;
-      Motors::motor_negative_modifer[1] = command.args[5]/100;
-      Motors::motor_negative_modifer[2] = command.args[6]/100;
+      port_motor.motor_positive_modifer = command.args[1]/100;
+      vertical_motor.motor_positive_modifer = command.args[2]/100;
+      starboard_motor.motor_positive_modifer = command.args[3]/100;
+      port_motor.motor_negative_modifer = command.args[4]/100;
+      vertical_motor.motor_negative_modifer = command.args[5]/100;
+      starboard_motor.motor_negative_modifer = command.args[6]/100;
   }
   if (command.cmp("rmtrmod")) {
       Serial.print(F("mtrmod:"));
-      Serial.print(Motors::motor_positive_modifer[0]);
+      Serial.print(port_motor.motor_positive_modifer);
       Serial.print (",");
-      Serial.print(Motors::motor_positive_modifer[1]);
+      Serial.print(vertical_motor.motor_positive_modifer);
       Serial.print (",");
-      Serial.print(Motors::motor_positive_modifer[2]);
+      Serial.print(starboard_motor.motor_positive_modifer);
       Serial.print (",");
-      Serial.print(Motors::motor_negative_modifer[0]);
+      Serial.print(port_motor.motor_negative_modifer);
       Serial.print (",");
-      Serial.print(Motors::motor_negative_modifer[1]);
+      Serial.print(vertical_motor.motor_negative_modifer);
       Serial.print (",");
-      Serial.print(Motors::motor_negative_modifer[2]);
+      Serial.print(starboard_motor.motor_negative_modifer);
       Serial.println (";");
   }
 
@@ -119,7 +123,7 @@ void Thrusters::device_loop(Command command){
       }
   }
 
-  if (command.cmp("starbord")) {
+  if (command.cmp("starboard")) {
       //ignore corrupt data
       if (command.args[1]>999 && command.args[1]<2001) {
         s = command.args[1];
@@ -133,6 +137,10 @@ void Thrusters::device_loop(Command command){
         trg_throttle = command.args[1]/100.0;
       }
     }
+
+    // The code below was intended to correct for the total possible range,
+    // and since the reverse direction was using a 2x modified, you only
+    // have 1/2 the range.
     if (trg_throttle>=0){
       p = 1500 + 500*trg_throttle;
       s = p;
@@ -184,10 +192,14 @@ void Thrusters::device_loop(Command command){
     }
   #endif
     else if (command.cmp("start")) {
-      motors.reset();
+      port_motor.reset();
+      vertical_motor.reset();
+      starboard_motor.reset();
     }
     else if (command.cmp("stop")) {
-      motors.stop();
+      port_motor.stop();
+      vertical_motor.reset();
+      starboard_motor.reset();
     }
     #ifdef ESCPOWER_PIN
     else if ((command.cmp("mcal")) && (canPowerESCs)){
@@ -211,7 +223,9 @@ void Thrusters::device_loop(Command command){
         new_s=s;
         bypasssmoothing = false;
       }
-      motors.go(new_p, new_v, new_s);
+      port_motor.goms(new_p);
+      vertical_motor.goms(new_v);
+      starboard_motor.goms(new_s);
     }
 
   }

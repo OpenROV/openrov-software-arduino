@@ -1,6 +1,5 @@
 #include "AConfig.h"
 #include <Arduino.h>
-#include "Motors.h"
 #include "Command.h"
 #include "Device.h"
 #include "Timer.h"
@@ -81,7 +80,6 @@ Settings settings;
   #include <SPI.h> //required to force the Arduino IDE to include the library in the path for the SPI code
   MS5803_14BA DeapthSensor;
 #endif
-
 
 Command cmd;
 
@@ -176,7 +174,3 @@ ISR(WDT_vect)
   EEPROM.write(0,1);         // write a "1" to the first byte to indicate the data in second byte is valid and the ISR triggered properly
   while(true);               // triggers the second watchdog timeout for a reset
 }
-
-
-
-
