@@ -7,6 +7,8 @@
 #include "Timer.h"
 
 Timer pilotTimer;
+Timer deadmanSwitchTimer;
+Timer blinklightTimer;
 bool _headingHoldEnabled = false;
 int  _headingHoldTarget = 0;
 int hdg = 0;
@@ -25,11 +27,14 @@ int raw_lift =0;
 int lift = 0;
 int target_depth;
 int raw_yaw, yaw;
-
+bool _deadmanSwitchEnabled = false;
+bool blinkstate = false;
 
 
 void Pilot::device_setup(){
   pilotTimer.reset();
+  deadmanSwitchTimer.reset();
+  blinklightTimer.reset();
   Serial.println(F("log:pilot setup complete;"));
 }
 
@@ -37,6 +42,32 @@ void Pilot::device_setup(){
 
 void Pilot::device_loop(Command command){
 //intended to respond to fly by wire commands: MaintainHeading(); TurnTo(compassheading); DiveTo(depth);
+
+    if( command.cmp("ping")){
+      deadmanSwitchTimer.reset();
+      _deadmanSwitchEnabled = false;
+      Serial.print(F("pong:")); Serial.print(command.args[0]); Serial.print(","); Serial.print(millis()); Serial.print(";");
+    }
+
+    if (deadmanSwitchTimer.elapsed (2000)) {
+      _depthHoldEnabled = false;
+      _headingHoldEnabled = false;
+      int argsToSend[] = {0};
+      command.pushCommand("stop",argsToSend);
+      _deadmanSwitchEnabled = true;
+
+    }
+
+    if (_deadmanSwitchEnabled && blinklightTimer.elapsed(500)){
+      int argsToSend[] = {1,255};
+      if (blinkstate){
+        argsToSend[1] = 0;
+      }
+      command.pushCommand("ligt",argsToSend);
+      blinkstate = !blinkstate;
+    }
+
+
     if( command.cmp("holdHeading_toggle")){
       if (_headingHoldEnabled) {
         _headingHoldEnabled = false;
@@ -174,6 +205,3 @@ void Pilot::device_loop(Command command){
     }
 }
 #endif
-
-
-
