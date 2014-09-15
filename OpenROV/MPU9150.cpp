@@ -19,6 +19,7 @@ int MPUDeviceId = 1;
 boolean DidInit = false;
 boolean InCallibrationMode = false;
 Timer MPU9150ReInit;
+Timer mpu_update_timer;
 CALLIB_DATA calData;
 Timer calibration_timer;
 int counter = 0;
@@ -74,6 +75,7 @@ void MPU9150::device_setup(){
   Settings::capability_bitarray |= (1 << COMPASS_CAPABLE);
   Settings::capability_bitarray |= (1 << ORIENTATION_CAPABLE);
   MPU9150ReInit.reset();
+  mpu_update_timer.reset();
 }
 
 void MPU9150::device_loop(Command command){
@@ -205,22 +207,15 @@ void MPU9150::device_loop(Command command){
   else if (command.cmp("i2cscan")){
    // scan();
   }
-//    MPU.selectDevice(MPUDeviceId);
+
+  if (mpu_update_timer.elapsed (50)){ //20 hz
     MPU.read();
-//    {
-//        Serial.println(F("log:SwappingIMUAddress;"));
-//        MPUDeviceId = !MPUDeviceId;
-//        MPU.selectDevice(MPUDeviceId);
-//        if(!MPU.read()){
-//		Serial.println(F("log:Failed to read IMU on both addresses. Sleeping for 1 minute"));
-//		DidInit = false;
-//	}
-//    }
     navdata::HDGD = MPU.m_fusedEulerPose[VEC3_Z] * RAD_TO_DEGREE;
     //To convert to-180/180 to 0/360
     if (navdata::HDGD < 0) navdata::HDGD+=360;
     navdata::PITC = MPU.m_fusedEulerPose[VEC3_Y] * RAD_TO_DEGREE;
     navdata::ROLL = MPU.m_fusedEulerPose[VEC3_X] * RAD_TO_DEGREE;
     navdata::YAW = MPU.m_fusedEulerPose[VEC3_Z] * RAD_TO_DEGREE;
+  }
 }
 #endif
