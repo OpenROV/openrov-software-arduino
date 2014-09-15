@@ -145,16 +145,17 @@ void Thrusters::device_loop(Command command){
         }
     }
 
-    // The code below was intended to correct for the total possible range,
-    // and since the reverse direction was using a 2x modified, you only
-    // have 1/2 the range.
+    // The code below spreads the throttle spectrum over the possible range
+    // of the motor. Not sure this belongs here or should be placed with
+    // deadzon calculation in the motor code.
     if (trg_throttle>=0){
-      p = 1500 + 500*trg_throttle;
+      p = 1500 + (500/abs(port_motor.motor_positive_modifer))*trg_throttle;
       s = p;
     } else {
-      p = 1500 + 250*trg_throttle;
+      p = 1500 + (500/abs(port_motor.motor_negative_modifer))*trg_throttle;
       s = p;
     }
+    
     trg_motor_power = s;
 
     int turn = trg_yaw*250; //max range due to reverse range
