@@ -138,6 +138,13 @@ void Thrusters::device_loop(Command command){
       }
     }
 
+    if (command.cmp("yaw")) {
+        //ignore corrupt data
+        if (command.args[1]>=-100 && command.args[1]<=100) { //percent of max turn
+          trg_yaw = command.args[1]/100.0;
+        }
+    }
+
     // The code below was intended to correct for the total possible range,
     // and since the reverse direction was using a 2x modified, you only
     // have 1/2 the range.
@@ -150,27 +157,17 @@ void Thrusters::device_loop(Command command){
     }
     trg_motor_power = s;
 
-    if (command.cmp("yaw")) {
-        //ignore corrupt data
-        if (command.args[1]>=-100 && command.args[1]<=100) { //percent of max turn
-          trg_yaw = command.args[1]/100.0;
-          int turn = trg_yaw*250; //max range due to reverse range
-          int sign=0;
-          sign = (turn>0) - (turn<0);
-          if (trg_throttle >=0){
-            int offset = (abs(turn)+trg_motor_power)-2000;
-            if (offset < 0) offset = 0;
-            p = trg_motor_power+turn-offset;
-            s = trg_motor_power-turn-offset;
-          } else {
-            int offset = 1000-(trg_motor_power-abs(turn));
-            if (offset < 0) offset = 0;
-            p = trg_motor_power+turn+offset;
-            s = trg_motor_power-turn+offset;
-          }
-
-
-        }
+    int turn = trg_yaw*250; //max range due to reverse range
+    if (trg_throttle >=0){
+      int offset = (abs(turn)+trg_motor_power)-2000;
+      if (offset < 0) offset = 0;
+      p = trg_motor_power+turn-offset;
+      s = trg_motor_power-turn-offset;
+    } else {
+      int offset = 1000-(trg_motor_power-abs(turn));
+      if (offset < 0) offset = 0;
+      p = trg_motor_power+turn+offset;
+      s = trg_motor_power-turn+offset;
     }
 
   }
