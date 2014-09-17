@@ -127,8 +127,8 @@ void setup(){
   {
     wdt_resets = EEPROM.read(1);
     EEPROM.write(0,0); // reset byte so the EEPROM is not read on next startup
-    Serial.println("log:Watchdog was triggered and the following was read from EEPROM;");
-    Serial.print("log:");
+    Serial.println(F("log:Watchdog was triggered and the following was read from EEPROM;"));
+    Serial.print(F("log:"));
     Serial.println(wdt_resets);
     Serial.print(';');
   }
@@ -138,6 +138,7 @@ void setup(){
   Output100ms.reset();
 
   DeviceManager::doDeviceSetups();
+  Serial.println(F("boot:1;"));
 }
 
 
