@@ -14,7 +14,7 @@ class Motor {
     Motor(int motor_pin);
     Motor();
     void attachPin(int motor_pin);
-    void goms(int ms);
+    int goms(int ms);
     void reset();
     void stop();
     bool attached();

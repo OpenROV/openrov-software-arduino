@@ -155,7 +155,7 @@ void Thrusters::device_loop(Command command){
       p = 1500 + (500/abs(port_motor.motor_negative_modifer))*trg_throttle;
       s = p;
     }
-    
+
     trg_motor_power = s;
 
     int turn = trg_yaw*250; //max range due to reverse range
@@ -221,9 +221,13 @@ void Thrusters::device_loop(Command command){
         new_s=s;
         bypasssmoothing = false;
       }
-      port_motor.goms(new_p);
-      vertical_motor.goms(new_v);
-      starboard_motor.goms(new_s);
+      Serial.print(F("motors:"));
+      Serial.print(port_motor.goms(new_p));
+      Serial.print(',');
+      Serial.print(vertical_motor.goms(new_v));
+      Serial.print(',');
+      Serial.print(starboard_motor.goms(new_s));
+      Serial.println(';');
     }
 
   }
@@ -232,14 +236,6 @@ void Thrusters::device_loop(Command command){
 
   //The output from the motors is unique to the thruster configuration
   if (thrusterOutput.elapsed(1000)){
-    Serial.print(F("motors:"));
-    Serial.print(new_p);
-    Serial.print(',');
-    Serial.print(new_v);
-    Serial.print(',');
-    Serial.print(new_s);
-    Serial.println(';');
-
     Serial.print(F("mtarg:"));
     Serial.print(p);
     Serial.print(',');

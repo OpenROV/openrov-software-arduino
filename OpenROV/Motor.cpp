@@ -16,12 +16,13 @@ void Motor::reset(){
   _servo.attach(_motor_pin);
 }
 
-void Motor::goms(int ms){
+int Motor::goms(int ms){
   int modifier = 1;
   if (ms>MIDPOINT) modifier = motor_positive_modifer;
   if (ms<MIDPOINT) modifier = motor_negative_modifer;
   int delta = ms-MIDPOINT;
   _servo.writeMicroseconds(constrain(MIDPOINT+delta*modifier,1000,2000));
+  return _servo.readMicroseconds();
 }
 
 void Motor::stop(){
