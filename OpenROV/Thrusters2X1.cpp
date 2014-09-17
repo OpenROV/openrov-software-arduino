@@ -197,9 +197,10 @@ void Thrusters::device_loop(Command command){
       p = MIDPOINT;
       v = MIDPOINT;
       s = MIDPOINT;
-      port_motor.stop();
-      vertical_motor.stop();
-      starboard_motor.stop();
+      // Not sure why the reset does not re-attach the servo.
+      //port_motor.stop();
+      //vertical_motor.stop();
+      //starboard_motor.stop();
     }
     #ifdef ESCPOWER_PIN
     else if ((command.cmp("mcal")) && (canPowerESCs)){
@@ -245,6 +246,7 @@ void Thrusters::device_loop(Command command){
     Serial.print(',');
     Serial.print(s);
     Serial.println(';');
+    thrusterdata::MATC = port_motor.attached() || port_motor.attached() || port_motor.attached();
 
   }
 }
