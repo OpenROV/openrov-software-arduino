@@ -6,21 +6,21 @@
 //
 //  Copyright (c) 2013 Pansenti, LLC
 //
-//  Permission is hereby granted, free of charge, to any person obtaining a copy of 
-//  this software and associated documentation files (the "Software"), to deal in 
-//  the Software without restriction, including without limitation the rights to use, 
-//  copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the 
-//  Software, and to permit persons to whom the Software is furnished to do so, 
+//  Permission is hereby granted, free of charge, to any person obtaining a copy of
+//  this software and associated documentation files (the "Software"), to deal in
+//  the Software without restriction, including without limitation the rights to use,
+//  copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+//  Software, and to permit persons to whom the Software is furnished to do so,
 //  subject to the following conditions:
 //
-//  The above copyright notice and this permission notice shall be included in all 
+//  The above copyright notice and this permission notice shall be included in all
 //  copies or substantial portions of the Software.
 //
-//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, 
-//  INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A 
-//  PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT 
-//  HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION 
-//  OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
+//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+//  INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+//  PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+//  HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+//  OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 //  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "MPU9150Lib.h"
@@ -75,9 +75,9 @@ static inline unsigned short inv_row_2_scale(const signed char *row)
  * chip-to-body matrix for your particular set up.
  */
 
-static signed char gyro_orientation[9] = { 1, 0, 0,
-                                           0, 1, 0,
-                                           0, 0, 1};
+static signed char gyro_orientation[9] = { 0, -1, 0,
+                                           -1, 0, 0,
+                                           0, 0, -1};
 
 static inline unsigned short inv_orientation_matrix_to_scalar(const signed char *mtx)
 {
@@ -201,9 +201,9 @@ boolean MPU9150Lib::init(int mpuRate, int magMix, int magRate, int lpf)
 #endif
 
   mpu_init_structures();
-    
+
   // Not using interrupts so set up this structure to keep the driver happy
-        
+
   int_param.cb = NULL;
   int_param.pin = 0;
   int_param.lp_exit = 0;
@@ -213,7 +213,7 @@ boolean MPU9150Lib::init(int mpuRate, int magMix, int magRate, int lpf)
 #ifdef MPULIB_DEBUG
      Serial.print("mpu_init failed with code: "); Serial.println(result);
 #endif
-     return false; 
+     return false;
   }
   mpu_set_sensors(INV_XYZ_GYRO | INV_XYZ_ACCEL | INV_XYZ_COMPASS);   // enable all of the sensors
   mpu_configure_fifo(INV_XYZ_GYRO | INV_XYZ_ACCEL);                  // get accel and gyro data in the FIFO also
@@ -254,22 +254,22 @@ boolean MPU9150Lib::read()
     short sensors;
     unsigned char more;
     unsigned long timestamp;
-   
+
     mpu_select_device(m_device);
     dmp_select_device(m_device);
     mpu_get_int_status(&intStatus);                       // get the current MPU state
     if ((intStatus & (MPU_INT_STATUS_DMP | MPU_INT_STATUS_DMP_0))
             != (MPU_INT_STATUS_DMP | MPU_INT_STATUS_DMP_0))
         return false;
-        
+
     //  get the data from the fifo
-        
+
     if ((result = dmp_read_fifo(m_rawGyro, m_rawAccel, m_rawQuaternion, &timestamp, &sensors, &more)) != 0) {
       return false;
-    }      
-    
+    }
+
     //  got the fifo data so now get the mag data if it's time
-    
+
     if ((millis() - m_lastMagSample) >= m_magInterval) {
       if ((result = mpu_get_compass_reg(m_rawMag, &timestamp)) != 0) {
 #ifdef MPULIB_DEBUG
@@ -292,19 +292,19 @@ boolean MPU9150Lib::read()
         m_calMag[VEC3_Z] = m_rawMag[VEC3_Z];
       }
     }
-    
+
     // got the raw data - now process
-    
+
     m_dmpQuaternion[QUAT_W] = (float)m_rawQuaternion[QUAT_W];  // get float version of quaternion
     m_dmpQuaternion[QUAT_X] = (float)m_rawQuaternion[QUAT_X];
     m_dmpQuaternion[QUAT_Y] = (float)m_rawQuaternion[QUAT_Y];
     m_dmpQuaternion[QUAT_Z] = (float)m_rawQuaternion[QUAT_Z];
     MPUQuaternionNormalize(m_dmpQuaternion);                 // and normalize
-    
+
     MPUQuaternionQuaternionToEuler(m_dmpQuaternion, m_dmpEulerPose);
 
 
-    // Scale accel data 
+    // Scale accel data
 
     if (m_useAccelCalibration) {
 /*        m_calAccel[VEC3_X] = -(short)((((long)m_rawAccel[VEC3_X] + m_accelOffset[0])
@@ -355,19 +355,19 @@ void MPU9150Lib::dataFusion()
 
   m_fusedEulerPose[VEC3_X] = m_dmpEulerPose[VEC3_X];
   m_fusedEulerPose[VEC3_Y] = -m_dmpEulerPose[VEC3_Y];
-  m_fusedEulerPose[VEC3_Z] = 0;	
+  m_fusedEulerPose[VEC3_Z] = 0;
   MPUQuaternionEulerToQuaternion(m_fusedEulerPose, unFused);    // create a new quaternion
 
   deltaDMPYaw = -m_dmpEulerPose[VEC3_Z] + m_lastDMPYaw;         // calculate change in yaw from dmp
   m_lastDMPYaw = m_dmpEulerPose[VEC3_Z];                        // update that
- 
+
   qMag[QUAT_W] = 0;
   qMag[QUAT_X] = m_calMag[VEC3_X];
   qMag[QUAT_Y] = m_calMag[VEC3_Y];
   qMag[QUAT_Z] = m_calMag[VEC3_Z];
-	
+
   // Tilt compensate mag with the unfused data (i.e. just roll and pitch with yaw 0)
-	
+
   MPUQuaternionConjugate(unFused, unFusedConjugate);
   MPUQuaternionMultiply(qMag, unFusedConjugate, temp1);
   MPUQuaternionMultiply(unFused, temp1, qMag);
@@ -414,44 +414,44 @@ void MPU9150Lib::dataFusion()
     newYaw -= 2.0f * (float)M_PI;
 
   m_fusedEulerPose[VEC3_Z] = newYaw;                            // fill in output yaw value
-	
+
   MPUQuaternionEulerToQuaternion(m_fusedEulerPose, m_fusedQuaternion);
 }
 
 void MPU9150Lib::printQuaternion(long *quat)
 {
-  Serial.print("w: "); Serial.print(quat[QUAT_W]);  
-  Serial.print(" x: "); Serial.print(quat[QUAT_X]);  
-  Serial.print(" y: "); Serial.print(quat[QUAT_Y]);  
-  Serial.print(" z: "); Serial.print(quat[QUAT_Z]);  
+  Serial.print("w: "); Serial.print(quat[QUAT_W]);
+  Serial.print(" x: "); Serial.print(quat[QUAT_X]);
+  Serial.print(" y: "); Serial.print(quat[QUAT_Y]);
+  Serial.print(" z: "); Serial.print(quat[QUAT_Z]);
 }
 
 void MPU9150Lib::printQuaternion(float *quat)
 {
-  Serial.print("w: "); Serial.print(quat[QUAT_W]);  
-  Serial.print(" x: "); Serial.print(quat[QUAT_X]);  
-  Serial.print(" y: "); Serial.print(quat[QUAT_Y]);  
-  Serial.print(" z: "); Serial.print(quat[QUAT_Z]);  
+  Serial.print("w: "); Serial.print(quat[QUAT_W]);
+  Serial.print(" x: "); Serial.print(quat[QUAT_X]);
+  Serial.print(" y: "); Serial.print(quat[QUAT_Y]);
+  Serial.print(" z: "); Serial.print(quat[QUAT_Z]);
 }
 
 void MPU9150Lib::printVector(short *vec)
 {
-  Serial.print("x: "); Serial.print(vec[VEC3_X]);  
-  Serial.print(" y: "); Serial.print(vec[VEC3_Y]);  
-  Serial.print(" z: "); Serial.print(vec[VEC3_Z]);    
+  Serial.print("x: "); Serial.print(vec[VEC3_X]);
+  Serial.print(" y: "); Serial.print(vec[VEC3_Y]);
+  Serial.print(" z: "); Serial.print(vec[VEC3_Z]);
 }
 
 void MPU9150Lib::printVector(float *vec)
 {
-  Serial.print("x: "); Serial.print(vec[VEC3_X]);  
-  Serial.print(" y: "); Serial.print(vec[VEC3_Y]);  
-  Serial.print(" z: "); Serial.print(vec[VEC3_Z]);    
+  Serial.print("x: "); Serial.print(vec[VEC3_X]);
+  Serial.print(" y: "); Serial.print(vec[VEC3_Y]);
+  Serial.print(" z: "); Serial.print(vec[VEC3_Z]);
 }
 
 void MPU9150Lib::printAngles(float *vec)
 {
-  Serial.print("x: "); Serial.print(vec[VEC3_X] * RAD_TO_DEGREE);  
-  Serial.print(" y: "); Serial.print(vec[VEC3_Y] * RAD_TO_DEGREE);  
-  Serial.print(" z: "); Serial.print(vec[VEC3_Z] * RAD_TO_DEGREE);    
+  Serial.print("x: "); Serial.print(vec[VEC3_X] * RAD_TO_DEGREE);
+  Serial.print(" y: "); Serial.print(vec[VEC3_Y] * RAD_TO_DEGREE);
+  Serial.print(" z: "); Serial.print(vec[VEC3_Z] * RAD_TO_DEGREE);
 }
 #endif
