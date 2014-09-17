@@ -194,9 +194,12 @@ void Thrusters::device_loop(Command command){
       starboard_motor.reset();
     }
     else if (command.cmp("stop")) {
-      port_motor.reset();
-      vertical_motor.reset();
-      starboard_motor.reset();
+      p = MIDPOINT;
+      v = MIDPOINT;
+      s = MIDPOINT;
+      port_motor.stop();
+      vertical_motor.stop();
+      starboard_motor.stop();
     }
     #ifdef ESCPOWER_PIN
     else if ((command.cmp("mcal")) && (canPowerESCs)){

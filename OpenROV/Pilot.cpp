@@ -45,7 +45,11 @@ void Pilot::device_loop(Command command){
 
     if( command.cmp("ping")){
       deadmanSwitchTimer.reset();
-      _deadmanSwitchEnabled = false;
+      if (_deadmanSwitchEnabled){
+        int argsToSend[] = {0};
+        command.pushCommand("start",argsToSend);
+        _deadmanSwitchEnabled = false;      
+      }
       Serial.print(F("pong:")); Serial.print(command.args[0]); Serial.print(","); Serial.print(millis()); Serial.print(";");
     }
 
