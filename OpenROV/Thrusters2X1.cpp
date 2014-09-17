@@ -68,7 +68,6 @@ void Thrusters::device_setup(){
   #ifdef ESCPOWER_PIN
     escpower.reset();
     escpower.write(1); //Turn on the ESCs
-
   #endif
 }
 
@@ -195,7 +194,7 @@ void Thrusters::device_loop(Command command){
       starboard_motor.reset();
     }
     else if (command.cmp("stop")) {
-      port_motor.stop();
+      port_motor.reset();
       vertical_motor.reset();
       starboard_motor.reset();
     }
