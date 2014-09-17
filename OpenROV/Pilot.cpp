@@ -59,7 +59,7 @@ void Pilot::device_loop(Command command){
     }
 
     if (_deadmanSwitchEnabled && blinklightTimer.elapsed(500)){
-      int argsToSend[] = {1,255};
+      int argsToSend[] = {1,50};
       if (blinkstate){
         argsToSend[1] = 0;
       }
