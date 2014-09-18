@@ -15,7 +15,8 @@ int hdg = 0;
 int hdg_Error;
 int raw_Left, raw_Right;
 int left, right;  // motor outputs in microseconds, +/-500
-int loop_Gain = 1;
+float heading_loop_Gain = 1.0;
+float depth_hold_loop_gain = 0.6;
 int integral_Divisor = 100;
 long hdg_Error_Integral = 0;
 int tgt_Hdg = 0;
@@ -29,7 +30,8 @@ int target_depth;
 int raw_yaw, yaw;
 bool _deadmanSwitchEnabled = false;
 bool blinkstate = false;
-int depth_deadband = 10; // +/- cm
+int depth_deadband = 4; // +/- cm
+int heading_deadband = 4;
 
 
 
@@ -154,15 +156,18 @@ void Pilot::device_loop(Command command){
         depth = navdata::DEAP*100;
         depth_Error = target_depth-depth;  //positive error = positive lift = go deaper.
 
-        raw_lift = depth_Error * loop_Gain;
-        lift = constrain(raw_lift, 100, 100);
+        raw_lift = (float)depth_Error * depth_hold_loop_gain;
+        lift = constrain(raw_lift, -100, 100);
 
         Serial.println(F("log:dhold pushing command;"));
         Serial.print(F("dp_er:"));
         Serial.print(depth_Error);
         Serial.println(';');
-        if (depth_Error>depth_deadband){
+        if (abs(depth_Error)>depth_deadband){
           int argsToSend[] = {1,lift}; //include number of parms as last parm
+          command.pushCommand("lift",argsToSend);
+        } else {
+          int argsToSend[] = {1,0}; //include number of parms as last parm
           command.pushCommand("lift",argsToSend);
         }
 
@@ -192,7 +197,7 @@ void Pilot::device_loop(Command command){
         hdg_Error_Integral = hdg_Error_Integral + hdg_Error;
 
         // Calculator motor outputs
-        raw_yaw = -1 * hdg_Error * loop_Gain;
+        raw_yaw = -1 * hdg_Error * heading_loop_Gain;
 
         // raw_Left = raw_Left - (hdg_Error_Integral / integral_Divisor);
         // raw_Right = raw_Right + (hdg_Error_Integral / integral_Divisor);
@@ -205,8 +210,13 @@ void Pilot::device_loop(Command command){
         Serial.print(hdg_Error);
         Serial.println(';');
 
-        int argsToSend[] = {1,yaw}; //include number of parms as last parm
-        command.pushCommand("yaw",argsToSend);
+        if (abs(hdg_Error) > heading_deadband){
+          int argsToSend[] = {1,yaw}; //include number of parms as last parm
+          command.pushCommand("yaw",argsToSend);
+        } else {
+          int argsToSend[] = {1,0}; //include number of parms as last parm
+          command.pushCommand("yaw",argsToSend);
+        }
       }
 
 
