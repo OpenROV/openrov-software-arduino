@@ -26,9 +26,9 @@ int Motor::goms(int ms){
   //map around deadzone
   int predeadzonems = constrain(MIDPOINT+delta*modifier,1000,2000);
   int finalms = 1500;
-  if (predeadzonems < 0){
+  if (ms < 1500){
      finalms = map(predeadzonems, 1000, 1500, 1000, 1500-motor_deadzone_negative);
-  } else if (predeadzonems > 0) {
+  } else if (ms > 1500) {
      finalms = map(predeadzonems, 1500, 2000, 1500+motor_deadzone_positive, 2000);
   }
 
