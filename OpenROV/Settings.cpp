@@ -4,8 +4,8 @@
 
 int Settings::capability_bitarray = 0;
 int Settings::smoothingIncriment = 40; //How aggressive the throttle changes
-int Settings::deadZone_min = 25;
-int Settings::deadZone_max = 25;
+int Settings::deadZone_min = 50;
+int Settings::deadZone_max = 50;
 bool Settings::water_type = 0; //Freshwater
 
 
