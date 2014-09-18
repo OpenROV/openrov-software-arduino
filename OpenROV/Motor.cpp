@@ -10,8 +10,8 @@ void Motor::attachPin(int motor_pin){
   _motor_pin = motor_pin;
   motor_positive_modifer = 1.0;
   motor_negative_modifer = 2.0;
-  motor_deadzone_negative = 25;
-  motor_deadzone_positive = 25;
+  motor_deadzone_negative = 50;
+  motor_deadzone_positive = 50;
 }
 
 void Motor::reset(){

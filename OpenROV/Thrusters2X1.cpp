@@ -130,10 +130,10 @@ void Thrusters::device_loop(Command command){
     // of the motor. Not sure this belongs here or should be placed with
     // deadzon calculation in the motor code.
     if (trg_throttle>=0){
-      p = 1500 + (500/abs(port_motor.motor_positive_modifer))*trg_throttle;
+      p = 1500 + (500.0/abs(port_motor.motor_positive_modifer))*trg_throttle;
       s = p;
     } else {
-      p = 1500 + (500/abs(port_motor.motor_negative_modifer))*trg_throttle;
+      p = 1500 + (500.0/abs(port_motor.motor_negative_modifer))*trg_throttle;
       s = p;
     }
 
