@@ -29,6 +29,8 @@ int target_depth;
 int raw_yaw, yaw;
 bool _deadmanSwitchEnabled = false;
 bool blinkstate = false;
+int depth_deadband = 10; // +/- cm
+
 
 
 void Pilot::device_setup(){
@@ -48,7 +50,7 @@ void Pilot::device_loop(Command command){
       if (_deadmanSwitchEnabled){
         int argsToSend[] = {0};
         command.pushCommand("start",argsToSend);
-        _deadmanSwitchEnabled = false;      
+        _deadmanSwitchEnabled = false;
       }
       Serial.print(F("pong:")); Serial.print(command.args[0]); Serial.print(","); Serial.print(millis()); Serial.print(";");
     }
@@ -153,14 +155,16 @@ void Pilot::device_loop(Command command){
         depth_Error = target_depth-depth;  //positive error = positive lift = go deaper.
 
         raw_lift = depth_Error * loop_Gain;
-        lift = constrain(raw_lift, -50, 50);
+        lift = constrain(raw_lift, 100, 100);
 
         Serial.println(F("log:dhold pushing command;"));
         Serial.print(F("dp_er:"));
         Serial.print(depth_Error);
         Serial.println(';');
-        int argsToSend[] = {1,lift}; //include number of parms as last parm
-        command.pushCommand("lift",argsToSend);
+        if (depth_Error>depth_deadband){
+          int argsToSend[] = {1,lift}; //include number of parms as last parm
+          command.pushCommand("lift",argsToSend);
+        }
 
       }
 
