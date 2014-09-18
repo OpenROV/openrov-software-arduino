@@ -49,13 +49,8 @@ int smoothAdjustedServoPosition(int target, int current){
   double x = target - current;
   int sign = (x>0) - (x<0);
   int adjustedVal = current + sign * (min(abs(target - current), Settings::smoothingIncriment));
-  // skip the deadzone
-  if (sign<0) {
-    return (min(adjustedVal,Settings::deadZone_min));
-  } else if(sign>0){
-    return (max(adjustedVal,Settings::deadZone_max));
-  } else
-    return (adjustedVal);
+
+  return (adjustedVal);
 }
 
 void Thrusters::device_setup(){
