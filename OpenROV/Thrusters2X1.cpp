@@ -59,8 +59,14 @@ int smoothAdjustedServoPosition(int target, int current){
 }
 
 void Thrusters::device_setup(){
+  port_motor.motor_deadzone_negative = Settings::deadZone_min;
+  port_motor.motor_deadzone_positive = Settings::deadZone_max;
   port_motor.reset();
+  vertical_motor.motor_deadzone_negative = Settings::deadZone_min;
+  vertical_motor.motor_deadzone_positive = Settings::deadZone_max;
   vertical_motor.reset();
+  starboard_motor.motor_deadzone_negative = Settings::deadZone_min;
+  starboard_motor.motor_deadzone_positive = Settings::deadZone_max;
   starboard_motor.reset();
   thrusterOutput.reset();
   controltime.reset();

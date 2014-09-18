@@ -20,6 +20,8 @@ class Motor {
     bool attached();
     float motor_positive_modifer;
     float motor_negative_modifer;
+    int motor_deadzone_negative;
+    int motor_deadzone_positive;
 };
 
 #endif
