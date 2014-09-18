@@ -25,11 +25,11 @@ int Motor::goms(int ms){
   int delta = ms-MIDPOINT;
   //map around deadzone
   int predeadzonems = constrain(MIDPOINT+delta*modifier,1000,2000);
-  int finalms = 1500;
-  if (ms < 1500){
-     finalms = map(predeadzonems, 1000, 1500, 1000, 1500-motor_deadzone_negative);
-  } else if (ms > 1500) {
-     finalms = map(predeadzonems, 1500, 2000, 1500+motor_deadzone_positive, 2000);
+  int finalms = MIDPOINT;
+  if (predeadzonems < MIDPOINT){
+     finalms = map(predeadzonems, 1000, MIDPOINT, 1000, MIDPOINT-motor_deadzone_negative);
+  } else if (predeadzonems > MIDPOINT) {
+     finalms = map(predeadzonems, MIDPOINT, 2000, MIDPOINT+motor_deadzone_positive, 2000);
   }
 
   _servo.writeMicroseconds(constrain(finalms,1000,2000));
