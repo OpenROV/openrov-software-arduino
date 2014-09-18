@@ -4,8 +4,8 @@
 
 int Settings::capability_bitarray = 0;
 int Settings::smoothingIncriment = 40; //How aggressive the throttle changes
-int Settings::deadZone_min = MIDPOINT;
-int Settings::deadZone_max = MIDPOINT;
+int Settings::deadZone_min = 25;
+int Settings::deadZone_max = 25;
 bool Settings::water_type = 0; //Freshwater
 
 
@@ -33,6 +33,8 @@ void Settings::device_loop(Command command){
       scan_i2c();
     }
     else if (command.cmp("updateSetting")) {
+      //TODO: Need to update the motors with new deadZone setting. Probably move
+      //deadzone to the thruster resposibilitiy
       Settings::smoothingIncriment = command.args[1];
       Settings::deadZone_min = command.args[2];
       Settings::deadZone_max = command.args[3];
