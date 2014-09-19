@@ -52,25 +52,24 @@ void MPU9150::device_setup(){
   //Todo: Read calibration values from EPROM
   Wire.begin();
   MPU.selectDevice(MPUDeviceId);
-  //  MPU.init(MPU_UPDATE_RATE, MPU_MAG_MIX_GYRO_AND_MAG, MAG_UPDATE_RATE, MPU_LPF_RATE);
-  if (!MPU.init(MPU_UPDATE_RATE, MPU_MAG_MIX_GYRO_AND_MAG, MAG_UPDATE_RATE, MPU_LPF_RATE)){
-	Serial.println(F("log:Trying other MPU9150 address to init;"));
-	Serial.print(F("log:IMU Address was :"));
-	Serial.print(1);
-	MPUDeviceId = !MPUDeviceId;
-	Serial.print(F(" but is now:"));
-	Serial.print(MPUDeviceId);
-	Serial.println(";");
-	MPU.selectDevice(MPUDeviceId);
-	if (MPU.init(MPU_UPDATE_RATE, MPU_MAG_MIX_GYRO_AND_MAG, MAG_UPDATE_RATE, MPU_LPF_RATE)){
-		DidInit = true;
-		Serial.println(F("log:Init worked the second time;"));
-	} else {
-		Serial.println(F("log:Failed to init on both addresses;"));
-	}
+  if (!MPU.init(MPU_UPDATE_RATE, MPU_MAG_MIX_GYRO_ONLY, MAG_UPDATE_RATE, MPU_LPF_RATE)){
+  	Serial.println(F("log:Trying other MPU9150 address to init;"));
+  	Serial.print(F("log:IMU Address was :"));
+  	Serial.print(1);
+  	MPUDeviceId = !MPUDeviceId;
+  	Serial.print(F(" but is now:"));
+  	Serial.print(MPUDeviceId);
+  	Serial.println(";");
+  	MPU.selectDevice(MPUDeviceId);
+  	if (MPU.init(MPU_UPDATE_RATE, MPU_MAG_MIX_GYRO_ONLY, MAG_UPDATE_RATE, MPU_LPF_RATE)){
+  		DidInit = true;
+  		Serial.println(F("log:Init worked the second time;"));
+  	} else {
+  		Serial.println(F("log:Failed to init on both addresses;"));
+  	}
   } else {
-	DidInit = true;
-	Serial.println(F("log:init on primary addresses;"));
+  	DidInit = true;
+  	Serial.println(F("log:init on primary addresses;"));
   }                             // start the MPU
   Settings::capability_bitarray |= (1 << COMPASS_CAPABLE);
   Settings::capability_bitarray |= (1 << ORIENTATION_CAPABLE);
@@ -209,14 +208,15 @@ void MPU9150::device_loop(Command command){
   }
 
   if (mpu_update_timer.elapsed (50)){ //20 hz
-    MPU.read();
-    navdata::HDGD = MPU.m_fusedEulerPose[VEC3_Z] * RAD_TO_DEGREE;
-    //To convert to-180/180 to 0/360
-    if (navdata::HDGD < 0) navdata::HDGD+=360;
-    navdata::PITC = 180 + (MPU.m_fusedEulerPose[VEC3_X] * RAD_TO_DEGREE);
-    if (navdata::PITC > 180) (navdata::PITC = navdata::PITC - 360);
-    navdata::ROLL = MPU.m_fusedEulerPose[VEC3_X] * RAD_TO_DEGREE;
-    navdata::YAW = MPU.m_fusedEulerPose[VEC3_Z] * RAD_TO_DEGREE;
+    if(MPU.read()){
+      navdata::HDGD = MPU.m_fusedEulerPose[VEC3_Z] * RAD_TO_DEGREE;
+      //To convert to-180/180 to 0/360
+      if (navdata::HDGD < 0) navdata::HDGD+=360;
+      navdata::PITC = 180 + (MPU.m_fusedEulerPose[VEC3_X] * RAD_TO_DEGREE);
+      if (navdata::PITC > 180) (navdata::PITC = navdata::PITC - 360);
+      navdata::ROLL = MPU.m_fusedEulerPose[VEC3_X] * RAD_TO_DEGREE;
+      navdata::YAW = MPU.m_fusedEulerPose[VEC3_Z] * RAD_TO_DEGREE;
+    }
   }
 }
 #endif
