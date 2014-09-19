@@ -31,7 +31,7 @@ int raw_yaw, yaw;
 bool _deadmanSwitchEnabled = false;
 bool blinkstate = false;
 int depth_deadband = 4; // +/- cm
-int heading_deadband = 4;
+int heading_deadband = 4;  // +/i degrees
 
 
 
@@ -211,6 +211,13 @@ void Pilot::device_loop(Command command){
         Serial.println(';');
 
         if (abs(hdg_Error) > heading_deadband){
+          //start the motor with least power
+          if (hdg_Error > 0) {
+            hdg_Error -=heading_deadband;
+          } else {
+            hdg_Error +=heading_deadband;
+          }
+
           int argsToSend[] = {1,yaw}; //include number of parms as last parm
           command.pushCommand("yaw",argsToSend);
         } else {
