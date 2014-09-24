@@ -61,32 +61,32 @@ float mapf(long x, long in_min, long in_max, long out_min, long out_max)
 void Cape::device_setup(){
   time.reset();
   statustime.reset();
-  // initialize all the readings to 0: 
+  // initialize all the readings to 0:
   for (int thisReading = 0; thisReading < numReadings; thisReading++)
-    readings[thisReading] = 0;     
+    readings[thisReading] = 0;
 }
 
 void Cape::device_loop(Command command){
 
   if (time.elapsed (100)) {
     // subtract the last reading:
-    total= total - readings[index];         
-    // read from the sensor:  
+    total= total - readings[index];
+    // read from the sensor:
     readings[index] = iout.read();
-    delay(1); 
+    delay(1);
     // add the reading to the total:
-    total= total + readings[index];       
-    // advance to the next position in the array:  
-    index = index + 1;                    
+    total= total + readings[index];
+    // advance to the next position in the array:
+    index = index + 1;
 
     // if we're at the end of the array...
-    if (index >= numReadings)              
-      // ...wrap around to the beginning: 
-      index = 0;                           
+    if (index >= numReadings)
+      // ...wrap around to the beginning:
+      index = 0;
 
     // calculate the average:
     average = total / numReadings;
-  } 
+  }
 
   // send voltage and current
   if (statustime.elapsed(100)) {
@@ -94,10 +94,7 @@ void Cape::device_loop(Command command){
     capedata::IOUT = mapf(average,0,1023,0,5)+.4;
     capedata::FMEM = freeMemory();
     capedata::ATMP = GetTemp();
-    capedata::UTIM = millis(); 
-  }  
+    capedata::UTIM = millis();
+  }
 }
 #endif
-
-
-

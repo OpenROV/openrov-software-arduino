@@ -81,6 +81,11 @@ Settings settings;
   MS5803_14BA DeapthSensor;
 #endif
 
+#if(DEADMANSWITCH_ON)
+  #include "DeadManSwitch.h"
+  DeadmanSwitch DMS;
+#endif
+
 Command cmd;
 
 volatile byte wdt_resets = 0; //watchdog resets

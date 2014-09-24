@@ -7,8 +7,7 @@
 #include "Timer.h"
 
 Timer pilotTimer;
-Timer deadmanSwitchTimer;
-Timer blinklightTimer;
+
 bool _headingHoldEnabled = false;
 int  _headingHoldTarget = 0;
 int hdg = 0;
@@ -28,8 +27,7 @@ int raw_lift =0;
 int lift = 0;
 int target_depth;
 int raw_yaw, yaw;
-bool _deadmanSwitchEnabled = false;
-bool blinkstate = false;
+
 int depth_deadband = 4; // +/- cm
 int heading_deadband = 4;  // +/i degrees
 
@@ -37,8 +35,7 @@ int heading_deadband = 4;  // +/i degrees
 
 void Pilot::device_setup(){
   pilotTimer.reset();
-  deadmanSwitchTimer.reset();
-  blinklightTimer.reset();
+
   Serial.println(F("log:pilot setup complete;"));
 }
 
@@ -47,98 +44,80 @@ void Pilot::device_setup(){
 void Pilot::device_loop(Command command){
 //intended to respond to fly by wire commands: MaintainHeading(); TurnTo(compassheading); DiveTo(depth);
 
-    if( command.cmp("ping")){
-      deadmanSwitchTimer.reset();
-      if (_deadmanSwitchEnabled){
-        int argsToSend[] = {0};
-        command.pushCommand("start",argsToSend);
-        _deadmanSwitchEnabled = false;
-      }
-      Serial.print(F("pong:")); Serial.print(command.args[0]); Serial.print(","); Serial.print(millis()); Serial.print(";");
-    }
 
-    if (deadmanSwitchTimer.elapsed (2000)) {
-      _depthHoldEnabled = false;
+
+    if( command.cmp("headloff")){
       _headingHoldEnabled = false;
-      int argsToSend[] = {0};
-      command.pushCommand("stop",argsToSend);
-      _deadmanSwitchEnabled = true;
+      raw_Left = 0;
+      raw_Right = 0;
+      hdg_Error_Integral = 0;  // Reset error integrator
+      tgt_Hdg = -500;  // -500 = system not in hdg hold
+
+      int argsToSend[] = {1,00}; //include number of parms as fist parm
+      command.pushCommand("yaw",argsToSend);
+      Serial.println(F("log:heading_hold_disabled;"));
+      Serial.print(F("targetHeading:"));Serial.print(DISABLED);Serial.println(';');
 
     }
 
-    if (_deadmanSwitchEnabled && blinklightTimer.elapsed(500)){
-      int argsToSend[] = {1,50};
-      if (blinkstate){
-        argsToSend[1] = 0;
+    if( command.cmp("headlon")){
+      _headingHoldEnabled = true;
+      if(command.args[0]==0){
+        _headingHoldTarget = navdata::HDGD;
+      } else {
+        _headingHoldTarget = command.args[1];
       }
-      command.pushCommand("ligt",argsToSend);
-      blinkstate = !blinkstate;
+      tgt_Hdg = _headingHoldTarget;
+      Serial.print(F("log:heading_hold_enabled on="));Serial.print(tgt_Hdg);Serial.println(';');
+      Serial.print(F("targetHeading:"));Serial.print(tgt_Hdg);Serial.println(';');
     }
 
-
+    //Backwards compatibility for a release or two (2.5.1 release)
     if( command.cmp("holdHeading_toggle")){
       if (_headingHoldEnabled) {
-        _headingHoldEnabled = false;
-        raw_Left = 0;
-        raw_Right = 0;
-        hdg_Error_Integral = 0;  // Reset error integrator
-        tgt_Hdg = -500;  // -500 = system not in hdg hold
-
-        int argsToSend[] = {1,00}; //include number of parms as last parm
-        command.pushCommand("yaw",argsToSend);
-        Serial.println(F("log:heading_hold_disabled;"));
-
+        int argsToSend[] = {0}; //include number of parms as fist parm
+        command.pushCommand("headloff",argsToSend);
       } else {
-        _headingHoldEnabled = true;
-        if(command.args[0]==0){
-          _headingHoldTarget = navdata::HDGD;
-        } else {
-          _headingHoldTarget = command.args[1];
-        }
-        tgt_Hdg = _headingHoldTarget;
-        Serial.print(F("log:heading_hold_enabled on="));
-        Serial.print(tgt_Hdg);
-        Serial.println(';');
+        int argsToSend[] = {1,command.args[0]}; //include number of parms as fist parm
+        command.pushCommand("headloff",argsToSend);
       }
-      Serial.print(F("targetHeading:"));
-      if (_headingHoldEnabled) {
-        Serial.print(tgt_Hdg);
+    }
+
+    if( command.cmp("deptloff")){
+      _depthHoldEnabled = false;
+      raw_lift = 0;
+      target_depth = 0;
+
+      int argsToSend[] = {1,0}; //include number of parms as fist parm
+      command.pushCommand("lift",argsToSend);
+      Serial.println(F("log:depth_hold_disabled;"));
+      Serial.print(F("targetDepth:"));Serial.print(DISABLED);Serial.println(';');
+
+    }
+
+    if( command.cmp("deptlon")){
+      _depthHoldEnabled = true;
+      if(command.args[0]==0){
+        _depthHoldTarget = navdata::DEAP*100;  //casting to cm
       } else {
-        Serial.print(DISABLED);
+        _depthHoldTarget = command.args[1];
       }
+      target_depth = _depthHoldTarget;
+      Serial.print(F("log:depth_hold_enabled on="));
+      Serial.print(target_depth);
       Serial.println(';');
+      Serial.print(F("targetDepth:"));  Serial.print(target_depth);Serial.println(';');
     }
 
 
     if( command.cmp("holdDepth_toggle")){
       if (_depthHoldEnabled) {
-        _depthHoldEnabled = false;
-        raw_lift = 0;
-        target_depth = 0;
-
-        int argsToSend[] = {1,0}; //include number of parms as last parm
-        command.pushCommand("lift",argsToSend);
-        Serial.println(F("log:depth_hold_disabled;"));
-
+        int argsToSend[] = {0}; //include number of parms as fist parm
+        command.pushCommand("deptloff",argsToSend);
       } else {
-        _depthHoldEnabled = true;
-        if(command.args[0]==0){
-          _depthHoldTarget = navdata::DEAP*100;  //casting to cm
-        } else {
-          _depthHoldTarget = command.args[1];
-        }
-        target_depth = _depthHoldTarget;
-        Serial.print(F("log:depth_hold_enabled on="));
-        Serial.print(target_depth);
-        Serial.println(';');
+        int argsToSend[] = {1,command.args[0]}; //include number of parms as fist parm
+        command.pushCommand("deptloff",argsToSend);
       }
-      Serial.print(F("targetDepth:"));
-      if (_depthHoldEnabled) {
-        Serial.print(target_depth);
-      } else {
-        Serial.print(DISABLED);
-      }
-      Serial.println(';');
     }
 
 
@@ -164,10 +143,10 @@ void Pilot::device_loop(Command command){
         Serial.print(depth_Error);
         Serial.println(';');
         if (abs(depth_Error)>depth_deadband){
-          int argsToSend[] = {1,lift}; //include number of parms as last parm
+          int argsToSend[] = {1,lift}; //include number of parms as fist parm
           command.pushCommand("lift",argsToSend);
         } else {
-          int argsToSend[] = {1,0}; //include number of parms as last parm
+          int argsToSend[] = {1,0}; //include number of parms as fist parm
           command.pushCommand("lift",argsToSend);
         }
 
@@ -218,10 +197,10 @@ void Pilot::device_loop(Command command){
             hdg_Error +=heading_deadband;
           }
 
-          int argsToSend[] = {1,yaw}; //include number of parms as last parm
+          int argsToSend[] = {1,yaw}; //include number of parms as fist parm
           command.pushCommand("yaw",argsToSend);
         } else {
-          int argsToSend[] = {1,0}; //include number of parms as last parm
+          int argsToSend[] = {1,0}; //include number of parms as fist parm
           command.pushCommand("yaw",argsToSend);
         }
       }

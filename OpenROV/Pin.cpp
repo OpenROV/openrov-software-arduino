@@ -29,7 +29,7 @@ void Pin::send(int val){
   char output[MAX_LEN];
   String temp = name + SEPARATER + (String)val + DELIMITER;
   temp.toCharArray(output, MAX_LEN-1);
-  
+
   Serial.write(output);
 }
 
