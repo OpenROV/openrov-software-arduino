@@ -21,16 +21,13 @@ void Lights::device_loop(Command command){
     if( command.cmp("ligt")){
       int value = command.args[1]; //0 - 255
       light.write(value);
-      
+
       Serial.print(F("LIGT:"));
       Serial.print(value);
       Serial.print(';');
       Serial.print(F("LIGP:"));
       Serial.print(command.args[1]/255.0);
-      Serial.println(';');       
-    }  
+      Serial.println(';');
+    }
 }
 #endif
-
-
-

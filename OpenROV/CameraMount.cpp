@@ -40,7 +40,7 @@ void CameraMount::device_setup(){
     TCCR1A |= (1<<COM1A1) | (1<<WGM11); // non-inverting mode for OC1A
     TCCR1B |= (1<<WGM13) | (1<<WGM12) | (1<<CS11); // Mode 14, Prescaler 8
 
-    ICR1 = 40000; // 320000 / 8 = 40000   
+    ICR1 = 40000; // 320000 / 8 = 40000
     tiltServo(1500);
 #endif
     Settings::capability_bitarray |= (1 << CAMERA_MOUNT_1_AXIS_CAPABLE);
@@ -55,7 +55,7 @@ void CameraMount::device_loop(Command command){
     }
     if (tilt_val != new_tilt){
       new_tilt = smoothAdjustedCameraPosition(tilt_val,new_tilt);
-#if(CAMERAMOUNT_PIN != 11) //use timer 1     
+#if(CAMERAMOUNT_PIN != 11) //use timer 1
       tilt.writeMicroseconds(new_tilt);
 #else
       tiltServo(new_tilt);
@@ -63,12 +63,9 @@ void CameraMount::device_loop(Command command){
       cameraMountdata::CMNT = new_tilt;
     }
 
-    
+
 }
 
 //void Cape::do_event(Event event){
 //}
 #endif
-
-
-

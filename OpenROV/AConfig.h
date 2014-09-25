@@ -28,6 +28,7 @@
 #define HAS_STD_2X1_THRUSTERS (1)
 #define HAS_STD_CAMERAMOUNT (1)
 #define HAS_STD_PILOT (1)
+#define DEADMANSWITCH_ON (1)
 
 //After Market:
 #define HAS_POLOLU_MINIMUV (0)
