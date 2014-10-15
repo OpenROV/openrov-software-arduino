@@ -78,8 +78,14 @@ void Pilot::device_loop(Command command){
         int argsToSend[] = {0}; //include number of parms as fist parm
         command.pushCommand("headloff",argsToSend);
       } else {
-        int argsToSend[] = {1,command.args[0]}; //include number of parms as fist parm
-        command.pushCommand("headloff",argsToSend);
+        if(command.args[0]==0){
+          int argsToSend[] = {0}; //include number of parms as fist parm
+          command.pushCommand("headlon",argsToSend);
+        } else {
+          int argsToSend[] = {1,command.args[1]}; //include number of parms as fist parm
+          command.pushCommand("headlon",argsToSend);
+        }
+
       }
     }
 
@@ -115,8 +121,13 @@ void Pilot::device_loop(Command command){
         int argsToSend[] = {0}; //include number of parms as fist parm
         command.pushCommand("deptloff",argsToSend);
       } else {
-        int argsToSend[] = {1,command.args[0]}; //include number of parms as fist parm
-        command.pushCommand("deptloff",argsToSend);
+        if(command.args[0]==0){
+          int argsToSend[] = {0}; //include number of parms as fist parm
+          command.pushCommand("deptlon",argsToSend);
+        } else {
+          int argsToSend[] = {1,command.args[1]}; //include number of parms as fist parm
+          command.pushCommand("deptlon",argsToSend);
+        }
       }
     }
 
