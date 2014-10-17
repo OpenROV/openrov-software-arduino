@@ -25,6 +25,7 @@ class Command {
     boolean get();
     boolean cmp(char const* a);
     static void pushCommand(char* cmdtext, int cmdargs[MAX_ARGS]);
+    static void reset();
 };
 
 
