@@ -9,7 +9,7 @@
  static boolean storeString = false; //This will be our flag to put the data in our buffer
  static InternalCommand internalCommandBuffer[MAX_COMMANDS];
  static int internalCommandBuffer_head =0;
- static int internalCommandBuffer_tail =0; 
+ static int internalCommandBuffer_tail =0;
 
 boolean getSerialString(){
     static byte dataBufferIndex = 0;
@@ -43,7 +43,7 @@ boolean getSerialString(){
         else{
         }
     }
-   
+
     //We've read in all the available Serial data, and don't have a valid string yet, so return false
     return false;
 }
@@ -68,7 +68,7 @@ boolean Command::get(){
   commandReady = false;
   strcpy(_commandText,"");
   for (int i = 0;i<MAX_ARGS;i++){args[i]=0;}
- 
+
   if(getSerialString()){
     //String available for parsing.  Parse it here
      parse();
@@ -76,30 +76,32 @@ boolean Command::get(){
      return true;
   }
   if (internalCommandBuffer_head != internalCommandBuffer_tail){
-     //get from the command buffer
-     InternalCommand c = internalCommandBuffer[internalCommandBuffer_tail];
      internalCommandBuffer_tail++;
      if (internalCommandBuffer_tail == MAX_COMMANDS) internalCommandBuffer_tail =0;
+     //get from the command buffer
+     InternalCommand c = internalCommandBuffer[internalCommandBuffer_tail];
+
      strcpy(_commandText,c.cmdtext);
      if (_commandText==""){
-      Serial.print(F("icmd: CMD MUNGED!;")); 
-      return false;  
+      Serial.print(F("icmd: CMD MUNGED!;"));
+      return false;
      }
-     Serial.print(F("icmd:"));     
+     Serial.print(F("icmd:"));
      Serial.print(_commandText);
      Serial.print('(');
      for(int i = 1; i<c.cmdargs[0]+1; i++){
        args[i] = c.cmdargs[i];
         if(i>1){
-          Serial.print(','); 
+          Serial.print(',');
         }
-        Serial.print(args[i]);        
+        Serial.print(args[i]);
      }
+     args[0] = c.cmdargs[0];
      //need to add the trailing # of arguments to the count or else have people do it in the call which sucks.
 
      commandReady = true;
 
-     Serial.println(");"); 
+     Serial.println(");");
      return true;
   }
 
@@ -113,17 +115,31 @@ void Command::pushCommand(char* cmdtext, int cmdargs[MAX_ARGS]){
     InternalCommand c;
     strcpy(c.cmdtext,cmdtext);
     if (strlen(c.cmdtext) <1) {
-        Serial.print(F("pushcmd: cmdtext MUNGED!;")); 
+        Serial.print(F("pushcmd: cmdtext MUNGED!;"));
     }
     for(int i = 0; i<cmdargs[0]+1; i++){
       c.cmdargs[i] = cmdargs[i];
-    }    
-    
+    }
+
     internalCommandBuffer_head++;
     if (internalCommandBuffer_head==MAX_COMMANDS) internalCommandBuffer_head=0;
-    if (internalCommandBuffer_head==internalCommandBuffer_tail) internalCommandBuffer_tail++;
+    //go ahead and drop the command that has not yet been executed
+    if (internalCommandBuffer_head==internalCommandBuffer_tail) {
+      Serial.println(F("log: CommandBufferOverrun;"));
+      internalCommandBuffer_tail++;
+    }
     if (internalCommandBuffer_tail==MAX_COMMANDS) internalCommandBuffer_tail=0;
-    internalCommandBuffer[internalCommandBuffer_head] = c; 
+    internalCommandBuffer[internalCommandBuffer_head] = c;
+    //Serial.print("H:");Serial.print(internalCommandBuffer_head);Serial.print(" T:");Serial.println(internalCommandBuffer_tail);
+}
+
+//removes any state
+void Command::reset(){
+  dataBufferIndex = 0;
+  commandReady = false;
+  storeString = false;
+  internalCommandBuffer_head =0;
+  internalCommandBuffer_tail =0;
 }
 
 // get 'arguments' from command
@@ -134,7 +150,7 @@ void Command::parse(){
   while (pch != NULL){
     if (i == 0) {
       //this is the command text
-     Serial.print(F("cmd:"));     
+     Serial.print(F("cmd:"));
      Serial.print(pch);
      Serial.print('(');
      strcpy(_commandText,pch);
@@ -142,15 +158,13 @@ void Command::parse(){
       //this is a parameter
       args[i] = atoi(pch);
       if(i>1){
-        Serial.print(','); 
+        Serial.print(',');
       }
-      Serial.print(pch); 
+      Serial.print(pch);
     }
     i++;
     pch = strtok (NULL," ,();");
   }
-  Serial.println(");"); 
+  Serial.println(");");
   args[0] = i-1;
 }
-
-
