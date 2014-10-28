@@ -21,10 +21,10 @@ after_success:
 - echo version_number $VERSION_NUMBER
 - echo real_get_branch $REAL_GIT_BRANCH
 - rm -rf OpenROV/build-*
-- 'fpm -f -m info@openrov.com -s dir -t deb -a all -n openrov-arduino-firmware -v
+- 'fpm -f -m info@openrov.com -s dir -t deb -a armhf -n openrov-arduino-firmware -v
   $VERSION_NUMBER-$REAL_GIT_BRANCH --description ''OpenROV Arduino Firmware'' .=/opt/openrov/arduino '
 - mkdir build
-- cp *.deb build/openrov-arduino-firmware_latest-${REAL_GIT_BRANCH}_all.deb
+- cp *.deb build/openrov-arduino-firmware_latest-${REAL_GIT_BRANCH}_armhf.deb
 - mv *.deb build/
 deploy:
   provider: s3
