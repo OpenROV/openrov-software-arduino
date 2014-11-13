@@ -78,6 +78,9 @@ void OutputSharedData(){
     Serial.print(F("iout:"));
     Serial.print(capedata::IOUT);
     Serial.print(';');
+    Serial.print(F("btti:"));
+    Serial.print(capedata::BTTI);
+    Serial.print(';');
     Serial.print(F("atmp:"));
     Serial.print(capedata::ATMP);
     Serial.print(';');
@@ -130,6 +133,7 @@ float envdata::TEMP = 0;
 double capedata::FMEM = 0;
 double capedata::VOUT = 0;
 double capedata::IOUT = 0;
+double capedata::BTTI = 0;
 double capedata::ATMP = 0;
 String capedata::VER = "";
 double capedata::UTIM = 0;

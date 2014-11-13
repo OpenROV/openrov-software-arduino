@@ -186,7 +186,10 @@ void Controller25::device_loop(Command command){
   // send voltage and current
   if (statustime2.elapsed(100)) {
     capedata::VOUT = read20Volts(A4);
+    // #315: deprecated: this is the same thing as BRDI:
     capedata::IOUT = readBrdCurrent(A0);
+    // Total current draw from batteries:
+    capedata::BTTI = readCurrent(A5) + readCurrent(A6);
     capedata::FMEM = freeMemory();
 //    capedata::ATMP = GetTemp();
     capedata::UTIM = millis(); 
