@@ -55,6 +55,24 @@ test(injected_command_drops_next_command_to_be_executed_if_outofbuffer)
   assertEqual(1,cmd.args[1]);
 }
 
+test(sending_up_to_max_commands_does_not_create_buffer_overrun){
+  Command cmd;
+  cmd.reset();
+  //since the tail represents last command executed, in the case of a buffer of 3
+  //we can insert int to buffer [0], [1], but when we try inserting in the last
+  //buffer location [2] it will give a buffer overrun because head cannot push in
+  //to the same location as tail.  So effectively we hax MAX_COMMANDS - 1 bufferd
+  //commands.
+  for(int i=0;i<MAX_COMMANDS-1;i++){
+    int argsToSend[] = {1,i}; //include number of parms as fist parm
+    cmd.pushCommand("test4",argsToSend);
+  }
+  cmd.get();
+  //zero command should be unaffected
+  assertEqual(true,cmd.cmp("test4"));
+  assertEqual(0,cmd.args[1]);
+}
+
 void setup()
 {
   Serial.begin(115200);

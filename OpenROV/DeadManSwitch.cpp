@@ -37,7 +37,7 @@ void DeadmanSwitch::device_loop(Command command){
     Serial.print(F("pong:")); Serial.print(command.args[0]); Serial.print(","); Serial.print(millis()); Serial.print(";");
   }
 
-  if ((deadmanSwitchTimer.elapsed (2000)) && _deadmanSwitchArmed) {
+  if ((deadmanSwitchTimer.elapsed (2000)) && _deadmanSwitchArmed && (_deadmanSwitchEnabled == false)) {
     int argsToSend[] = {0}; //include number of parms as fist parm
     command.pushCommand("deptloff",argsToSend);
     command.pushCommand("headloff",argsToSend);
