@@ -54,13 +54,15 @@ void Thrusters::device_setup(){
 }
 
 void Thrusters::device_loop(Command command){
-  if (command.cmp("mtrmod")) {
+  if (command.cmp("mtrmod1")) {
       port_motor.motor_positive_modifer = command.args[1]/100;
       vertical_motor.motor_positive_modifer = command.args[2]/100;
       starboard_motor.motor_positive_modifer = command.args[3]/100;
-      port_motor.motor_negative_modifer = command.args[4]/100;
-      vertical_motor.motor_negative_modifer = command.args[5]/100;
-      starboard_motor.motor_negative_modifer = command.args[6]/100;
+  }
+  if (command.cmp("mtrmod2")) {
+      port_motor.motor_negative_modifer = command.args[1]/100;
+      vertical_motor.motor_negative_modifer = command.args[2]/100;
+      starboard_motor.motor_negative_modifer = command.args[3]/100;
   }
   if (command.cmp("rmtrmod")) {
       Serial.print(F("mtrmod:"));
