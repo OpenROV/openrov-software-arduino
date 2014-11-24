@@ -14,7 +14,9 @@ script:
 env:
   global:
   - ARDUINO_IDE_VERSION='1.0.5'
-  - VERSION_NUMBER="`git describe --tags | sed 's/^[a-z,A-Z]*//'`"
+  - VERSION_NUMBER="`cat package.json | grep version | grep -o '[0-9]\.[0-9]\.[0-9]\+'`"
+  - BUILD_NUMBER=$TRAVIS_BUILD_NUMBER
+  - secure: "P4i5RD2+chpGAPtkn1JYChOc+TVEHdHVVWA40uVAaHqRGm0I/kAvA2i4xXun0VAFFJJjQgC7BSdzQs9kP6IVu4x7VVXyOt3OYMql8ehsH6LU3Q476Rb+HIOzX30qYx+7F+cHUPFp/BTiyEJ+IOjU6sDTWLmSDpjUvVD2Tzg+PLI="
   - REAL_GIT_BRANCH="`git for-each-ref --format='%(objectname) %(refname:short)' refs/heads
     | grep $TRAVIS_COMMIT | awk '{print $2}'`"
 after_success:
@@ -22,8 +24,9 @@ after_success:
 - echo real_get_branch $REAL_GIT_BRANCH
 - rm -rf OpenROV/build-*
 - 'fpm -f -m info@openrov.com -s dir -t deb -a armhf -n openrov-arduino-firmware -v
-  $VERSION_NUMBER-$REAL_GIT_BRANCH --description ''OpenROV Arduino Firmware'' .=/opt/openrov/arduino '
+  $VERSION_NUMBER-$REAL_GIT_BRANCH.$BUILD_NUMBER.`git rev-parse --short HEAD` --description ''OpenROV Arduino Firmware'' .=/opt/openrov/arduino '
 - mkdir build
+- DEBFILE="`ls *.deb`""
 - cp *.deb build/openrov-arduino-firmware_latest-${REAL_GIT_BRANCH}_armhf.deb
 - mv *.deb build/
 deploy:
@@ -40,6 +43,11 @@ deploy:
   acl: !ruby/string:HighLine::String public_read
   on:
     repo: OpenROV/openrov-software-arduino
+    all_branches: true
+    condition: "($REAL_GIT_BRANCH = master )||($REAL_GIT_BRANCH = pre-release )||($REAL_GIT_BRANCH = stable)"
+after_deploy:
+- curl -g http://build.openrov.com:8080/job/OpenROV-generic-upload-deb-to-repo/buildWithParameters -d token=$JENKINS_TOKEN_NAME -d urlToDebPackage=http://openrov-software-nightlies.s3-website-us-west-2.amazonaws.com/openrov-software-arduino%2F$DEBFILE -d branch=$REAL_GIT_BRANCH
+
 notifications:
   webhooks:
     urls:
