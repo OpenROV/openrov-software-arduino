@@ -26,7 +26,7 @@ after_success:
 - 'fpm -f -m info@openrov.com -s dir -t deb -a armhf -n openrov-arduino-firmware -v
   $VERSION_NUMBER-$REAL_GIT_BRANCH.$BUILD_NUMBER.`git rev-parse --short HEAD` --description ''OpenROV Arduino Firmware'' .=/opt/openrov/arduino '
 - mkdir build
-- DEBFILE="`ls *.deb`""
+- DEBFILE="`ls *.deb`"
 - cp *.deb build/openrov-arduino-firmware_latest-${REAL_GIT_BRANCH}_armhf.deb
 - mv *.deb build/
 deploy:
