@@ -46,7 +46,7 @@ deploy:
     all_branches: true
     condition: "($REAL_GIT_BRANCH = master )||($REAL_GIT_BRANCH = pre-release )||($REAL_GIT_BRANCH = stable)"
 after_deploy:
-- curl -g http://build.openrov.com:8080/job/OpenROV-generic-upload-deb-to-repo/buildWithParameters -d token=$JENKINS_TOKEN_NAME -d urlToDebPackage=http://openrov-software-nightlies.s3-website-us-west-2.amazonaws.com/openrov-software-arduino%2F$DEBFILE -d branch=$REAL_GIT_BRANCH
+- curl -g http://build.openrov.com:8080/job/OpenROV-generic-upload-deb-to-repo/buildWithParameters -d token=$JENKINS_TOKEN_NAME -d urlToDebPackage=http://openrov-software-nightlies.s3-website-us-west-2.amazonaws.com/arduino-firmware%2F$DEBFILE -d branch=$REAL_GIT_BRANCH
 
 notifications:
   webhooks:
