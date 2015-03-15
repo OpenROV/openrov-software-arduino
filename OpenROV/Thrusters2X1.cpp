@@ -224,7 +224,19 @@ void Thrusters::device_loop(Command command){
     Serial.print(s);
     Serial.println(';');
     thrusterdata::MATC = port_motor.attached() || port_motor.attached() || port_motor.attached();
-
+    Serial.print(F("mtrmod:"));
+    Serial.print(port_motor.motor_positive_modifer);
+    Serial.print (",");
+    Serial.print(vertical_motor.motor_positive_modifer);
+    Serial.print (",");
+    Serial.print(starboard_motor.motor_positive_modifer);
+    Serial.print (",");
+    Serial.print(port_motor.motor_negative_modifer);
+    Serial.print (",");
+    Serial.print(vertical_motor.motor_negative_modifer);
+    Serial.print (",");
+    Serial.print(starboard_motor.motor_negative_modifer);
+    Serial.println (";");
   }
 }
 #endif
