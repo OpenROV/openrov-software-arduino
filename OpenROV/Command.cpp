@@ -11,8 +11,30 @@
  static int internalCommandBuffer_head =0;
  static int internalCommandBuffer_tail =0;
 
+
+
+//CRC-8 - based on the CRC8 formulas by Dallas/Maxim
+//code released under the therms of the GNU GPL 3.0 license
+byte CRC8(byte start, char *data, byte len) {
+  byte crc = 0x00;
+  for(byte j = 0; j<start; j++) *data++;
+  while (len--) {
+    byte extract = *data++;
+    for (byte tempI = 8; tempI; tempI--) {
+      byte sum = (crc ^ extract) & 0x01;
+      crc >>= 1;
+      if (sum) {
+        crc ^= 0x8C;
+      }
+      extract >>= 1;
+    }
+  }
+  return crc;
+}
+
+
 boolean getSerialString(){
-    static byte dataBufferIndex = 0;
+ //   static byte dataBufferIndex = 0;
     while(Serial.available()>0){
         char incomingbyte = Serial.read();
  //       if(incomingbyte==startChar){
@@ -30,6 +52,7 @@ boolean getSerialString(){
                 break;
             }
             if(incomingbyte==endChar){
+		dataBuffer[dataBufferIndex++] = incomingbyte;
                 dataBuffer[dataBufferIndex] = 0; //null terminate the C string
                 storeString = false;
                 //Our data string is complete.  return true
@@ -145,8 +168,32 @@ void Command::reset(){
 // get 'arguments' from command
 void Command::parse(){
   char * pch;
+  byte crc = 0;
   byte i = 0;
-  pch = strtok (dataBuffer," ,();");
+  crc = CRC8(1,dataBuffer,dataBufferIndex-1);
+
+  Serial.print(F("rawcmd:"));
+  byte tt = 0;
+  while (tt<dataBufferIndex){
+    byte zz = dataBuffer[tt];
+    Serial.print(zz,HEX);
+    Serial.print(',');
+    tt++;
+  }
+  Serial.println(';');
+
+  Serial.print(F("crc:"));
+  byte testcrc = dataBuffer[0];
+  if (crc==testcrc) {
+    Serial.print(F("pass;"));
+  } else {
+    Serial.print(F("fail,"));Serial.print(crc,HEX);Serial.print("/");Serial.print(testcrc,HEX);Serial.print(';');
+    return;
+  }
+
+  char * db2 = dataBuffer;
+  db2++;
+  pch = strtok (db2," ,();");
   while (pch != NULL){
     if (i == 0) {
       //this is the command text
