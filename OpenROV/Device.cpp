@@ -39,8 +39,8 @@ void OutputNavData(){
     Serial.print(F("hdgd:"));
     Serial.print(navdata::HDGD);
     Serial.print(';');
-    Serial.print(F("deap:"));
-    Serial.print(navdata::DEAP);
+    Serial.print(F("deep:"));
+    Serial.print(navdata::DEEP);
     Serial.print(';');
     Serial.print(F("pitc:"));
     Serial.print(navdata::PITC);
@@ -118,7 +118,7 @@ unsigned DeviceManager::device_loop_ms[MAX_DEVICES];
 
 // Initialize all of the shared data types
 double navdata::HDGD = 0;
-float navdata::DEAP = 0;
+float navdata::DEEP = 0;
 float navdata::PITC = 0;
 float navdata::ROLL = 0;
 float navdata::FTHR = 0;

@@ -12,7 +12,7 @@
 #define CAMERA_MOUNT_1_AXIS_CAPABLE 3
 #define COMPASS_CAPABLE 4
 #define ORIENTATION_CAPABLE 5
-#define DEAPTH_CAPABLE 6
+#define DEPTH_CAPABLE 6
 
 
 
@@ -26,7 +26,7 @@
 class navdata{
   public:
     static double HDGD; //Compass heading in degrees
-    static float DEAP; //Depth in meters
+    static float DEEP; //Depth in meters
     static float ROLL; //Roll in degrees
     static float PITC; //Pitch in degrees
     static float YAW; //Yaw in degrees

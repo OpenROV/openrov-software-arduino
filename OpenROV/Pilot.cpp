@@ -104,7 +104,7 @@ void Pilot::device_loop(Command command){
     if( command.cmp("deptlon")){
       _depthHoldEnabled = true;
       if(command.args[0]==0){
-        _depthHoldTarget = navdata::DEAP*100;  //casting to cm
+        _depthHoldTarget = navdata::DEEP*100;  //casting to cm
       } else {
         _depthHoldTarget = command.args[1];
       }
@@ -143,8 +143,8 @@ void Pilot::device_loop(Command command){
 
       if (_depthHoldEnabled)
       {
-        depth = navdata::DEAP*100;
-        depth_Error = target_depth-depth;  //positive error = positive lift = go deaper.
+        depth = navdata::DEEP*100;
+        depth_Error = target_depth-depth;  //positive error = positive lift = go deeper.
 
         raw_lift = (float)depth_Error * depth_hold_loop_gain;
         lift = constrain(raw_lift, -100, 100);
