@@ -86,6 +86,9 @@ Settings settings;
   DeadmanSwitch DMS;
 #endif
 
+// include plugins
+#include "PluginConfig.h"
+
 Command cmd;
 
 volatile byte wdt_resets = 0; //watchdog resets
