@@ -63,7 +63,7 @@ void sendCommand(byte command){
 }
 
 void MS5803_14BA::device_setup(){
-  Settings::capability_bitarray |= (1 << DEAPTH_CAPABLE);
+  Settings::capability_bitarray |= (1 << DEPTH_CAPABLE);
 
   Serial.println("Depth Sensor setup.");
   Wire.begin();
@@ -236,7 +236,7 @@ void MS5803_14BA::device_loop(Command command){
     Depth = (Pressure - AtmosPressure) * 0.9945 / 100;
 
   }
-  navdata::DEAP = Depth-DepthOffset;
+  navdata::DEEP = Depth-DepthOffset;
 
   }
 }

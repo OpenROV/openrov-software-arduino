@@ -74,11 +74,11 @@ Settings settings;
 #endif
 
 #if(HAS_MS5803_14BA)
-  #define DEAPTH_ENABLED 1
+  #define DEPTH_ENABLED 1
   #include "MS5803_14BA.h"
   #include <Wire.h> //required to force the Arduino IDE to include the library in the path for the I2C code
   #include <SPI.h> //required to force the Arduino IDE to include the library in the path for the SPI code
-  MS5803_14BA DeapthSensor;
+  MS5803_14BA DepthSensor;
 #endif
 
 #if(DEADMANSWITCH_ON)
