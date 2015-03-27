@@ -44,6 +44,7 @@ class capedata{
     static double FMEM; //Free memory on the Arduino in bytes
     static double VOUT; //Voltage as meassed at the cape in milli-volts
     static double IOUT; //Current measured in to the cape in milli-amps.
+    static double BTTI; //Current draw from both battery banks
     static double ATMP; //Arduino internal temp in Cellcius (should not get above ~86)
     static String VER;  //version number of the OpenRov firmware
     static double UTIM; //up-time since Arduino was started in milliseconds
