@@ -1,6 +1,6 @@
 {
   "name": "openrov-software-arduino",
-  "version": "2.5.2",
+  "version": "30.0.1",
   "description": "Suite of OpenROV projects that are deployed to the ROV",
   "main": "OpenROV/OpenROV.ino",
   "scripts": {
