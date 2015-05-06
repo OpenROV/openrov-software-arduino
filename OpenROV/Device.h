@@ -16,7 +16,7 @@
 
 
 
-#define MAX_DEVICES 10
+#define MAX_DEVICES 15
 // Be sure to initialize any storage variables added to these shared data classes in the device.cpp file.
 // These shared storage classes are always available and should be device independent.  Data that is
 // unque to a particular implimenatation of a device (for example details related to a 3 thruster configuration vs

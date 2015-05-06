@@ -16,6 +16,9 @@ void Device::device_setup(){
 void DeviceManager::registerDevice(Device *device){
   devices[device_count] = device;
   device_count++;
+  if (device_count >= MAX_DEVICES) {
+    Serial.println(F("ERROR: TOO MANY DEVICES;"));
+  }
 }
 
 void DeviceManager::doDeviceLoops(Command cmd){
