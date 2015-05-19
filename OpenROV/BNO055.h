@@ -6,9 +6,9 @@
 #include <Arduino.h>
 #include "Device.h"
 
-class AndreSharmonBNO055 : public Device {
+class BNO055 : public Device {
   public:
-    AndreSharmonBNO055():Device(){};
+    BNO055():Device(){};
     void device_setup();
     void device_loop(Command cmd);
 };

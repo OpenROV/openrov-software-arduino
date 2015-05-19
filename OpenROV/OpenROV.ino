@@ -86,6 +86,15 @@ Settings settings;
   DeadmanSwitch DMS;
 #endif
 
+#if(HAS_BNO055)
+  #define COMPASS_ENABLED 1
+  #define GYRO_ENABLED 1
+  #define ACCELEROMETER_ENABLED 1
+  #include "BNO055.h"
+  #include <Wire.h> //required to force the Arduino IDE to include the library in the path for the I2C code
+  BNO055 IMU;
+#endif
+
 // include plugins
 #include "PluginConfig.h"
 

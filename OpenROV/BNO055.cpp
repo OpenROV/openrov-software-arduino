@@ -2,7 +2,7 @@
 #include "AConfig.h"
 #if(HAS_BNO055)
 
-#include "AndreSharmonBNO055.h"
+#include "BNO055.h"
 #include "Timer.h"
 
 
@@ -652,7 +652,7 @@ void magCalBNO055(float * dest1)
 
 static bool initalized = false;
 static Timer bno055_sample_timer;
-void AndreSharmonBNO055::device_setup()
+void BNO055::device_setup()
 {
   Wire.begin();
   // Read the WHO_AM_I register, this is a good test of communication
@@ -720,7 +720,7 @@ void AndreSharmonBNO055::device_setup()
  bno055_sample_timer.reset();
 }
 
-void AndreSharmonBNO055::device_loop(Command command)
+void BNO055::device_loop(Command command)
 {
   if (bno055_sample_timer.elapsed(1000/75)){
     if(!initalized){
