@@ -452,6 +452,7 @@ void readGRVData(int16_t * destination)
 }
 
 void initBNO055() {
+
    // Select page 1 to configure sensors
    writeByte(BNO055_ADDRESS, BNO055_PAGE_ID, 0x01);
    // Configure ACC
@@ -465,11 +466,41 @@ void initBNO055() {
    // Select page 0 to read sensors
    writeByte(BNO055_ADDRESS, BNO055_PAGE_ID, 0x00);
 
+   //Select BNO055 orientation
+   /* wires aft, sensor down (Default OpenROV mounting)*/
+   writeByte(BNO055_ADDRESS, BNO055_AXIS_MAP_CONFIG, 0x24 );//P7
+   writeByte(BNO055_ADDRESS, BNO055_AXIS_MAP_SIGN, 0x05 );//P7
+
+    /* landscape, wires starboard, sensors down  */
+//   writeByte(BNO055_ADDRESS, BNO055_AXIS_MAP_CONFIG, 0x21 );//P6
+//   writeByte(BNO055_ADDRESS, BNO055_AXIS_MAP_SIGN, 0x07 );//P6
+
+   /* wires port, sensors down */
+//   writeByte(BNO055_ADDRESS, BNO055_AXIS_MAP_CONFIG, 0x21 );//P5
+//   writeByte(BNO055_ADDRESS, BNO055_AXIS_MAP_SIGN, 0x01 );//P5
+
+   /* wires forward, sensors down */
+//   writeByte(BNO055_ADDRESS, BNO055_AXIS_MAP_CONFIG, 0x24 );//P4
+//   writeByte(BNO055_ADDRESS, BNO055_AXIS_MAP_SIGN, 0x03 );//P4
+
+//   writeByte(BNO055_ADDRESS, BNO055_AXIS_MAP_CONFIG, 0x21 );//P3
+//   writeByte(BNO055_ADDRESS, BNO055_AXIS_MAP_SIGN, 0x02 );//P3
+//   writeByte(BNO055_ADDRESS, BNO055_AXIS_MAP_CONFIG, 0x24 );//P2
+//   writeByte(BNO055_ADDRESS, BNO055_AXIS_MAP_SIGN, 0x06 );//P2
+
+     /*  Portait, wires forward, sensors up  */
+//   writeByte(BNO055_ADDRESS, BNO055_AXIS_MAP_CONFIG, 0x24 );//P1
+//   writeByte(BNO055_ADDRESS, BNO055_AXIS_MAP_SIGN, 0x00 );//P1
+//   writeByte(BNO055_ADDRESS, BNO055_AXIS_MAP_CONFIG, 0x21 );//P0
+//   writeByte(BNO055_ADDRESS, BNO055_AXIS_MAP_SIGN, 0x04 );//P0
+
    // Select BNO055 gyro temperature source
    writeByte(BNO055_ADDRESS, BNO055_TEMP_SOURCE, 0x01 );
 
    // Select BNO055 sensor units (temperature in degrees C, rate in dps, accel in mg)
-   writeByte(BNO055_ADDRESS, BNO055_UNIT_SEL, 0x01 );
+   //writeByte(BNO055_ADDRESS, BNO055_UNIT_SEL, 0x01 );
+   // and Windows mode
+   writeByte(BNO055_ADDRESS, BNO055_UNIT_SEL, 0x81 );
 
    // Select BNO055 system power mode
    writeByte(BNO055_ADDRESS, BNO055_PWR_MODE, PWRMode );

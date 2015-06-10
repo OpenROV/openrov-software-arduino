@@ -92,7 +92,7 @@ Settings settings;
   #define ACCELEROMETER_ENABLED 1
   #include "BNO055.h"
   #include <Wire.h> //required to force the Arduino IDE to include the library in the path for the I2C code
-  BNO055 IMU;
+  BNO055 IMU2;
 #endif
 
 // include plugins
