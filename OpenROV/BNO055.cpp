@@ -763,8 +763,8 @@ void BNO055::device_loop(Command command)
     Yaw = (float)EulCount[0]/16.;
     Roll = (float)EulCount[1]/16.;
     Pitch = (float)EulCount[2]/16.;
-    Serial.print("BNO055.eul.yaw:");Serial.print(Yaw);Serial.print(";");
-    Serial.print("BNO055.timer:");Serial.print(micros());Serial.print(";");
+
+
 
     if ((Yaw == 0.0) && (Roll == 0.0) && (Pitch == 0.0)) {
       initalized = false;
@@ -779,8 +779,6 @@ void BNO055::device_loop(Command command)
       navdata::YAW = Yaw;
       navdata::HDGD = Yaw;
 //    }
-    //To convert to-180/180 to 0/360
-    if (navdata::HDGD < 0) navdata::HDGD+=360;
   }
 }
 #endif
