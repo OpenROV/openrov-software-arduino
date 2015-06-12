@@ -765,11 +765,15 @@ void BNO055::device_loop(Command command)
     Pitch = (float)EulCount[2]/16.;
 
 
-
     if ((Yaw == 0.0) && (Roll == 0.0) && (Pitch == 0.0)) {
       initalized = false;
       return;
     }
+
+    //Manual adjustment of compass... cuz its needed.
+    Yaw = Yaw + 90;
+    if (Yaw > 360) Yaw = Yaw - 360;
+
     //dampen the response
 //    if (abs(Pitch-navdata::PITC) > 1)
       navdata::PITC = Pitch;
