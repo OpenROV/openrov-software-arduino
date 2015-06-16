@@ -242,28 +242,8 @@ static uint8_t PWRMode = Normal ;    // Select BNO055 power mode
 static uint8_t OPRMode = NDOF;        // specify operation mode for sensors
 
 static uint8_t status;               // BNO055 data status register
-static float aRes, gRes, mRes;       // scale resolutions per LSB for the sensors
-
-static unsigned char nCRC;       // calculated check sum to ensure PROM integrity
-
-static int16_t accelCount[3];  // Stores the 16-bit signed accelerometer sensor output
-static int16_t gyroCount[3];   // Stores the 16-bit signed gyro sensor output
-static int16_t magCount[3];    // Stores the 16-bit signed magnetometer sensor output
-static int16_t quatCount[4];   // Stores the 16-bit signed quaternion output
 static int16_t EulCount[3];    // Stores the 16-bit signed Euler angle output
-static int16_t LIACount[3];    // Stores the 16-bit signed linear acceleration output
-static int16_t GRVCount[3];    // Stores the 16-bit signed gravity vector output
-static float gyroBias[3] = {0, 0, 0}, accelBias[3] = {0, 0, 0}, magBias[3] = {0, 0, 0};  // Bias corrections for gyro, accelerometer, and magnetometer
-static int16_t tempGCount, tempMCount;      // temperature raw count output of mag and gyro
-static float   Gtemperature, Mtemperature;  // Stores the BNO055 gyro and LIS3MDL mag internal chip temperatures in degrees Celsius
-
 static float bPitch, bYaw, bRoll;
-static float LIAx, LIAy, LIAz, GRVx, GRVy, GRVz;
-static float deltat = 0.0f, sum = 0.0f;          // integration interval for both filter schemes
-static uint32_t lastUpdate = 0, firstUpdate = 0; // used to calculate integration interval
-static uint32_t Now = 0;                         // used to calculate integration interval
-
-static float ax, ay, az, gx, gy, gz, mx, my, mz; // variables to hold latest sensor data values
 static float q[4] = {1.0f, 0.0f, 0.0f, 0.0f};    // vector to hold quaternion
 static float quat[4] = {1.0f, 0.0f, 0.0f, 0.0f};    // vector to hold quaternion
 static float eInt[3] = {0.0f, 0.0f, 0.0f};       // vector to hold integral error for Mahony method
@@ -560,7 +540,9 @@ void BNO055::device_loop(Command command)
 {
   if (bno055_sample_timer.elapsed(1000/75)){
     if(!initalized){
-      device_setup();
+      if(report_timer.elapsed(30000)){
+        device_setup();
+      }
       return;
     }
 
