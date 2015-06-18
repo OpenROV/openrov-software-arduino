@@ -438,6 +438,10 @@ static Timer report_timer;
 void BNO055::device_setup()
 {
   Wire.begin();
+  Wire.beginTransmission(BNO055_ADDRESS);
+  if (Wire.endTransmission() != 0)
+    return; //Cannot find I2c device, abort setup
+
   // Read the WHO_AM_I register, this is a good test of communication
   byte c = readByte(BNO055_ADDRESS, BNO055_CHIP_ID);  // Read WHO_AM_I register for BNO055
   Serial.print("BNO055.Address:"); Serial.print(BNO055_ADDRESS); Serial.println(';');
