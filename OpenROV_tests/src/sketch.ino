@@ -1,7 +1,11 @@
 #line 2 "OpenROV_UnitTests"
-#include <ArduinoUnit.h>
+#include "../lib/ArduinoUnit/ArduinoUnit.h"
 #include "../../OpenROV/Command.h"
 #include "../../OpenROV/Command.cpp"
+#define HAS_MS5803_XXBA (1)
+#include "../../OpenROV/MS5803_XXBALib.h"
+#include "../../OpenROV/MS5803_XXBALib.cpp"
+#include <Arduino.h>
 
 //https://github.com/OpenROV/openrov-software/issues/242
 test(injected_command_is_the_next_command_read)
@@ -71,6 +75,34 @@ test(sending_up_to_max_commands_does_not_create_buffer_overrun){
   //zero command should be unaffected
   assertEqual(true,cmd.cmp("test4"));
   assertEqual(0,cmd.args[1]);
+}
+
+
+test(increasing_raw_pressure_always_calculates_as_deeper_depth){
+  unsigned int CalConstant[8];
+  CalConstant[0]=45057;
+  CalConstant[1]=33648;
+  CalConstant[2]=31822;
+  CalConstant[3]=20275;
+  CalConstant[4]=19680;
+  CalConstant[5]=27191;
+  CalConstant[6]=26252;
+  CalConstant[7]=26252;
+
+  float temp=8669000; //D2
+  float pressure = 4312000; //D1
+  float adjustedPressure;
+  float lastAdjustedPressure = -999999;
+  long failures = 0;
+  for(long D2=7805000;D2<8000000;D2++){
+    adjustedPressure=TemperatureCorrectedPressure(pressure,D2,CalConstant);
+    if (adjustedPressure>=lastAdjustedPressure){
+      lastAdjustedPressure = adjustedPressure;
+    } else {
+      failures++;
+    }
+  }
+  assertEqual(0,failures);
 }
 
 void setup()

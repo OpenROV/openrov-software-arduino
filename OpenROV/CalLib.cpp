@@ -56,11 +56,11 @@ boolean calLibRead(byte device, CALLIB_DATA *calData)
 
 // AVR version
 
-#include <EEPROM.h>
+//#include <EEPROM.h>
 
 void calLibErase(byte device)
 {
-    EEPROM.write(CALLIB_START, 0); // just destroy the valid byte
+//    EEPROM.write(CALLIB_START, 0); // just destroy the valid byte
 }
 
 void calLibWrite(byte device, CALLIB_DATA *calData)
@@ -71,8 +71,8 @@ void calLibWrite(byte device, CALLIB_DATA *calData)
 
   calData->valid = CALLIB_DATA_VALID;
   
-  for (byte i = 0; i < length; i++)
-    EEPROM.write(eeprom + i, *ptr++);
+//  for (byte i = 0; i < length; i++)
+//    EEPROM.write(eeprom + i, *ptr++);
 }
 
 boolean calLibRead(byte device, CALLIB_DATA *calData)
@@ -84,13 +84,13 @@ boolean calLibRead(byte device, CALLIB_DATA *calData)
   calData->magValid = false;
   calData->accelValid = false;
 
-  if ((EEPROM.read(eeprom) != CALLIB_DATA_VALID_LOW) ||
-      (EEPROM.read(eeprom + 1) != CALLIB_DATA_VALID_HIGH))
+ // if ((EEPROM.read(eeprom) != CALLIB_DATA_VALID_LOW) ||
+ //     (EEPROM.read(eeprom + 1) != CALLIB_DATA_VALID_HIGH))
     return false;                                  // invalid data
     
-  for (byte i = 0; i < length; i++)
-    *ptr++ = EEPROM.read(eeprom + i);
-  return true;  
+ // for (byte i = 0; i < length; i++)
+ //   *ptr++ = EEPROM.read(eeprom + i);
+ // return true;  
 }
 #endif
 #endif

@@ -1,24 +1,23 @@
 #include "AConfig.h"
-#if(HAS_MS5803_14BA)
+#if(HAS_MS5803_XXBA)
 
 #include "Device.h"
-#include "MS5803_14BA.h"
+#include "MS5803_XXBA.h"
 #include "Settings.h"
 #include "Timer.h"
 #include <Wire.h>
+#include "MS5803_XXBALib.h"
 
 /*
-Sketch to read a MS5803-14BA pressure sensor, written from scratch.
-Will output data to the serial console.
+Library for MS5803 14 and 30 bar sensors on OpenROV.
 
-Written by Walt Holm
-Initial revision 10 Oct 2013
-Rev 1 12 Oct 2013 -- Implements 2nd order temperature compensation
+Author: brian@openrov.com
+Based on works by Walt Holm and Luke Miller
 */
 
 
 
-const int DevAddress = MS5803_14BA_I2C_ADDRESS;  // 7-bit I2C address of the MS5803
+const int DevAddress = MS5803_XXBA_I2C_ADDRESS;  // 7-bit I2C address of the MS5803
 
 // Here are the commands that can be sent to the 5803
 // Page 6 of the data sheet
@@ -53,6 +52,7 @@ float WaterDensity = 1.019716;
 Timer DepthSensorSamples;
 byte ByteHigh, ByteMiddle, ByteLow;  // Variables for I2C reads
 bool WaterType = FreshWater;
+static bool MS5803_inialized = false;
 
 // Program initialization starts here
 
@@ -62,19 +62,26 @@ void sendCommand(byte command){
   Wire.endTransmission();
 }
 
-void MS5803_14BA::device_setup(){
+
+
+void MS5803_XXBA::device_setup(){
+  DepthSensorSamples.reset();
+  Wire.beginTransmission(MS5803_XXBA_I2C_ADDRESS);
+  if (Wire.endTransmission() != 0)
+    return; //Cannot find I2c device, abort setup
+
   Settings::capability_bitarray |= (1 << DEPTH_CAPABLE);
 
-  Serial.println("Depth Sensor setup.");
+  Serial.println("log:Depth Sensor setup;");
   Wire.begin();
-  Serial.println("Depth Sensor: initialized I2C");
+  Serial.println("MS5803.status: initialized I2C;");
   delay(10);
-
+  unsigned int cal;
   // Reset the device and check for device presence
 
   sendCommand(Reset);
   delay(10);
-  Serial.println("Depth Sensor is reset");
+  Serial.println("MS5803.status: reset;");
 
   // Get the calibration constants and store in array
 
@@ -93,14 +100,25 @@ void MS5803_14BA::device_setup(){
 
   for (byte i=0; i < 8; i++)
   {
-    log(CalConstant[i]);
+    cal = CalConstant[i];
+    Serial.print("Depth.C");Serial.print(i);Serial.print(":");Serial.print(cal);Serial.println(";");
+    //log(CalConstant[i]);
   }
 
-  DepthSensorSamples.reset();
+
+  MS5803_inialized = true;
 
 }
 
-void MS5803_14BA::device_loop(Command command){
+
+void MS5803_XXBA::device_loop(Command command){
+  if (!MS5803_inialized){
+    if (DepthSensorSamples.elapsed(30000)){
+      device_setup();
+    }
+    return;
+  }
+
   if (command.cmp("dzer")){
     DepthOffset=Depth;
   }
@@ -158,63 +176,9 @@ void MS5803_14BA::device_loop(Command command){
  // log("D2 is: ");
 //  log(AdcTemperature);
 
+  envdata::TEMP = CorrectedTemperature(AdcTemperature, CalConstant);
 
-  // Calculate the Temperature (first-order computation)
-
-  TempDifference = (float)(AdcTemperature - ((long)CalConstant[5] << 8));
-  Temperature = (TempDifference * (float)CalConstant[6])/ pow(2, 23);
-  Temperature = Temperature + 2000;  // This is the temperature in hundredths of a degree C
-
-  // Calculate the second-order offsets
-
-  if (Temperature < 2000.0)  // Is temperature below or above 20.00 deg C ?
-  {
-    T2 = 3 * pow(TempDifference, 2) / pow(2, 33);
-    Off2 = 1.5 * pow((Temperature - 2000.0), 2);
-    Sens2 = 0.625 * pow((Temperature - 2000.0), 2);
-  }
-  else
-  {
-    T2 = (TempDifference * TempDifference) * 7 / pow(2, 37);
-    Off2 = 0.0625 * pow((Temperature - 2000.0), 2);
-    Sens2 = 0.0;
-  }
-
-  // Check print the offsets
-
-  //log("Second-order offsets are:");
-  //log(T2);
-  //log(Off2);
-  //log(Sens2);
-
-
-  // Print the temperature results
-
-  Temperature = Temperature / 100;  // Convert to degrees C
-  Serial.print("First-Order Temperature in Degrees C is ");
-  Serial.println(Temperature);
-  Serial.print("Second-Order Temperature in Degrees C is ");
-  Serial.println(Temperature - (T2 / 100));
-  envdata::TEMP = Temperature- (T2 / 100);
-  // Calculate the pressure parameters
-
-  Offset = (float)CalConstant[2] * pow(2,16);
-  Offset = Offset + ((float)CalConstant[4] * TempDifference / pow(2, 7));
-
-  Sensitivity = (float)CalConstant[1] * pow(2, 15);
-  Sensitivity = Sensitivity + ((float)CalConstant[3] * TempDifference / pow(2, 8));
-
-  // Add second-order corrections
-
-  Offset = Offset - Off2;
-  Sensitivity = Sensitivity - Sens2;
-
-  // Calculate absolute pressure in bars
-
-  Pressure = (float)AdcPressure * Sensitivity / pow(2, 21);
-  Pressure = Pressure - Offset;
-  Pressure = Pressure / pow(2, 15);
-  Pressure = Pressure / 10;  // Set output to mbars = hectopascal;
+  Pressure = TemperatureCorrectedPressure(AdcPressure, AdcTemperature, CalConstant);
 
   envdata::PRES = Pressure;
 
@@ -243,6 +207,3 @@ void MS5803_14BA::device_loop(Command command){
 
 
 #endif
-
-
-

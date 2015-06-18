@@ -73,12 +73,12 @@ Settings settings;
   MPU9150 IMU;
 #endif
 
-#if(HAS_MS5803_14BA)
+#if(HAS_MS5803_XXBA)
   #define DEPTH_ENABLED 1
-  #include "MS5803_14BA.h"
+  #include "MS5803_XXBA.h"
   #include <Wire.h> //required to force the Arduino IDE to include the library in the path for the I2C code
   #include <SPI.h> //required to force the Arduino IDE to include the library in the path for the SPI code
-  MS5803_14BA DepthSensor;
+  MS5803_XXBA DepthSensor;
 #endif
 
 #if(DEADMANSWITCH_ON)
@@ -137,7 +137,7 @@ void setup(){
   Serial.begin(115200);
   //watchdogOn();
 
-  check = EEPROM.read(0);
+ // check = EEPROM.read(0);
 
   // if the watchdog triggered and the ISR completed, the first EEPROM byte will be a "1"
   if(check == 1)
@@ -191,7 +191,7 @@ void loop(){
 ISR(WDT_vect)
 {
 
-  EEPROM.write(1, wdt_resets+1);    // write the random number to the second byte
-  EEPROM.write(0,1);         // write a "1" to the first byte to indicate the data in second byte is valid and the ISR triggered properly
+ // EEPROM.write(1, wdt_resets+1);    // write the random number to the second byte
+ // EEPROM.write(0,1);         // write a "1" to the first byte to indicate the data in second byte is valid and the ISR triggered properly
   while(true);               // triggers the second watchdog timeout for a reset
 }

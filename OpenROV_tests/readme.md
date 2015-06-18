@@ -16,6 +16,15 @@ ino upload
 ino serial -b 115200
 ```
 
+if on the beaglebone
+```
+cd opt/openrov/arduino/OpenROV_tests
+sudo ino build -m mega2560
+sudo avrdude -P /dev/spidev1.0 -c linuxspi -vvv -p m2560 -U flash:w:.build/mega2560/firmware.hex
+(sleep 1 && sudo /opt/openrov/cockpit/linux/reset.sh 1>&2) & sudo picocom -b 115200  /dev/ttyO1
+```
+Ctr-A, Ctr-X will exit picocom
+
 Note: ino serial requires picocom to be installed.  Alternatively you can open up the serial monitor in the Arduino IDE. Also a reminder, to exit picocom is ^a^x.
 
 You should see something similar to this:

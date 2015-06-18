@@ -32,8 +32,8 @@
 
 //After Market:
 #define HAS_POLOLU_MINIMUV (0)
-#define HAS_MS5803_14BA (1)
-#define MS5803_14BA_I2C_ADDRESS 0x76
+#define HAS_MS5803_XXBA (1)
+#define MS5803_XXBA_I2C_ADDRESS 0x76
 #define HAS_MPU9150 (1)
 #define MPU9150_EEPROM_START 2
 #define HAS_BNO055 (1)
