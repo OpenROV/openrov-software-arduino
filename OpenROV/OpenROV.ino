@@ -137,7 +137,7 @@ void setup(){
   Serial.begin(115200);
   //watchdogOn();
 
- // check = EEPROM.read(0);
+  check = EEPROM.read(0);
 
   // if the watchdog triggered and the ISR completed, the first EEPROM byte will be a "1"
   if(check == 1)
@@ -191,7 +191,7 @@ void loop(){
 ISR(WDT_vect)
 {
 
- // EEPROM.write(1, wdt_resets+1);    // write the random number to the second byte
- // EEPROM.write(0,1);         // write a "1" to the first byte to indicate the data in second byte is valid and the ISR triggered properly
+  EEPROM.write(1, wdt_resets+1);    // write the random number to the second byte
+  EEPROM.write(0,1);         // write a "1" to the first byte to indicate the data in second byte is valid and the ISR triggered properly
   while(true);               // triggers the second watchdog timeout for a reset
 }
