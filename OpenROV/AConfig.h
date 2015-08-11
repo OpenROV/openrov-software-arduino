@@ -22,14 +22,15 @@
 #define HAS_OROV_CONTROLLERBOARD_25 (1)
 
 #if !(HAS_OROV_CONTROLLERBOARD_25) && !(HAS_STD_CAPE)
-    #  error "You must select either standard cape or controllerboard25 in the AConfig.h file as they have predefined pin values required by other libraries."
+#  error "You must select either standard cape or controllerboard25 in the AConfig.h file as they have predefined pin values required by other libraries."
 #endif
 
 #define HAS_STD_LIGHTS (1)
 #define HAS_STD_CALIBRATIONLASERS (1)
 #define HAS_STD_CAMERAMOUNT (1)
 #define HAS_STD_AUTOPILOT (1)
-#define DEADMANSWITCH_ON (0)
+#define HAS_EXP_AUTOPILOT (0)
+#define DEADMANSWITCH_ON (1)
 
 // Thrusters configurations
 #define THRUSTER_CONFIG_NONE (0)
@@ -51,7 +52,7 @@
 #define MS5803_XXBA_I2C_ADDRESS 0x76
 
 // MPU9150 IMU
-#define HAS_MPU9150 (0)
+#define HAS_MPU9150 (1)
 #define MPU9150_EEPROM_START 2
 
 // BNO055 IMU

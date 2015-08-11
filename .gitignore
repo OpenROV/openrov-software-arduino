@@ -21,7 +21,6 @@ OpenROV/Debug/*
 *.cppproj
 
 OpenROV/Visual Micro/*
-OpenROV/Disabled/*
 
 OpenROV_tests/.build/*
 
