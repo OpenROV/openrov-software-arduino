@@ -1,3 +1,6 @@
+#pragma once
+#include "AConfig.h"
+
 // ---------------------------------------
 // Conditional module definitions
 // -------------------------------
