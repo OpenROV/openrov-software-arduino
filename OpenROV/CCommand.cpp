@@ -3,96 +3,96 @@
 // File local variables and methods
 namespace
 {
-    char				dataBuffer[COMMAND_DATA_BUFFER_SIZE + 1]; //Add 1 for NULL terminator
-    byte				dataBufferIndex = 0;
-    boolean				commandReady = false;
-    const char			endChar = ';'; // or '!', or whatever your end character is
-    boolean				storeString = false; //This will be our flag to put the data in our buffer
-    TInternalCommand	internalCommandBuffer[ COMMAND_MAX_COUNT ];
-    int					internalCommandBuffer_head = 0;
-    int					internalCommandBuffer_tail = 0;
+	char				dataBuffer[COMMAND_DATA_BUFFER_SIZE + 1]; //Add 1 for NULL terminator
+	byte				dataBufferIndex = 0;
+	boolean				commandReady = false;
+	const char			endChar = ';'; // or '!', or whatever your end character is
+	boolean				storeString = false; //This will be our flag to put the data in our buffer
+	TInternalCommand	internalCommandBuffer[ COMMAND_MAX_COUNT ];
+	int					internalCommandBuffer_head = 0;
+	int					internalCommandBuffer_tail = 0;
 
-    // CRC-8 - based on the CRC8 formulas by Dallas/Maxim
-    // Code released under the therms of the GNU GPL 3.0 license
-    byte CRC8( byte start, char* data, byte len )
-    {
-        byte crc = 0x00;
+	// CRC-8 - based on the CRC8 formulas by Dallas/Maxim
+	// Code released under the therms of the GNU GPL 3.0 license
+	byte CRC8( byte start, char* data, byte len )
+	{
+		byte crc = 0x00;
 
-        for( byte j = 0; j < start; j++ )
-        {
-            ++*data;
-        }
+		for( byte j = 0; j < start; j++ )
+		{
+			*data++;
+		}
 
-        while( len-- )
-        {
-            byte extract = *data++;
+		while( len-- )
+		{
+			byte extract = *data++;
 
-            for( byte tempI = 8; tempI; tempI-- )
-            {
-                byte sum = ( crc ^ extract ) & 0x01;
-                crc >>= 1;
+			for( byte tempI = 8; tempI; tempI-- )
+			{
+				byte sum = ( crc ^ extract ) & 0x01;
+				crc >>= 1;
 
-                if( sum )
-                {
-                    crc ^= 0x8C;
-                }
+				if( sum )
+				{
+					crc ^= 0x8C;
+				}
 
-                extract >>= 1;
-            }
-        }
+				extract >>= 1;
+			}
+		}
 
-        return crc;
-    }
+		return crc;
+	}
 
 
-    boolean GetSerialString()
-    {
-        while( Serial.available() > 0 )
-        {
-            char incomingbyte = Serial.read();
+	boolean GetSerialString()
+	{
+		while( Serial.available() > 0 )
+		{
+			char incomingbyte = Serial.read();
 
-            //       if(incomingbyte==startChar){
-            //           dataBufferIndex = 0;  //Initialize our dataBufferIndex variable
-            if( storeString == false )
-            {
-                storeString = true;
-                dataBufferIndex = 0;
-            }
+			//       if(incomingbyte==startChar){
+			//           dataBufferIndex = 0;  //Initialize our dataBufferIndex variable
+			if( storeString == false )
+			{
+				storeString = true;
+				dataBufferIndex = 0;
+			}
 
-            if( storeString )
-            {
-                //Let's check our index here, and abort if we're outside our buffer size
-                //We use our define here so our buffer size can be easily modified
-                if( dataBufferIndex == COMMAND_DATA_BUFFER_SIZE )
-                {
-                    //Oops, our index is pointing to an array element outside our buffer.
-                    dataBufferIndex = 0;
-                    break;
-                }
+			if( storeString )
+			{
+				//Let's check our index here, and abort if we're outside our buffer size
+				//We use our define here so our buffer size can be easily modified
+				if( dataBufferIndex == COMMAND_DATA_BUFFER_SIZE )
+				{
+					//Oops, our index is pointing to an array element outside our buffer.
+					dataBufferIndex = 0;
+					break;
+				}
 
-                if( incomingbyte == endChar )
-                {
-                    dataBuffer[dataBufferIndex++] = incomingbyte;
-                    dataBuffer[dataBufferIndex] = 0; //null terminate the C string
-                    storeString = false;
+				if( incomingbyte == endChar )
+				{
+					dataBuffer[dataBufferIndex++] = incomingbyte;
+					dataBuffer[dataBufferIndex] = 0; //null terminate the C string
+					storeString = false;
 
-                    //Our data string is complete.  return true
-                    return true;
-                }
-                else
-                {
-                    dataBuffer[dataBufferIndex++] = incomingbyte;
-                    dataBuffer[dataBufferIndex] = 0; //null terminate the C string
-                }
-            }
-            else
-            {
-            }
-        }
+					//Our data string is complete.  return true
+					return true;
+				}
+				else
+				{
+					dataBuffer[dataBufferIndex++] = incomingbyte;
+					dataBuffer[dataBufferIndex] = 0; //null terminate the C string
+				}
+			}
+			else
+			{
+			}
+		}
 
-        //We've read in all the available Serial data, and don't have a valid string yet, so return false
-        return false;
-    }
+		//We've read in all the available Serial data, and don't have a valid string yet, so return false
+		return false;
+	}
 }
 
 
@@ -102,210 +102,210 @@ char CCommand::m_text[COMMAND_DATA_BUFFER_SIZE + 1] ;
 
 boolean CCommand::Equals( const char* targetcommand )
 {
-    if( !commandReady )
-    {
-        return false;
-    }
+	if( !commandReady )
+	{
+		return false;
+	}
 
-    char* pos = strstr( m_text, targetcommand );
+	char* pos = strstr( m_text, targetcommand );
 
-    if( pos == m_text ) //starts with
-    {
-        return true;
-    }
+	if( pos == m_text ) //starts with
+	{
+		return true;
+	}
 
-    return false;
+	return false;
 }
 
 
 boolean CCommand::GetCommandString()
 {
-    // Get string from buffer
+	// Get string from buffer
 
-    commandReady = false;
-    strcpy( m_text, "" );
+	commandReady = false;
+	strcpy( m_text, "" );
 
-    for( int i = 0; i < COMMAND_MAX_ARGUMENTS; i++ )
-    {
-        m_arguments[i] = 0;
-    }
+	for( int i = 0; i < COMMAND_MAX_ARGUMENTS; i++ )
+	{
+		m_arguments[i] = 0;
+	}
 
-    if( GetSerialString() )
-    {
-        //String available for parsing.  Parse it here
-        Parse();
-        commandReady = true;
-        return true;
-    }
+	if( GetSerialString() )
+	{
+		//String available for parsing.  Parse it here
+		Parse();
+		commandReady = true;
+		return true;
+	}
 
-    if( internalCommandBuffer_head != internalCommandBuffer_tail )
-    {
-        internalCommandBuffer_tail++;
+	if( internalCommandBuffer_head != internalCommandBuffer_tail )
+	{
+		internalCommandBuffer_tail++;
 
-        if( internalCommandBuffer_tail == COMMAND_MAX_COUNT )
-        {
-            internalCommandBuffer_tail = 0;
-        }
+		if( internalCommandBuffer_tail == COMMAND_MAX_COUNT )
+		{
+			internalCommandBuffer_tail = 0;
+		}
 
-        //get from the command buffer
-        TInternalCommand c = internalCommandBuffer[ internalCommandBuffer_tail ];
+		//get from the command buffer
+		TInternalCommand c = internalCommandBuffer[ internalCommandBuffer_tail ];
 
-        strcpy( m_text, c.text );
+		strcpy( m_text, c.text );
 
-        if( strcmp( m_text, "" ) )
-        {
-            Serial.print( F( "icmd: CMD MUNGED!;" ) );
-            return false;
-        }
+		if( strcmp( m_text, "" ) )
+		{
+			Serial.print( F( "icmd: CMD MUNGED!;" ) );
+			return false;
+		}
 
-        Serial.print( F( "icmd:" ) );
-        Serial.print( m_text );
-        Serial.print( '(' );
+		Serial.print( F( "icmd:" ) );
+		Serial.print( m_text );
+		Serial.print( '(' );
 
-        for( int i = 1; i < c.arguments[0] + 1; i++ )
-        {
-            m_arguments[i] = c.arguments[i];
+		for( int i = 1; i < c.arguments[0] + 1; i++ )
+		{
+			m_arguments[i] = c.arguments[i];
 
-            if( i > 1 )
-            {
-                Serial.print( ',' );
-            }
+			if( i > 1 )
+			{
+				Serial.print( ',' );
+			}
 
-            Serial.print( m_arguments[i] );
-        }
+			Serial.print( m_arguments[i] );
+		}
 
-        m_arguments[0] = c.arguments[0];
-        //need to add the trailing # of arguments to the count or else have people do it in the call which sucks.
+		m_arguments[0] = c.arguments[0];
+		//need to add the trailing # of arguments to the count or else have people do it in the call which sucks.
 
-        commandReady = true;
+		commandReady = true;
 
-        Serial.println( ");" );
-        return true;
-    }
+		Serial.println( ");" );
+		return true;
+	}
 
-    return false;
+	return false;
 }
 
-void CCommand::PushCommand( const char* cmdtext, int cmdargs[COMMAND_MAX_ARGUMENTS] )
+void CCommand::PushCommand( char* cmdtext, int cmdargs[COMMAND_MAX_ARGUMENTS] )
 {
-    // If commands are not being processed in time we overwrite the oldest ones.  Technically we should probably
-    // have a global array for all possible commands where only the most recent is ever processed to prevent
-    // stale messages from floating around.
-    TInternalCommand c;
-    strcpy( c.text, cmdtext );
+	// If commands are not being processed in time we overwrite the oldest ones.  Technically we should probably
+	// have a global array for all possible commands where only the most recent is ever processed to prevent
+	// stale messages from floating around.
+	TInternalCommand c;
+	strcpy( c.text, cmdtext );
 
-    if( strlen( c.text ) < 1 )
-    {
-        Serial.print( F( "pushcmd: cmdtext MUNGED!;" ) );
-    }
+	if( strlen( c.text ) < 1 )
+	{
+		Serial.print( F( "pushcmd: cmdtext MUNGED!;" ) );
+	}
 
-    for( int i = 0; i < cmdargs[0] + 1; i++ )
-    {
-        c.arguments[i] = cmdargs[i];
-    }
+	for( int i = 0; i < cmdargs[0] + 1; i++ )
+	{
+		c.arguments[i] = cmdargs[i];
+	}
 
-    internalCommandBuffer_head++;
+	internalCommandBuffer_head++;
 
-    if( internalCommandBuffer_head == COMMAND_MAX_COUNT )
-    {
-        internalCommandBuffer_head = 0;
-    }
+	if( internalCommandBuffer_head == COMMAND_MAX_COUNT )
+	{
+		internalCommandBuffer_head = 0;
+	}
 
-    //go ahead and drop the command that has not yet been executed
-    if( internalCommandBuffer_head == internalCommandBuffer_tail )
-    {
-        Serial.println( F( "log: CommandBufferOverrun;" ) );
-        internalCommandBuffer_tail++;
-    }
+	//go ahead and drop the command that has not yet been executed
+	if( internalCommandBuffer_head == internalCommandBuffer_tail )
+	{
+		Serial.println( F( "log: CommandBufferOverrun;" ) );
+		internalCommandBuffer_tail++;
+	}
 
-    if( internalCommandBuffer_tail == COMMAND_MAX_COUNT )
-    {
-        internalCommandBuffer_tail = 0;
-    }
+	if( internalCommandBuffer_tail == COMMAND_MAX_COUNT )
+	{
+		internalCommandBuffer_tail = 0;
+	}
 
-    internalCommandBuffer[internalCommandBuffer_head] = c;
+	internalCommandBuffer[internalCommandBuffer_head] = c;
 }
 
 
 void CCommand::Reset()
 {
-    // Removes any state
-    commandReady				= false;
-    storeString					= false;
-    dataBufferIndex				= 0;
-    internalCommandBuffer_head	= 0;
-    internalCommandBuffer_tail	= 0;
+	// Removes any state
+	commandReady				= false;
+	storeString					= false;
+	dataBufferIndex				= 0;
+	internalCommandBuffer_head	= 0;
+	internalCommandBuffer_tail	= 0;
 }
 
 // get 'arguments' from command
 void CCommand::Parse()
 {
-    char* pch;
-    byte crc = 0;
-    byte i = 0;
-    crc = CRC8( 1, dataBuffer, dataBufferIndex - 1 );
+	char* pch;
+	byte crc = 0;
+	byte i = 0;
+	crc = CRC8( 1, dataBuffer, dataBufferIndex - 1 );
 
-    Serial.print( F( "rawcmd:" ) );
-    byte tt = 0;
+	Serial.print( F( "rawcmd:" ) );
+	byte tt = 0;
 
-    while( tt < dataBufferIndex )
-    {
-        byte zz = dataBuffer[tt];
-        Serial.print( zz, HEX );
-        Serial.print( ',' );
-        tt++;
-    }
+	while( tt < dataBufferIndex )
+	{
+		byte zz = dataBuffer[tt];
+		Serial.print( zz, HEX );
+		Serial.print( ',' );
+		tt++;
+	}
 
-    Serial.println( ';' );
+	Serial.println( ';' );
 
-    Serial.print( F( "crc:" ) );
-    byte testcrc = dataBuffer[0];
+	Serial.print( F( "crc:" ) );
+	byte testcrc = dataBuffer[0];
 
-    if( crc == testcrc )
-    {
-        Serial.print( F( "pass;" ) );
-    }
-    else
-    {
-        Serial.print( F( "fail," ) );
-        Serial.print( crc, HEX );
-        Serial.print( "/" );
-        Serial.print( testcrc, HEX );
-        Serial.print( ';' );
-        return;
-    }
+	if( crc == testcrc )
+	{
+		Serial.print( F( "pass;" ) );
+	}
+	else
+	{
+		Serial.print( F( "fail," ) );
+		Serial.print( crc, HEX );
+		Serial.print( "/" );
+		Serial.print( testcrc, HEX );
+		Serial.print( ';' );
+		return;
+	}
 
-    char* db2 = dataBuffer;
-    db2++;
-    pch = strtok( db2, " ,();" );
+	char* db2 = dataBuffer;
+	db2++;
+	pch = strtok( db2, " ,();" );
 
-    while( pch != NULL )
-    {
-        if( i == 0 )
-        {
-            //this is the command text
-            Serial.print( F( "cmd:" ) );
-            Serial.print( pch );
-            Serial.print( '(' );
-            strcpy( m_text, pch );
-        }
-        else
-        {
-            //this is a parameter
-            m_arguments[i] = atoi( pch );
+	while( pch != NULL )
+	{
+		if( i == 0 )
+		{
+			//this is the command text
+			Serial.print( F( "cmd:" ) );
+			Serial.print( pch );
+			Serial.print( '(' );
+			strcpy( m_text, pch );
+		}
+		else
+		{
+			//this is a parameter
+			m_arguments[i] = atoi( pch );
 
-            if( i > 1 )
-            {
-                Serial.print( ',' );
-            }
+			if( i > 1 )
+			{
+				Serial.print( ',' );
+			}
 
-            Serial.print( pch );
-        }
+			Serial.print( pch );
+		}
 
-        i++;
-        pch = strtok( NULL, " ,();" );
-    }
+		i++;
+		pch = strtok( NULL, " ,();" );
+	}
 
-    Serial.println( ");" );
-    m_arguments[0] = i - 1;
+	Serial.println( ");" );
+	m_arguments[0] = i - 1;
 }
