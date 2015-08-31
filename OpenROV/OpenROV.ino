@@ -52,7 +52,10 @@ Settings settings;
   CameraMount cameramount;
 #endif
 
-
+#if(HAS_ALT_SERVO)
+  #include "AltServo.h"
+  AltServo altservo1;
+#endif
 
 #if(HAS_POLOLU_MINIMUV)
   #define COMPASS_ENABLED 1
@@ -73,7 +76,7 @@ Settings settings;
   MPU9150 IMU;
 #endif
 
-#if(HAS_MS5803_14BA)
+#if(HAS_MS5803_14BA | HAS_MS5803_30BA)
   #define DEAPTH_ENABLED 1
   #include "MS5803_14BA.h"
   #include <Wire.h> //required to force the Arduino IDE to include the library in the path for the I2C code
@@ -84,6 +87,15 @@ Settings settings;
 #if(DEADMANSWITCH_ON)
   #include "DeadManSwitch.h"
   DeadmanSwitch DMS;
+#endif
+
+#if(HAS_BNO055)
+  #define COMPASS_ENABLED 1
+  #define GYRO_ENABLED 1
+  #define ACCELEROMETER_ENABLED 1
+  #include "BNO055.h"
+  #include <Wire.h> //required to force the Arduino IDE to include the library in the path for the I2C code
+  BNO055 IMU2;
 #endif
 
 Command cmd;
@@ -124,6 +136,7 @@ void setup(){
   enableWatchdog();
   Serial.begin(115200);
   //watchdogOn();
+  Wire.begin();
 
   check = EEPROM.read(0);
 
@@ -141,7 +154,6 @@ void setup(){
   pinMode(13, OUTPUT);
   Output1000ms.reset();
   Output100ms.reset();
-
   DeviceManager::doDeviceSetups();
   Serial.println(F("boot:1;"));
 }

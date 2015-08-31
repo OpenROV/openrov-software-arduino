@@ -15,14 +15,14 @@
 #include "Timer.h"
 
 MPU9150Lib MPU;                                              // the MPU object
-int MPUDeviceId = 1;
-boolean DidInit = false;
-boolean InCallibrationMode = false;
-Timer MPU9150ReInit;
-Timer mpu_update_timer;
-CALLIB_DATA calData;
-Timer calibration_timer;
-int counter = 0;
+static int MPUDeviceId = 1;
+static boolean DidInit = false;
+static boolean InCallibrationMode = false;
+static Timer MPU9150ReInit;
+static Timer mpu_update_timer;
+static CALLIB_DATA calData;
+static Timer calibration_timer;
+static int counter = 0;
 //  MPU_UPDATE_RATE defines the rate (in Hz) at which the MPU updates the sensor data and DMP output
 
 //  MPU_UPDATE_RATE defines the rate (in Hz) at which the MPU updates the sensor data and DMP output
@@ -49,15 +49,35 @@ int counter = 0;
 
 
 void MPU9150::device_setup(){
+
   //Todo: Read calibration values from EPROM
-  Wire.begin();
+  bool canConnect = true;
+  //Wire.begin();
+  MPU9150ReInit.reset();
+  mpu_update_timer.reset();
+
+  Wire.beginTransmission(0x68);
+  byte error = Wire.endTransmission();
+  if (error != 0) {
+    canConnect = false;
+    Wire.beginTransmission(0x69);
+    error = Wire.endTransmission();
+    if (error != 0) {
+        Serial.print(F("MPU9150.status:"));Serial.print("Not found");Serial.println(";");
+        canConnect = false;
+    } else {
+        canConnect = true;
+    }
+  }
+
+  if (canConnect){
   MPU.selectDevice(MPUDeviceId);
   if (!MPU.init(MPU_UPDATE_RATE, MPU_MAG_MIX_GYRO_ONLY, MAG_UPDATE_RATE, MPU_LPF_RATE)){
   	Serial.println(F("log:Trying other MPU9150 address to init;"));
-  	Serial.print(F("log:IMU Address was :"));
+  	Serial.print(F("log:IMU Address was "));
   	Serial.print(1);
   	MPUDeviceId = !MPUDeviceId;
-  	Serial.print(F(" but is now:"));
+  	Serial.print(F(" but is now "));
   	Serial.print(MPUDeviceId);
   	Serial.println(";");
   	MPU.selectDevice(MPUDeviceId);
@@ -73,8 +93,9 @@ void MPU9150::device_setup(){
   }                             // start the MPU
   Settings::capability_bitarray |= (1 << COMPASS_CAPABLE);
   Settings::capability_bitarray |= (1 << ORIENTATION_CAPABLE);
-  MPU9150ReInit.reset();
-  mpu_update_timer.reset();
+//  MPU9150ReInit.reset();
+//  mpu_update_timer.reset();
+  }
 }
 
 void MPU9150::device_loop(Command command){

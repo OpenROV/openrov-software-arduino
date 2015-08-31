@@ -26,7 +26,7 @@ float celsiusTempRead;
 
 //Pin vout("vout", CAPE_VOLTAGE_PIN, vout.analog, vout.in);
 //Pin iout("iout", CAPE_CURRENT_PIN, iout.analog, iout.in);
-
+Pin i2cpower("i2cpower", I2CPOWER_PIN, i2cpower.digital, i2cpower.out);
 
 double GetTemp(void)
 {
@@ -123,7 +123,10 @@ void Controller25::device_setup(){
   time.reset();
   statustime2.reset();
   onesecondtimer.reset();
-
+  i2cpower.reset();
+  i2cpower.write(0);
+  delay(10);
+  i2cpower.write(1);
   // initialize all the readings to 0: 
   for (int thisReading = 0; thisReading < numReadings; thisReading++)
     readings[thisReading] = 0;     

@@ -30,7 +30,7 @@
 
 #include "DueFlash.h"
 
-DueFlash flash;
+static DueFlash flash;
 
 void calLibErase(byte device)
 {
