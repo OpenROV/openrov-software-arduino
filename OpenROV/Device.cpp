@@ -1,5 +1,6 @@
 #include "Device.h"
 #include "Settings.h"
+#include <avr/wdt.h> // watchdog timer
 
 Device::Device(){
   DeviceManager::registerDevice(this);
@@ -31,6 +32,10 @@ void DeviceManager::doDeviceLoops(Command cmd){
 
 void DeviceManager::doDeviceSetups(){
   for(int i=0;i<device_count;i++) {
+    wdt_reset();
+    Serial.print(F("log:setting dev #"));
+    Serial.print(i);
+    Serial.print(';');
     devices[i]->device_setup();
   }
 }

@@ -9,6 +9,8 @@ class MS5803_14BA : public Device {
     MS5803_14BA():Device(){};
     void device_setup();
     void device_loop(Command cmd);
+//    float TemperatureCorrectedPressure(long AdcPressure, long AdcTemperature, unsigned int CalConstant[8] );
+
 };
 
 #endif
