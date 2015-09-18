@@ -13,17 +13,18 @@
 #define COMPASS_CAPABLE					4
 #define ORIENTATION_CAPABLE				5
 #define DEPTH_CAPABLE					6
+#define ALT_SERVO_CAPABLE				7
 
 namespace NConfigManager
 {
-    // Variables
-    extern uint32_t m_throttleSmoothingIncrement;	// How aggressively the throttle changes
-    extern uint32_t m_deadZoneMin;
-    extern uint32_t m_deadZoneMax;
-    extern uint32_t m_capabilityBitmask;
-    extern uint32_t m_waterType;
+	// Variables
+	extern uint32_t m_throttleSmoothingIncrement;	// How aggressively the throttle changes
+	extern uint32_t m_deadZoneMin;
+	extern uint32_t m_deadZoneMax;
+	extern uint32_t m_capabilityBitmask;
+	extern uint32_t m_waterType;
 
-    // Methods
-    extern void Initialize();
-    extern void HandleMessages( CCommand& commandIn );
+	// Methods
+	extern void Initialize();
+	extern void HandleMessages( CCommand& commandIn );
 }

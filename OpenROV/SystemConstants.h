@@ -37,6 +37,9 @@
 #define VERTICAL_PIN			7
 #define STARBOARD_PIN			8
 #define ESCPOWER_PIN			16
+#define ALTSERVO_PIN			9
+#define ELIGHTS_PIN				46
+#define I2CPOWER_PIN			48
 
 // Commands
 #define COMMAND_MAX_ARGUMENTS			10
@@ -47,3 +50,8 @@
 // System Settings
 #define WATERTYPE_FRESH			0
 #define WATERTYPE_SALT			1
+
+// AltServo
+#define ALTS_MIDPOINT 1500
+#define ALTS_MINPOINT 1000
+#define ALTS_MAXPOINT 2000

@@ -1,8 +1,8 @@
 // Includes
 #include "NArduinoManager.h"
 
-#include <Wire.h>
 #include <EEPROM.h>
+#include "CI2C.h"
 
 namespace NArduinoManager
 {
@@ -11,6 +11,8 @@ namespace NArduinoManager
 
 	void Initialize()
 	{
+		delay( 10000 );
+
 		// Hardware intialization
 		DisableWatchdogTimer();
 		EnableWatchdogTimer();
@@ -18,8 +20,14 @@ namespace NArduinoManager
 		// Initialize the serial port
 		Serial.begin( 115200 );
 
-		// Set the i2c to operate at 400khz (clock divisor value)
-		TWBR = 12;
+		// Start I2C Device
+		I2c.begin();
+
+		// Set 10ms timeout on I2C transmissions
+		I2c.timeOut( 50 );
+
+		// 400Khz
+		I2c.setSpeed( 1 );
 
 		// // Read first byte in EEPROM. If the watchdog triggered and the ISR completed, the first byte will be a "1"
 		if( EEPROM.read( 0 ) == 1 )
@@ -63,60 +71,6 @@ namespace NArduinoManager
 		WDTCSR |= ( 1 << WDCE ) | ( 1 << WDE );
 		WDTCSR = 0x00;
 		sei();
-	}
-
-	void ScanI2C()
-	{
-		byte error;
-		byte address;
-		int nModules = 0;
-
-		Serial.println( F( "log:Scanning...;" ) );
-
-		for( address = 1; address < 127; address++ )
-		{
-			// The i2c_scanner uses the return value of the Write.endTransmisstion to see if a module did acknowledge to the address.
-			Wire.beginTransmission( address );
-			error = Wire.endTransmission();
-
-			if( error == 0 )
-			{
-				Serial.print( F( "log:I2C module found at address 0x" ) );
-
-				if( address < 16 )
-				{
-					Serial.print( "0" );
-				}
-
-				Serial.print( address, HEX );
-				Serial.println( "  !;" );
-
-				nModules++;
-			}
-			else if( error == 4 )
-			{
-				Serial.print( F( "log:Unknow error at address 0x" ) );
-
-				if( address < 16 )
-				{
-					Serial.print( "0" );
-				}
-
-				Serial.print( address, HEX );
-				Serial.println( ";" );
-			}
-		}
-
-		if( nModules == 0 )
-		{
-			Serial.println( F( "log:No I2C modules found\n;" ) );
-		}
-		else
-		{
-			Serial.println( F( "log:done\n;" ) );
-		}
-
-		delay( 5000 );         // wait 5 seconds for next scan
 	}
 
 	ISR( WDT_vect )

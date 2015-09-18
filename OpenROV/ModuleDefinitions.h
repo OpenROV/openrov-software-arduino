@@ -48,7 +48,6 @@ CCameraMount m_cameraMount;
 #define GYRO_ENABLED 1
 #define ACCELEROMETER_ENABLED 1
 #include "CMinIMU9.h"
-#include <Wire.h> //required to force the Arduino IDE to include the library in the path for the I2C code
 CMinIMU9 m_miniMUV;
 #endif
 
@@ -57,17 +56,18 @@ CMinIMU9 m_miniMUV;
 #define GYRO_ENABLED 1
 #define ACCELEROMETER_ENABLED 1
 #include "CMPU9150.h"
-#include <Wire.h> //required to force the Arduino IDE to include the library in the path for the I2C code
-
 CMPU9150 m_mpu9150;
+#endif
+
+#if(HAS_ALT_SERVO)
+#include "CAltServo.h"
+CAltServo altservo1;
 #endif
 
 #if(HAS_MS5803_XXBA)
 #define DEPTH_ENABLED 1
 #include "CMS5803_XXBA.h"
-#include <Wire.h> //required to force the Arduino IDE to include the library in the path for the I2C code
-#include <SPI.h> //required to force the Arduino IDE to include the library in the path for the SPI code
-CMS5803_XXBA m_depthSensor;
+CMS5803_14BA m_depthSensor;
 #endif
 
 #if(DEADMANSWITCH_ON)
@@ -80,6 +80,5 @@ CDeadManSwitch m_deadManSwitch;
 #define GYRO_ENABLED 1
 #define ACCELEROMETER_ENABLED 1
 #include "CBNO055.h"
-#include <Wire.h> //required to force the Arduino IDE to include the library in the path for the I2C code
 CBNO055 m_boschIMU;
 #endif

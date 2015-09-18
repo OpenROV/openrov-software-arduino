@@ -6,16 +6,15 @@
 
 namespace NArduinoManager
 {
-    // Variables
-    extern volatile uint8_t	m_wdtResetInfo;
+	// Variables
+	extern volatile uint8_t	m_wdtResetInfo;
 
-    // Methods
-    extern void Initialize();
+	// Methods
+	extern void Initialize();
 
-    extern void EnableWatchdogTimer();
-    extern void DisableWatchdogTimer();
-    extern void ScanI2C();
+	extern void EnableWatchdogTimer();
+	extern void DisableWatchdogTimer();
 
-    ISR( WDT_vect );
+	ISR( WDT_vect );
 }
 

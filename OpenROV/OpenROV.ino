@@ -1,9 +1,4 @@
-#if __cplusplus <= 199711L
-//#error Must set Arduino GCC compiler C++ version to c++11
-#endif
-
 // Includes
-#include <Wire.h>
 #include <EEPROM.h>
 #include <SPI.h>
 

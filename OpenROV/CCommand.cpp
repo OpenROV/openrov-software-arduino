@@ -51,14 +51,14 @@ namespace
 		{
 			char incomingbyte = Serial.read();
 
-			//       if(incomingbyte==startChar){
-			//           dataBufferIndex = 0;  //Initialize our dataBufferIndex variable
+			// Start accumulating new string
 			if( storeString == false )
 			{
 				storeString = true;
 				dataBufferIndex = 0;
 			}
 
+			// If accumulating
 			if( storeString )
 			{
 				//Let's check our index here, and abort if we're outside our buffer size
@@ -140,24 +140,29 @@ boolean CCommand::GetCommandString()
 
 	if( internalCommandBuffer_head != internalCommandBuffer_tail )
 	{
+		// Advance tail index
 		internalCommandBuffer_tail++;
 
+		// Wrap around
 		if( internalCommandBuffer_tail == COMMAND_MAX_COUNT )
 		{
 			internalCommandBuffer_tail = 0;
 		}
 
-		//get from the command buffer
+		// Get from the command buffer
 		TInternalCommand c = internalCommandBuffer[ internalCommandBuffer_tail ];
 
+		// Copy command text
 		strcpy( m_text, c.text );
 
-		if( strcmp( m_text, "" ) )
+		// Check for invalid command
+		if( strcmp( m_text, "" ) == 0 )
 		{
 			Serial.print( F( "icmd: CMD MUNGED!;" ) );
 			return false;
 		}
 
+		// Print command
 		Serial.print( F( "icmd:" ) );
 		Serial.print( m_text );
 		Serial.print( '(' );

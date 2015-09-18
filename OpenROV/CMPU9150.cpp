@@ -4,7 +4,6 @@
 
 #if( HAS_MPU9150 )
 
-#include <Wire.h>
 #include <EEPROM.h>
 
 #include "LibMPU.h"
@@ -55,7 +54,6 @@ namespace
 void CMPU9150::Initialize()
 {
 	//Todo: Read calibration values from EPROM
-	Wire.begin();
 	MPU.selectDevice( MPUModuleId );
 
 	if( !MPU.init( MPU_UPDATE_RATE, MPU_MAG_MIX_GYRO_ONLY, MAG_UPDATE_RATE, MPU_LPF_RATE ) )

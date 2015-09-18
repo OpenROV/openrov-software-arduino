@@ -3,12 +3,9 @@
 // Includes
 #include "CModule.h"
 
-class CBNO055 : public CModule
+class CAltServo : public CModule
 {
 public:
 	void Initialize();
 	void Update( CCommand& commandIn );
 };
-
-
-

@@ -16,6 +16,6 @@ class CCape : public CModule
 private:
 
 public:
-    void Initialize();
-    void Update( CCommand& commandIn );
+	void Initialize();
+	void Update( CCommand& commandIn );
 };

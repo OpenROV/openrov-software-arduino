@@ -33,7 +33,7 @@ namespace NDataManager
 		Serial.print( F( "hdgd:" ) );
 		Serial.print( m_navData.HDGD );
 		Serial.print( ';' );
-		Serial.print( F( "deep:" ) );
+		Serial.print( F( "deap:" ) );
 		Serial.print( m_navData.DEEP );
 		Serial.print( ';' );
 		Serial.print( F( "pitc:" ) );

@@ -44,6 +44,8 @@ THE SOFTWARE.
 */
 
 #include "LibMPU_I2CDevice.h"
+#include "CI2C.h"
+
 //#define I2CDEV_SERIAL_DEBUG
 /** Default constructor.
  */
@@ -179,64 +181,16 @@ int8_t I2Cdev::readWord(uint8_t devAddr, uint8_t regAddr, uint16_t *data, uint16
  */
 int8_t I2Cdev::readBytes( uint8_t devAddr, uint8_t regAddr, uint8_t length, uint8_t* data, uint16_t timeout )
 {
-#ifdef I2CDEV_SERIAL_DEBUG
-	Serial.print( "I2C (0x" );
-	Serial.print( devAddr, HEX );
-	Serial.print( ") reading " );
-	Serial.print( length, DEC );
-	Serial.print( " bytes from 0x" );
-	Serial.print( regAddr, HEX );
-	Serial.print( "..." );
-#endif
+	uint8_t ret = I2c.read( devAddr, regAddr, length, data );
 
-	int8_t count = 0;
-	uint32_t t1 = millis();
-
-	// Arduino v1.0.1+, Wire library
-	// Adds official support for repeated start condition, yay!
-
-	// I2C/TWI subsystem uses internal buffer that breaks with large data requests
-	// so if user requests more than BUFFER_LENGTH bytes, we have to do it in
-	// smaller chunks instead of all at once
-	for( uint8_t k = 0; k < length; k += min( length, BUFFER_LENGTH ) )
+	if( !ret )
 	{
-		Wire.beginTransmission( devAddr );
-		Wire.write( regAddr );
-		Wire.endTransmission();
-		Wire.beginTransmission( devAddr );
-		Wire.requestFrom( devAddr, ( uint8_t )min( length - k, BUFFER_LENGTH ) );
-
-		while( Wire.available() && ( timeout == 0 || millis() - t1 < timeout ) )
-		{
-			data[count++] = Wire.read();
-
-#ifdef I2CDEV_SERIAL_DEBUG
-			Serial.print( data[count], HEX );
-
-			if( count < length )
-			{
-				Serial.print( " " );
-			}
-
-#endif
-		}
-
-		Wire.endTransmission();
+		return length;
 	}
-
-	// check for timeout
-	if( timeout > 0 && millis() - t1 >= timeout && count < length )
+	else
 	{
-		count = -1; // timeout
+		return -1;
 	}
-
-#ifdef I2CDEV_SERIAL_DEBUG
-	Serial.print( ". Done (" );
-	Serial.print( count, DEC );
-	Serial.println( " read)." );
-#endif
-
-	return count;
 }
 
 /** Read multiple words from a 16-bit device register.
@@ -443,47 +397,9 @@ bool I2Cdev::writeWord( uint8_t devAddr, uint8_t regAddr, uint16_t data )
  */
 bool I2Cdev::writeBytes( uint8_t devAddr, uint8_t regAddr, uint8_t length, uint8_t* data )
 {
-#ifdef I2CDEV_SERIAL_DEBUG
-	Serial.print( "I2C (0x" );
-	Serial.print( devAddr, HEX );
-	Serial.print( ") writing " );
-	Serial.print( length, DEC );
-	Serial.print( " bytes to 0x" );
-	Serial.print( regAddr, HEX );
-	Serial.print( "..." );
-#endif
+	uint8_t status = I2c.write( devAddr, regAddr, data, length );
 
-	uint8_t status = 0;
-
-	Wire.beginTransmission( devAddr );
-	Wire.write( ( uint8_t ) regAddr ); // send address
-
-	for( uint8_t i = 0; i < length; i++ )
-	{
-		Wire.write( ( uint8_t ) data[i] );
-
-#ifdef I2CDEV_SERIAL_DEBUG
-		Serial.print( data[i], HEX );
-
-		if( i + 1 < length )
-		{
-			Serial.print( " " );
-		}
-
-#endif
-	}
-
-	status = Wire.endTransmission();
-
-#ifdef I2CDEV_SERIAL_DEBUG
-	Serial.println( ". Done." );
-#endif
-
-#ifdef __SAM3X8E__
-	return status > 0;
-#else
 	return status == 0;
-#endif
 }
 
 /** Write multiple words to a 16-bit device register.
@@ -495,48 +411,11 @@ bool I2Cdev::writeBytes( uint8_t devAddr, uint8_t regAddr, uint8_t length, uint8
  */
 bool I2Cdev::writeWords( uint8_t devAddr, uint8_t regAddr, uint8_t length, uint16_t* data )
 {
-#ifdef I2CDEV_SERIAL_DEBUG
-	Serial.print( "I2C (0x" );
-	Serial.print( devAddr, HEX );
-	Serial.print( ") writing " );
-	Serial.print( length, DEC );
-	Serial.print( " words to 0x" );
-	Serial.print( regAddr, HEX );
-	Serial.print( "..." );
-#endif
 
-	uint8_t status = 0;
 
-	Wire.beginTransmission( devAddr );
-	Wire.write( regAddr ); // send address
+	uint8_t status = I2c.WriteWords( devAddr, regAddr, data, length );
 
-	for( uint8_t i = 0; i < length * 2; i++ )
-	{
-		Wire.write( ( uint8_t )( data[i++] >> 8 ) ); // send MSB
-		Wire.write( ( uint8_t )data[i] );      // send LSB
-
-#ifdef I2CDEV_SERIAL_DEBUG
-		Serial.print( data[i], HEX );
-
-		if( i + 1 < length )
-		{
-			Serial.print( " " );
-		}
-
-#endif
-	}
-
-	status = Wire.endTransmission();
-
-#ifdef I2CDEV_SERIAL_DEBUG
-	Serial.println( ". Done." );
-#endif
-
-#ifdef __SAM3X8E__
-	return status > 0;
-#else
 	return status == 0;
-#endif
 }
 
 /** Default timeout value for read operations.
