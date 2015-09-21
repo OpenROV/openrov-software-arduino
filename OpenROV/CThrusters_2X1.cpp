@@ -287,6 +287,17 @@ void CThrusters::Update( CCommand& command )
             new_p = p;
             new_v = v;
             new_s = s;
+
+            // Check to see if any motors are non-neutral to signal system that at least one motor is running
+            if( p != MOTOR_TARGET_NEUTRAL_US || v != MOTOR_TARGET_NEUTRAL_US || s != MOTOR_TARGET_NEUTRAL_US )
+            {
+                NDataManager::m_thrusterData.MotorsActive = true;
+            }
+            else
+            {
+                NDataManager::m_thrusterData.MotorsActive = false;
+            }
+
             Serial.print( F( "motors:" ) );
             Serial.print( port_motor.SetMotorTarget( new_p ) );
             Serial.print( ',' );
