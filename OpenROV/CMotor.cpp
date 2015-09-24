@@ -43,7 +43,7 @@ bool CMotor::IsActive()
 
 int CMotor::SetMotorTarget( int targetIn_us )
 {
-	float modifier{ 1.0f };
+	float modifier( 1.0f );
 
 	// Get the appropriate modifier value
 	if( targetIn_us > MOTOR_TARGET_NEUTRAL_US )
