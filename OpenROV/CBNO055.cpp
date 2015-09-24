@@ -19,6 +19,8 @@ namespace
 	bool inFusionMode			= false;
 	bool waitingToSwitch		= false;
 
+	bool inOverride				= false;
+
 	CAdaBNO055 bno;
 
 	imu::Vector<3> euler;
@@ -72,14 +74,34 @@ void CBNO055::Update( CCommand& commandIn )
 
 	if( commandIn.Equals( "imumode" ) )
 	{
-		if( commandIn.m_arguments[ 0 ] == 12 )
+		if( initalized && commandIn.m_arguments[ 0 ] != 0 )
 		{
-			bno.EnterNDOFMode();
-		}
+			if( commandIn.m_arguments[ 1 ] == 0 )
+			{
+				// Turn off override
+				inOverride		= false;
+				inFusionMode	= true;
+				bno.EnterNDOFMode();
 
-		if( commandIn.m_arguments[ 0 ] == 8 )
+			}
+
+			if( commandIn.m_arguments[ 1 ] == 12 )
+			{
+				// Override to NDOF
+				inOverride = true;
+				bno.EnterNDOFMode();
+			}
+
+			if( commandIn.m_arguments[ 1 ] == 8 )
+			{
+				// Override to IMU mode
+				inOverride = true;
+				bno.EnterIMUMode();
+			}
+		}
+		else
 		{
-			bno.EnterIMUMode();
+			Serial.println( "log:Can't enter override, IMU is not initialized yet!;" );
 		}
 	}
 
@@ -199,51 +221,42 @@ void CBNO055::Update( CCommand& commandIn )
 			}
 		}
 
-		// If we're in fusion mode, check to see if we have a good mag and system calibration
-		if( inFusionMode )
+		if( inOverride )
 		{
-			// If motors ever come on during calibration, drop to IMU mode
-			if( NDataManager::m_thrusterData.MotorsActive )
-			{
-				// Switch to gyro mode
-				bno.EnterIMUMode();
-				inFusionMode = false;
-
-				imuTimer.Reset();
-			}
-
-			// Try to stay in fusion mode until some kind of calibration is achieved, and then for at least three seconds to get a better calibration
-			//if( bno.m_magCal != 0 && bno.m_systemCal != 0 )
-			//{
-			//	if( fusionTimer.HasElapsed( 3000 ) )
-			//	{
-			//		// Switch to gyro mode
-			//		bno.EnterIMUMode();
-			//		inFusionMode = false;
-
-			//		// Reset the timer
-			//		imuTimer.Reset();
-			//	}
-			//}
+			// Temp - Do nothing!
 		}
 		else
 		{
-			if( waitingToSwitch )
+			// If we're in fusion mode, check to see if we have a good mag and system calibration
+			if( inFusionMode )
 			{
-				// Make sure motors aren't active
-				if( NDataManager::m_thrusterData.MotorsActive == false )
+				// If motors ever come on during calibration, drop to IMU mode
+				if( NDataManager::m_thrusterData.MotorsActive )
 				{
-					// Switch modes
-					bno.EnterNDOFMode();
-					fusionTimer.Reset();
-					inFusionMode	= true;
-					waitingToSwitch = false;
+					// Switch to gyro mode
+					bno.EnterIMUMode();
+					inFusionMode = false;
+
+					imuTimer.Reset();
 				}
+
+				// Try to stay in fusion mode until some kind of calibration is achieved, and then for at least three seconds to get a better calibration
+				//if( bno.m_magCal != 0 && bno.m_systemCal != 0 )
+				//{
+				//	if( fusionTimer.HasElapsed( 3000 ) )
+				//	{
+				//		// Switch to gyro mode
+				//		bno.EnterIMUMode();
+				//		inFusionMode = false;
+
+				//		// Reset the timer
+				//		imuTimer.Reset();
+				//	}
+				//}
 			}
 			else
 			{
-				// Check to see if proper amount of time has elapsed before switching back to fusion mode
-				if( imuTimer.HasElapsed( 5000 ) )
+				if( waitingToSwitch )
 				{
 					// Make sure motors aren't active
 					if( NDataManager::m_thrusterData.MotorsActive == false )
@@ -254,10 +267,26 @@ void CBNO055::Update( CCommand& commandIn )
 						inFusionMode	= true;
 						waitingToSwitch = false;
 					}
-					else
+				}
+				else
+				{
+					// Check to see if proper amount of time has elapsed before switching back to fusion mode
+					if( imuTimer.HasElapsed( 5000 ) )
 					{
-						// Not ready to switch because motors are on
-						waitingToSwitch = true;
+						// Make sure motors aren't active
+						if( NDataManager::m_thrusterData.MotorsActive == false )
+						{
+							// Switch modes
+							bno.EnterNDOFMode();
+							fusionTimer.Reset();
+							inFusionMode	= true;
+							waitingToSwitch = false;
+						}
+						else
+						{
+							// Not ready to switch because motors are on
+							waitingToSwitch = true;
+						}
 					}
 				}
 			}
