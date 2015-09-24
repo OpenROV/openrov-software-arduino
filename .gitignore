@@ -24,6 +24,9 @@ OpenROV/Visual Micro/*
 
 OpenROV_tests/.build/*
 
+OpenRov/__vm/*
+dist/
+
 *.sdf
 *.sln
 *.opensdf
