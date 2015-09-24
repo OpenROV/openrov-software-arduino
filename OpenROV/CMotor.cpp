@@ -4,6 +4,11 @@
 
 // Default constructor plus pin-setting
 CMotor::CMotor( int motorPinIn )
+	: m_motorPin( -1 )
+	, m_positiveModifier( MOTOR_DEFAULT_POSITIVE_MOD )
+	, m_negativeModifier( MOTOR_DEFAULT_NEGATIVE_MOD )
+	, m_positiveDeadzoneBuffer( MOTOR_DEFAULT_NEGATIVE_DEADZONE_BUFFER )
+	, m_negativeDeadzoneBuffer( MOTOR_DEFAULT_POSITIVE_DEADZONE_BUFFER )
 {
 	SetPin( motorPinIn );
 }
