@@ -6,17 +6,17 @@
 namespace NDataManager
 {
 	// Default initialize all data
-	TNavData			m_navData{};
-	TEnvironmentData	m_environmentData{};
-	TCapeData			m_capeData{};
-	TThrusterData		m_thrusterData{};
-	TCameraMountData	m_cameraMountData{};
-	TControllerData		m_controllerData{};
+	TNavData			m_navData = {};
+	TEnvironmentData	m_environmentData = {};
+	TCapeData			m_capeData = {};
+	TThrusterData		m_thrusterData = {};
+	TCameraMountData	m_cameraMountData = {};
+	TControllerData		m_controllerData = {};
 
 	CTimer				m_timer_1hz;
 	CTimer				m_timer_10hz;
 
-	uint32_t			m_loopsPerSec{ 0 };
+	uint32_t			m_loopsPerSec = 0;
 
 	// Called during Setup() to initialize any DataManager members to specific values
 	void Initialize()

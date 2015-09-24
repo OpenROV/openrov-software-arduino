@@ -7,7 +7,7 @@
 namespace NModuleManager
 {
 	// Initialize variables
-	int	m_moduleCount{ 0 };
+	int	m_moduleCount = 0 ;
 	CModule* m_pModules[ MAX_MODULES ];
 
 	// Method definitions
