@@ -10,3 +10,5 @@ openrov-software-arduino
 ========================
 
 The arduino project for the OpenROV Cockpit solution. 
+
+For submitting issues use the primary software repository: https://github.com/OpenROV/openrov-software/issues
