@@ -21,8 +21,8 @@ void Settings::device_loop(Command command){
       Serial.print(F("deadZone_min|"));
       Serial.print(String(Settings::deadZone_min) + ",");
       Serial.print(F("deadZone_max|"));
-      Serial.print(String(Settings::deadZone_max) + ";");
-      Serial.print(F("water_type"));
+      Serial.print(String(Settings::deadZone_max) + ",");
+      Serial.print(F("water_type|"));
       Serial.println(String(Settings::water_type) + ";");
 
     }
