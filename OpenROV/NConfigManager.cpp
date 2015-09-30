@@ -24,8 +24,8 @@ namespace NConfigManager
 			Serial.print( F( "deadZone_min|" ) );
 			Serial.print( String( NConfigManager::m_deadZoneMin ) + "," );
 			Serial.print( F( "deadZone_max|" ) );
-			Serial.print( String( NConfigManager::m_deadZoneMax ) + ";" );
-			Serial.print( F( "water_type" ) );
+			Serial.print( String( NConfigManager::m_deadZoneMax ) + "," );
+			Serial.print( F( "water_type|" ) );
 			Serial.println( String( NConfigManager::m_waterType ) + ";" );
 
 		}
