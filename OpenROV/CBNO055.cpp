@@ -208,18 +208,20 @@ void CBNO055::Update( CCommand& commandIn )
 		}
 
 		// Get orientation data
-		if( bno.GetVector( CAdaBNO055::VECTOR_EULER, euler ) )
-		{
-			// Throw out values that are all zeroes - necessary when switching modes
-			if( euler.x() != 0.0f && euler.y() != 0.0f && euler.z() != 0.0f )
-			{
-				// These may need adjusting
-				NDataManager::m_navData.PITC	= euler.z();
-				NDataManager::m_navData.ROLL	= -euler.y();
-				NDataManager::m_navData.YAW		= euler.x();
-				NDataManager::m_navData.HDGD	= euler.x();
-			}
-		}
+        if( bno.GetVector( CAdaBNO055::VECTOR_EULER, euler ) )
+        {			
+            // Throw out exactly zero heading values that are all zeroes - necessary when switching modes
+            if( euler.x() != 0.0f  )
+            {
+                // These may need adjusting
+                
+                NDataManager::m_navData.YAW		= euler.x();
+                NDataManager::m_navData.HDGD	= euler.x();
+            }
+			
+			NDataManager::m_navData.PITC	= euler.z();
+			NDataManager::m_navData.ROLL	= -euler.y();
+        }
 
 		if( inOverride )
 		{
