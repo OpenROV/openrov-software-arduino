@@ -13,6 +13,8 @@ SOURCE_FILENAME="OpenROV"
 
 avrdude -P /dev/spidev1.0 -c linuxspi -vvv -p m2560 -U flash:w:${BIN_DIR}/${SOURCE_FILENAME}.hex
 
+exit 0
+
 if [ $? -eq 0 ]
 then
         echo "Successfully uploaded firmware!"

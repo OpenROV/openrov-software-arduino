@@ -18,7 +18,7 @@ then
         echo "Successfully uploaded firmware!"
 
         # Reset the MCU to start the program
-        /opt/openrov/cockpit/linux/reset-mcu.sh
+        /opt/openrov/cockpit/linux/scripts/reset-mcu.sh
 
         exit 0
 else

@@ -19,7 +19,7 @@ mkdir -p ${BIN_DIR}
 # Build variables
 FQ_BOARDNAME="openrov:avr:mega:cpu=atmega2560"
 SOURCE_FILENAME="ArduinoUSBLinker"
-SOURCE_EXT=".ino"
+SOURCE_EXT=".cpp"
 
 # Create temp build directory
 mkdir ${PROJECT_DIR}/build

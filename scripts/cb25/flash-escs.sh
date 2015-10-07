@@ -5,7 +5,7 @@ set -e
 PROJECT_DIR=/opt/openrov/firmware
 BIN_DIR=${PROJECT_DIR}/bin/cb25
 SCRIPTS_DIR=${PROJECT_DIR}/scripts/cb25
-ESC_FIRMWARE=$BIN_DIR/afro/afro_nfet.hex
+ESC_FIRMWARE=${PROJECT_DIR}/bin/afro/afro_nfet.hex
 
 # Build and upload the firmware which turns the MCU into a flashing tool
 ${SCRIPTS_DIR}/build-usblinker.sh

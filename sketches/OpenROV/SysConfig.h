@@ -12,7 +12,7 @@
 #define MCUARCH_SAMD 	2
 
 // Select here
-#define MCUARCH			MCUARCH_SAMD
+#define MCUARCH			MCUARCH_AVR
 
 #if MCUARCH == 0
 	#error "SysConfig.h: You must select an MCU architecture!"
@@ -27,7 +27,7 @@
 #define CONTROLLERBOARD_TRIDENT			3
 
 // Select here
-#define CONTROLLERBOARD					CONTROLLERBOARD_TRIDENT
+#define CONTROLLERBOARD					CONTROLLERBOARD_CB25
 
 #if CONTROLLERBOARD == 0
 	#error "SysConfig.h: You must select a board type!"
