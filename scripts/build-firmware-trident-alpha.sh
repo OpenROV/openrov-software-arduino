@@ -10,6 +10,8 @@ SCRIPTS_DIR=${PROJECT_DIR}/scripts
 SOURCE_DIR=${PROJECT_DIR}/sketches/OpenROV
 HARDWARE_DIR=${ARDUINO_DIR}/hardware
 TOOLS_DIR=${HARDWARE_DIR}/tools
+ARDUINO_LIBS_DIR=${ARDUINO_DIR}/libraries
+SAMD_LIBS_DIR=${HARDWARE_DIR}/openrov/samd/libraries
 BIN_DIR=${PROJECT_DIR}/bin
 TOOLCHAIN_DIR=/usr/bin
 
@@ -24,7 +26,7 @@ BUILD_DIR=${PROJECT_DIR}/build
 #echo "Created temporary build directory: ${BUILD_DIR}"
 
 
-arduino-builder -verbose -debug-level=1 -compile -build-path ${BUILD_DIR}/ -hardware ${HARDWARE_DIR}/ -tools ${TOOLCHAIN_DIR} -fqbn ${FQ_BOARDNAME} ${SOURCE_DIR}/${SOURCE_FILENAME}${SOURCE_EXT}
+arduino-builder -verbose -debug-level=1 -compile -build-path ${BUILD_DIR} -hardware ${HARDWARE_DIR} -tools ${TOOLCHAIN_DIR} -libraries ${ARDUINO_LIBS_DIR} -libraries ${SAMD_LIBS_DIR} -fqbn ${FQ_BOARDNAME} ${SOURCE_DIR}/${SOURCE_FILENAME}${SOURCE_EXT}
 
 if [ $? -eq 0 ]
 then
