@@ -8,7 +8,7 @@ PROJECT_DIR=/opt/openrov/firmware
 ARDUINO_DIR=/opt/openrov/arduino
 SOURCE_DIR=${PROJECT_DIR}/sketches/ArduinoUSBLinker
 HARDWARE_DIR=${ARDUINO_DIR}/hardware
-ARDUINO_LIBS_DIR=${ARDUINO_DIR}/libraries
+SHARED_LIBS_DIR=${PROJECT_DIR}/libraries
 AVR_LIBS_DIR=${HARDWARE_DIR}/openrov/avr/libraries
 TOOLS_DIR=${HARDWARE_DIR}/tools
 BIN_DIR=${PROJECT_DIR}/bin/cb25
@@ -26,7 +26,7 @@ mkdir ${PROJECT_DIR}/build
 BUILD_DIR=${PROJECT_DIR}/build
 #echo "Created temporary build directory: ${BUILD_DIR}"
 
-arduino-builder -verbose -debug-level=1 -compile -build-path ${BUILD_DIR}/ -hardware ${HARDWARE_DIR}/ -tools ${TOOLCHAIN_DIR} -libraries ${ARDUINO_LIBS_DIR} -libraries ${AVR_LIBS_DIR} -fqbn ${FQ_BOARDNAME} ${SOURCE_DIR}/${SOURCE_FILENAME}${SOURCE_EXT}
+arduino-builder -verbose -debug-level=1 -compile -build-path ${BUILD_DIR}/ -hardware ${HARDWARE_DIR}/ -tools ${TOOLCHAIN_DIR} -libraries ${SHARED_LIBS_DIR} -libraries ${AVR_LIBS_DIR} -fqbn ${FQ_BOARDNAME} ${SOURCE_DIR}/${SOURCE_FILENAME}${SOURCE_EXT}
 
 if [ $? -eq 0 ]
 then
