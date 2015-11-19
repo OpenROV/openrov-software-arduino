@@ -64,9 +64,13 @@ void CThrusters::Initialize()
     port_motor.m_positiveDeadzoneBuffer = NConfigManager::m_deadZoneMax;
     port_motor.Activate();
 
-    vertical_motor.m_negativeDeadzoneBuffer = NConfigManager::m_deadZoneMin;
-    vertical_motor.m_positiveDeadzoneBuffer = NConfigManager::m_deadZoneMax;
-    vertical_motor.Activate();
+    port_vertical_motor.m_negativeDeadzoneBuffer = NConfigManager::m_deadZoneMin;
+    port_vertical_motor.m_positiveDeadzoneBuffer = NConfigManager::m_deadZoneMax;
+    port_vertical_motor.Activate();
+
+    starboard_vertical_motor.m_negativeDeadzoneBuffer = NConfigManager::m_deadZoneMin;
+    starboard_vertical_motor.m_positiveDeadzoneBuffer = NConfigManager::m_deadZoneMax;
+    starboard_vertical_motor.Activate();
 
     starboard_motor.m_negativeDeadzoneBuffer = NConfigManager::m_deadZoneMin;
     starboard_motor.m_positiveDeadzoneBuffer = NConfigManager::m_deadZoneMax;
@@ -251,7 +255,8 @@ void CThrusters::Update( CCommand& command )
         if( command.m_arguments[1] >= -100 && command.m_arguments[1] <= 100 )
         {
             trg_lift = command.m_arguments[1] / 100.0;
-            v = 1500 + 500 * trg_lift;
+            vp = 1500 + 500 * trg_lift;
+            vs = vp;
         }
     }
     if (command.Equals("lift") || command.Equals("strafe")  ){
@@ -346,7 +351,7 @@ void CThrusters::Update( CCommand& command )
     //the pilot could have more aggressive response profiles for the ROV.
     if( controltime.HasElapsed( 50 ) )
     {
-        if (p!=new_p || vp2!=new_vp || vs2!=new_vs || s!=new_s) {
+        if (p!=new_p || vp2!=new_vp || vs2!=new_vs || s!=new_s)
         {
             new_p = p;
             new_vp = vp2;
