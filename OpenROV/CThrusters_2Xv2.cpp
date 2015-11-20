@@ -24,9 +24,9 @@ const int CThrusters::kMotorCount = 4;
 namespace
 {
     CMotor port_motor( PORT_PIN );
-    CMotor port_vertical_motor( VERTICAL_PIN );
+    CMotor port_vertical_motor( PORT_VERTICAL_PIN );
     CMotor starboard_motor( STARBOARD_PIN );
-    CMotor starboard_vertical_motor( VERTICAL_PIN );
+    CMotor starboard_vertical_motor( STARBOARD_VERTICAL_PIN );
 
     int new_p	= MOTOR_TARGET_NEUTRAL_US;
     int new_s	= MOTOR_TARGET_NEUTRAL_US;
