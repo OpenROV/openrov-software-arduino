@@ -42,6 +42,10 @@
 #define ALTSERVO_PIN			9
 #define ELIGHTS_PIN				46
 #define I2CPOWER_PIN			48
+#define PORT_FORWARD_PIN 9
+#define PORT_AFT_PIN 6
+#define STARBOARD_FORWARD_PIN 10
+#define STARBOARD_AFT_PIN 8
 
 // Commands
 #define COMMAND_MAX_ARGUMENTS			10
