@@ -44,7 +44,7 @@ namespace
 
     float trg_throttle,trg_yaw,trg_lift,trg_strafe;
     int trg_motor_power;
-    int maxVtransDelta;
+    int maxHtransDelta;
 
 
     CTimer controltime;
@@ -62,7 +62,7 @@ namespace
 void CThrusters::Initialize()
 {
     port_forward_motor.m_negativeDeadzoneBuffer = NConfigManager::m_deadZoneMin;
-    port_fordard_motor.m_positiveDeadzoneBuffer = NConfigManager::m_deadZoneMax;
+    port_forward_motor.m_positiveDeadzoneBuffer = NConfigManager::m_deadZoneMax;
     port_forward_motor.Activate();
 
     port_aft_motor.m_negativeDeadzoneBuffer = NConfigManager::m_deadZoneMin;
@@ -98,7 +98,7 @@ void CThrusters::Update( CCommand& command )
     {
         port_forward_motor.m_positiveModifier = command.m_arguments[1] / 100;
         port_aft_motor.m_positiveModifier = port_forward_motor.m_positiveModifier;
-        port_vertical_motor.m_positiveModifier = command.m_arguments[2] / 100;
+        vertical_motor.m_positiveModifier = command.m_arguments[2] / 100;
         starboard_forward_motor.m_positiveModifier = command.m_arguments[3] / 100;
         starboard_aft_motor.m_positiveModifier = port_aft_motor.m_positiveModifier;
     }
@@ -107,7 +107,7 @@ void CThrusters::Update( CCommand& command )
     {
         port_forward_motor.m_negativeModifier = command.m_arguments[1] / 100;
         port_aft_motor.m_negativeModifier = port_forward_motor.m_negativeModifier;
-        port_vertical_motor.m_negativeModifier = command.m_arguments[2] / 100;
+        vertical_motor.m_negativeModifier = command.m_arguments[2] / 100;
         starboard_forward_motor.m_negativeModifier = command.m_arguments[3] / 100;
         starboard_aft_motor.m_negativeModifier = port_aft_motor.m_negativeModifier;
     }
@@ -237,14 +237,14 @@ void CThrusters::Update( CCommand& command )
         // deadzon calculation in the motor code.
         if( trg_throttle >= 0 )
         {
-            pf = 1500 + ( 500.0 / abs( port_motor.m_positiveModifier ) ) * trg_throttle;
+            pf = 1500 + ( 500.0 / abs( port_forward_motor.m_positiveModifier ) ) * trg_throttle;
             sf = pf;
             pa = pf;
             sa = pf;
         }
         else
         {
-            pf = 1500 + ( 500.0 / abs( port_motor.m_negativeModifier ) ) * trg_throttle;
+            pf = 1500 + ( 500.0 / abs( port_forward_motor.m_negativeModifier ) ) * trg_throttle;
             sf = pf;
             pa = pf;
             sa = pf;
@@ -332,7 +332,7 @@ void CThrusters::Update( CCommand& command )
     else if( command.Equals( "start" ) )
     {
         port_forward_motor.Activate();
-        post_aft_motor.Activate();
+        port_aft_motor.Activate();
         vertical_motor.Activate();
         starboard_forward_motor.Activate();
         starboard_aft_motor.Activate();
@@ -365,7 +365,7 @@ void CThrusters::Update( CCommand& command )
     //the pilot could have more aggressive response profiles for the ROV.
     if( controltime.HasElapsed( 50 ) )
     {
-        if (pf!=new_pf || pa=new_pa || v!=new_v || sf!=new_sf || sa!=new_sa)
+        if (pf!=new_pf || pa!=new_pa || v!=new_v || sf!=new_sf || sa!=new_sa)
         {
             new_pf = pf;
             new_pa = pa;
