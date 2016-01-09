@@ -15,7 +15,7 @@ BIN_DIR=${PROJECT_DIR}/bin
 SOURCE_FILENAME="OpenROV"
 
 # Run reset script to put SAMD21 into program mode
-${SCRIPTS_DIR}/reset-samd21-program-mode.sh
+${SCRIPTS_DIR}/reset-trident-alpha-programming-mode.sh
 
 # Upload bin file to SAMD21
 $TOOLS_DIR/bossac -e -w -b ${BIN_DIR}/${SOURCE_FILENAME}.bin
@@ -25,7 +25,7 @@ then
         echo "Successfully uploaded firmware!"
         
 	# Reset the SAMD21 to start the program
-	${SCRIPTS_DIR}/reset-samd21.sh
+	${SCRIPTS_DIR}/reset-trident-alpha.sh
 	
 	exit 0
 else
