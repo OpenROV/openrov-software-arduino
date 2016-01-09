@@ -1,5 +1,3 @@
-Stable: [![Build Status](https://secure.travis-ci.org/OpenROV/openrov-software-arduino.png?branch=firmware-2.0)](http://travis-ci.org/OpenROV/openrov-software-arduino)
-
 V2.0 of the OpenROV Firmware Project
 ========================
 
