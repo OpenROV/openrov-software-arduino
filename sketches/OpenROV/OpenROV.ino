@@ -1,21 +1,41 @@
-#include <Arduino.h>
+// Includes
+#include <EEPROM.h>
+#include <SPI.h>
+
+#include "NArduinoManager.h"
+#include "NConfigManager.h"
+#include "NDataManager.h"
+#include "NCommManager.h"
+#include "NModuleManager.h"
+
 
 void setup()
 {
-	//digitalWrite(PIN_LED_0, HIGH);
-	//digitalWrite(PIN_LED_1, HIGH);
+	// Initialize main subsystems
+	NArduinoManager::Initialize();
+	NCommManager::Initialize();
+	NConfigManager::Initialize();
+	NModuleManager::Initialize();
+	NDataManager::Initialize();
 
-	Serial.begin( 115200 );
-	Serial1.begin( 115200 );
+	// Boot complete
+	Serial.println( F( "boot:1;" ) );
 }
 
 void loop()
 {
-	digitalWrite(PIN_LED, HIGH);   // turn the LED on (HIGH is the voltage level)
-  	delay(1000);              // wait for a second
-  	digitalWrite(PIN_LED, LOW);    // turn the LED off by making the voltage LOW
- 	delay(1000);
+	// Reset the watchdog timer
+	wdt_reset();
 
-	Serial.println( "Hello0" );
-	Serial1.println( "Hello1" );   
+	// Attempt to read a current command off of the command line
+	NCommManager::GetCurrentCommand();
+
+	// Handle any config change requests
+	NConfigManager::HandleMessages( NCommManager::m_currentCommand );
+
+	// Handle update loops for each module
+	NModuleManager::HandleModuleUpdates( NCommManager::m_currentCommand );
+
+	// Handle update loops that send data back to the beaglebone
+	NDataManager::HandleOutputLoops();
 }
