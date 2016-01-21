@@ -1,10 +1,11 @@
-#include "AConfig.h"
+
+#include "Config.h"
 #if(HAS_BNO055)
 
-#include "NDataManager.h"
 #include "CBNO055.h"
-#include "CAdaBNO055.h"
+#include <BNO055.h>
 #include "CTimer.h"
+#include <Wire.h>
 
 namespace
 {
@@ -17,18 +18,24 @@ namespace
 	bool browserPingReceived	= false;
 
 	bool inFusionMode			= false;
-	bool waitingToSwitch		= false;
 
-	bool inOverride				= false;
-
-	CAdaBNO055 bno;
+	// Use the first Wire interface by default
+	CBNO055Driver bno;
 
 	imu::Vector<3> euler;
+
+	float roll = 0.0f;
+	float pitch = 0.0f;
+	float yaw = 0.0f;
+	
+	int m_wireInterfaceSelector = 0;
+	TwoWire *m_pWire = nullptr;
+
 
 	void InitializeSensor()
 	{
 		// Attempt to initialize. If this fails, we try every 30 seconds in its update loop
-		if( !bno.Initialize() )
+		if( !bno.Initialize( m_pWire ) )
 		{
 			Serial.println( "BNO_INIT_STATUS:FAILED;" );
 			initalized = false;
@@ -54,245 +61,131 @@ namespace
 	}
 }
 
+// CBNO055::CBNO055( int wireInterfaceSelectorIn )
+// {
+// 	m_wireInterfaceSelector = wireInterfaceSelectorIn;
+// }
 
 void CBNO055::Initialize()
 {
-	// Reset timers
+	Serial.println( "BNO055.Status:INIT;" );
+	
+	if( m_wireInterfaceSelector > WIRE_INTERFACES_COUNT )
+	{
+		// Invalid wire interface selected
+		Serial.println( "ERROR:Invalid wire interface selected for BNO055;" );
+		m_pWire = nullptr;
+	}
+	
+	switch( m_wireInterfaceSelector )
+	{
+		case BNO_WIRE_INTERFACE_0:
+		{
+			m_pWire = WIRE_INTERFACE_0;
+			break;
+		}
+		
+		case BNO_WIRE_INTERFACE_1:
+		{
+			m_pWire = WIRE_INTERFACE_1;
+			break;
+		}
+		
+		case BNO_WIRE_INTERFACE_2:
+		{
+			m_pWire = WIRE_INTERFACE_2;
+			break;
+		}
+		
+		case BNO_WIRE_INTERFACE_3:
+		{
+			m_pWire = WIRE_INTERFACE_3;
+			break;
+		}
+		
+		case BNO_WIRE_INTERFACE_4:
+		{
+			m_pWire = WIRE_INTERFACE_4;
+			break;
+		}
+		
+		case BNO_WIRE_INTERFACE_5:
+		{
+			m_pWire = WIRE_INTERFACE_5;
+			break;
+		}
+		
+		default:
+			m_pWire = nullptr;
+			break;
+	}
+	
+	//Reset timers
 	bno055_sample_timer.Reset();
 	report_timer.Reset();
 	imuTimer.Reset();
 	fusionTimer.Reset();
+	
+	Serial.println( "BNO055.Status:POSTINIT;" );
 }
+
+
 
 void CBNO055::Update( CCommand& commandIn )
 {
-
-	if( commandIn.Equals( "ping" ) )
-	{
-		browserPingReceived = true;
-	}
-
-	if( commandIn.Equals( "imumode" ) )
-	{
-		if( initalized && commandIn.m_arguments[ 0 ] != 0 )
-		{
-			if( commandIn.m_arguments[ 1 ] == 0 )
-			{
-				// Turn off override
-				inOverride		= false;
-				inFusionMode	= true;
-				bno.EnterNDOFMode();
-
-			}
-
-			if( commandIn.m_arguments[ 1 ] == 12 )
-			{
-				// Override to NDOF
-				inOverride = true;
-				bno.EnterNDOFMode();
-			}
-
-			if( commandIn.m_arguments[ 1 ] == 8 )
-			{
-				// Override to IMU mode
-				inOverride = true;
-				bno.EnterIMUMode();
-			}
-		}
-		else
-		{
-			Serial.println( "log:Can't enter override, IMU is not initialized yet!;" );
-		}
-	}
-
-	// 1000 / 21
-	if( bno055_sample_timer.HasElapsed( 47 ) )
+	// 100hz
+	if( bno055_sample_timer.HasElapsed( 10 ) )
 	{
 		if( !initalized )
 		{
 			// Attempt every 10 secs
-			if( report_timer.HasElapsed( 10000 ) )
+			if( report_timer.HasElapsed( 5000 ) )
 			{
-				if( browserPingReceived )
-				{
-					// Attempt to initialize the chip again
-					InitializeSensor();
-				}
+				Serial.println( "BNO055.Status:TRYING;" );
+				// Attempt to initialize the chip again
+				InitializeSensor();
 			}
 
 			return;
 		}
 
-		// System status checks
-		if( report_timer.HasElapsed( 1000 ) )
-		{
-			// System calibration
-			if( bno.GetCalibration() )
-			{
-				Serial.print( "BNO055.CALIB_MAG:" );
-				Serial.print( bno.m_magCal );
-				Serial.println( ';' );
-				Serial.print( "BNO055.CALIB_ACC:" );
-				Serial.print( bno.m_accelCal );
-				Serial.println( ';' );
-				Serial.print( "BNO055.CALIB_GYR:" );
-				Serial.print( bno.m_gyroCal );
-				Serial.println( ';' );
-				Serial.print( "BNO055.CALIB_SYS:" );
-				Serial.print( bno.m_systemCal );
-				Serial.println( ';' );
+		bno.GetCalibration();
+		bno.GetSystemStatus();
+		bno.GetSystemError();
+		bno.GetVector( bosch::EVectorType::VECTOR_EULER, euler );
+		
+		yaw = fmod(euler.x() + 90.0f,360.0f);
+		
+    	if (yaw < 0.0f)
+    	{
+        	yaw += 360.0f;
+    	}
+		
+		
+		pitch		= euler.y();
+		roll		= euler.z();
 
-				// Get offsets
-				bno.GetGyroOffsets();
-				bno.GetAccelerometerOffsets();
-				bno.GetMagnetometerOffsets();
-			}
-			else
-			{
-				Serial.print( "BNO055.CALIB_MAG:" );
-				Serial.print( "N/A" );
-				Serial.println( ';' );
-				Serial.print( "BNO055.CALIB_ACC:" );
-				Serial.print( "N/A" );
-				Serial.println( ';' );
-				Serial.print( "BNO055.CALIB_GYR:" );
-				Serial.print( "N/A" );
-				Serial.println( ';' );
-				Serial.print( "BNO055.CALIB_SYS:" );
-				Serial.print( "N/A" );
-				Serial.println( ';' );
-			}
-
-			// Operating mode
-			if( bno.GetOperatingMode() )
-			{
-				Serial.print( "BNO055.MODE:" );
-				Serial.print( bno.m_operatingMode );
-				Serial.println( ';' );
-			}
-			else
-			{
-				Serial.print( "BNO055.MODE:" );
-				Serial.print( "N/A" );
-				Serial.println( ';' );
-			}
-
-			// System status
-			if( bno.GetSystemStatus() )
-			{
-				Serial.print( "BNO055_STATUS:" );
-				Serial.print( bno.m_systemStatus, HEX );
-				Serial.println( ";" );
-			}
-			else
-			{
-				Serial.print( "BNO055_STATUS:" );
-				Serial.print( "N/A" );
-				Serial.println( ";" );
-			}
-
-			// System Error
-			if( bno.GetSystemError() )
-			{
-				Serial.print( "BNO055_ERROR_FLAG:" );
-				Serial.print( bno.m_systemError );
-				Serial.println( ";" );
-			}
-			else
-			{
-				Serial.print( "BNO055_ERROR_FLAG:" );
-				Serial.print( "N/A" );
-				Serial.println( ";" );
-			}
-
-		}
-
-		// Get orientation data
-        if( bno.GetVector( CAdaBNO055::VECTOR_EULER, euler ) )
-        {			
-            // Throw out exactly zero heading values that are all zeroes - necessary when switching modes
-            if( euler.x() != 0.0f  )
-            {
-                // These may need adjusting
-                
-                NDataManager::m_navData.YAW		= euler.x();
-                NDataManager::m_navData.HDGD	= euler.x();
-            }
-			
-			NDataManager::m_navData.PITC	= euler.z();
-			NDataManager::m_navData.ROLL	= -euler.y();
-        }
-
-		if( inOverride )
-		{
-			// Temp - Do nothing!
-		}
-		else
-		{
-			// If we're in fusion mode, check to see if we have a good mag and system calibration
-			if( inFusionMode )
-			{
-				// If motors ever come on during calibration, drop to IMU mode
-				if( NDataManager::m_thrusterData.MotorsActive )
-				{
-					// Switch to gyro mode
-					bno.EnterIMUMode();
-					inFusionMode = false;
-
-					imuTimer.Reset();
-				}
-
-				// Try to stay in fusion mode until some kind of calibration is achieved, and then for at least three seconds to get a better calibration
-				//if( bno.m_magCal != 0 && bno.m_systemCal != 0 )
-				//{
-				//	if( fusionTimer.HasElapsed( 3000 ) )
-				//	{
-				//		// Switch to gyro mode
-				//		bno.EnterIMUMode();
-				//		inFusionMode = false;
-
-				//		// Reset the timer
-				//		imuTimer.Reset();
-				//	}
-				//}
-			}
-			else
-			{
-				if( waitingToSwitch )
-				{
-					// Make sure motors aren't active
-					if( NDataManager::m_thrusterData.MotorsActive == false )
-					{
-						// Switch modes
-						bno.EnterNDOFMode();
-						fusionTimer.Reset();
-						inFusionMode	= true;
-						waitingToSwitch = false;
-					}
-				}
-				else
-				{
-					// Check to see if proper amount of time has elapsed before switching back to fusion mode
-					if( imuTimer.HasElapsed( 5000 ) )
-					{
-						// Make sure motors aren't active
-						if( NDataManager::m_thrusterData.MotorsActive == false )
-						{
-							// Switch modes
-							bno.EnterNDOFMode();
-							fusionTimer.Reset();
-							inFusionMode	= true;
-							waitingToSwitch = false;
-						}
-						else
-						{
-							// Not ready to switch because motors are on
-							waitingToSwitch = true;
-						}
-					}
-				}
-			}
-		}
+		// Serial.print(millis());
+		// Serial.print('\t');
+		// Serial.print(bno.m_systemStatus);
+		// Serial.print('\t');
+		// Serial.print(bno.m_systemError);
+		// Serial.print('\t');
+		// Serial.print(bno.m_systemCal);
+		// Serial.print('\t');
+		// Serial.print(bno.m_accelCal);
+		// Serial.print('\t');
+		// Serial.print(bno.m_gyroCal);
+		// Serial.print('\t');
+		// Serial.print(bno.m_magCal);
+		// Serial.print('\t');
+		// Serial.print("BNO\t");
+		// Serial.print(roll, 2);
+		// Serial.print('\t');
+		// Serial.print(pitch, 2);
+		// Serial.print('\t');
+		// Serial.println(yaw, 2);
 	}
 }
+
 #endif

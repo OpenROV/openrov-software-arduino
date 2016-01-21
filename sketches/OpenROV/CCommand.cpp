@@ -120,8 +120,7 @@ boolean CCommand::Equals( const char* targetcommand )
 
 boolean CCommand::GetCommandString()
 {
-	// Get string from buffer
-
+	// Clear command
 	commandReady = false;
 	strcpy( m_text, "" );
 
@@ -130,9 +129,10 @@ boolean CCommand::GetCommandString()
 		m_arguments[i] = 0;
 	}
 
+	// Grab a string from the serial port, if available
 	if( GetSerialString() )
 	{
-		//String available for parsing.  Parse it here
+		// Parse the string for commands
 		Parse();
 		commandReady = true;
 		return true;
@@ -276,7 +276,7 @@ void CCommand::Parse()
 		Serial.print( crc, HEX );
 		Serial.print( "/" );
 		Serial.print( testcrc, HEX );
-		Serial.print( ';' );
+		Serial.println( ';' );
 		return;
 	}
 

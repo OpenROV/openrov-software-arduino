@@ -1,7 +1,7 @@
 #pragma once
 
-// Includes
 #include "CModule.h"
+#include "CCommand.h"
 
 // Defines
 #define MAX_MODULES 15

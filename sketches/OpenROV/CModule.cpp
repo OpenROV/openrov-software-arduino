@@ -8,5 +8,7 @@ CModule::CModule()
 	: m_name( "NA" )
 	, m_executionTime( 0 )
 {
+	// Serial.println( "LOL" );
 	NModuleManager::RegisterModule( this );
+	// Serial.println( "NO" );
 }

@@ -1,7 +1,5 @@
+// Includes
 #include "NDataManager.h"
-
-#include "NModuleManager.h"
-#include "SystemConstants.h"
 
 namespace NDataManager
 {
@@ -12,7 +10,7 @@ namespace NDataManager
 	TThrusterData		m_thrusterData = {};
 	TCameraMountData	m_cameraMountData = {};
 	TControllerData		m_controllerData = {};
-
+	
 	CTimer				m_timer_1hz;
 	CTimer				m_timer_10hz;
 
@@ -21,10 +19,9 @@ namespace NDataManager
 	// Called during Setup() to initialize any DataManager members to specific values
 	void Initialize()
 	{
-		m_thrusterData.MATC		= true;
-
-		m_cameraMountData.CMNT	= CAMERA_SERVO_TARGET_MIDPOINT_US;
-		m_cameraMountData.CMTG	= CAMERA_SERVO_TARGET_MIDPOINT_US;
+		Serial.println( "Systems.DataManager.Status:INIT;" );
+        
+        Serial.println( "Systems.DataManager.Status:READY;" );
 	}
 
 	void OutputNavData()
@@ -47,24 +44,6 @@ namespace NDataManager
 		Serial.print( ';' );
 		Serial.print( F( "fthr:" ) );
 		Serial.print( m_navData.FTHR );
-		Serial.println( ';' );
-
-		Serial.print( F( "norm_roll:" ) );
-		Serial.print( m_controllerData.roll );
-		Serial.println( ';' );
-		Serial.print( F( "norm_pitch:" ) );
-		Serial.print( m_controllerData.pitch );
-		Serial.println( ';' );
-		Serial.print( F( "norm_yaw:" ) );
-		Serial.print( m_controllerData.yaw );
-		Serial.println( ';' );
-
-		Serial.print( F( "yawError:" ) );
-		Serial.print( m_controllerData.yawError );
-		Serial.println( ';' );
-
-		Serial.print( F( "yawCommand:" ) );
-		Serial.print( m_controllerData.yawCommand );
 		Serial.println( ';' );
 	}
 
@@ -109,7 +88,7 @@ namespace NDataManager
 		Serial.print( F( ", " ) );
 		Serial.print( F( __TIME__ ) );
 		Serial.print( F( ", " ) );
-		Serial.println( F( __VERSION__ ) );
+		Serial.print( F( __VERSION__ ) );
 		Serial.print( ';' );
 		Serial.print( F( "time:" ) );
 		Serial.print( m_capeData.UTIM );
@@ -124,17 +103,17 @@ namespace NDataManager
 		Serial.println( ';' );
 
 		// Module loop timers in milliseconds
-		Serial.print( F( "modtime:" ) );
+		// Serial.print( F( "modtime:" ) );
 
-		for( int i = 0; i < NModuleManager::m_moduleCount; ++i )
-		{
-			Serial.print( NModuleManager::m_pModules[ i ]->m_name );
-			Serial.print( '|' );
-			Serial.print( NModuleManager::m_pModules[ i ]->m_executionTime );
-			Serial.print( '|' );
-		}
+		// for( int i = 0; i < NModuleManager::m_moduleCount; ++i )
+		// {
+		// 	Serial.print( NModuleManager::m_pModules[ i ]->m_name );
+		// 	Serial.print( '|' );
+		// 	Serial.print( NModuleManager::m_pModules[ i ]->m_executionTime );
+		// 	Serial.print( '|' );
+		// }
 
-		Serial.println( ';' );
+		// Serial.println( ';' );
 	}
 
 	void HandleOutputLoops()

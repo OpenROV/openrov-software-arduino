@@ -2,9 +2,14 @@
 
 // Includes
 #include <Arduino.h>
-#include <avr/wdt.h>
+#include "Config.h"
 
-namespace NArduinoManager
+// Includes
+#if MCUARCH == MCUARCH_AVR
+	#include <avr/wdt.h>
+#endif
+
+namespace NSysManager
 {
 	// Variables
 	extern volatile uint8_t	m_wdtResetInfo;
@@ -14,7 +19,12 @@ namespace NArduinoManager
 
 	extern void EnableWatchdogTimer();
 	extern void DisableWatchdogTimer();
+	extern void ResetWatchdogTimer();
+	extern void CheckWatchdogLog();
 
+#if MCUARCH == MCUARCH_AVR
 	ISR( WDT_vect );
+#endif
+
 }
 

@@ -2,12 +2,24 @@
 
 namespace NCommManager
 {
-    // Initialize variables
+    // ---------------------------------------------------------
+	// Variable initialization
+	// ---------------------------------------------------------
+	
     CCommand	m_currentCommand;
     boolean		m_isCommandAvailable = false;
 
+    // ---------------------------------------------------------
+	// Method Definitions
+	// ---------------------------------------------------------
+
     void Initialize()
     {
+        Serial.println( "Systems.CommManager.Status:INIT;" );
+        
+        // TODO: Mavlink stuff will probably happen here
+        
+        Serial.println( "Systems.CommManager.Status:READY;" );
     }
 
     void GetCurrentCommand()

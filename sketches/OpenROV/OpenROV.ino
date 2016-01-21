@@ -1,37 +1,36 @@
 // Includes
-#include <EEPROM.h>
-#include <SPI.h>
-
-#include "NArduinoManager.h"
-#include "NConfigManager.h"
-#include "NDataManager.h"
+#include "NSysManager.h"
 #include "NCommManager.h"
+#include "NVehicleManager.h"
 #include "NModuleManager.h"
-
+#include "NDataManager.h"
 
 void setup()
 {
+	digitalWrite( PIN_EN_INTI2C, HIGH );
+	digitalWrite( PIN_EN_EXTI2C, HIGH );
+	
 	// Initialize main subsystems
-	NArduinoManager::Initialize();
+	NSysManager::Initialize();
 	NCommManager::Initialize();
-	NConfigManager::Initialize();
+	NVehicleManager::Initialize();
 	NModuleManager::Initialize();
 	NDataManager::Initialize();
 
 	// Boot complete
-	Serial.println( F( "boot:1;" ) );
+	Serial.println( "bootstage:1;" );
 }
 
 void loop()
 {
-	// Reset the watchdog timer
-	wdt_reset();
+	// // Reset the watchdog timer
+	NSysManager::ResetWatchdogTimer();
 
 	// Attempt to read a current command off of the command line
 	NCommManager::GetCurrentCommand();
 
-	// Handle any config change requests
-	NConfigManager::HandleMessages( NCommManager::m_currentCommand );
+	// Handle any vehicle information requests or updates
+	NVehicleManager::HandleMessages( NCommManager::m_currentCommand );
 
 	// Handle update loops for each module
 	NModuleManager::HandleModuleUpdates( NCommManager::m_currentCommand );

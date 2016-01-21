@@ -1,8 +1,9 @@
 // Includes
-#include <avr/wdt.h>
-
 #include "NModuleManager.h"
-#include "ModuleDefinitions.h"
+#include "NSysManager.h"
+
+// This file instantiates any required core modules
+#include "CoreModules.h"
 
 namespace NModuleManager
 {
@@ -13,14 +14,26 @@ namespace NModuleManager
 	// Method definitions
 	void Initialize()
 	{
+		Serial.println( "Systems.ModuleManager.Status:INIT;" );
+		
+		Serial.print( "log:Module Count=" );
+		Serial.print( m_moduleCount );
+		Serial.println( ";" );
+        
 		for( int i = 0; i < m_moduleCount; ++i )
 		{
 			// Each module setup can take up to a full second or so to init.
 			// Reset the WDT after each init to keep it from triggering during this step.
-			wdt_reset();
-
+			NSysManager::ResetWatchdogTimer();
+			
 			m_pModules[ i ]->Initialize();
+			
+			Serial.print( "log:Module Init=" );
+			Serial.print( m_pModules[ i ]->m_name );
+			Serial.println( ";" );
 		}
+        
+        Serial.println( "Systems.ModuleManager.Status:READY;" );
 	}
 
 	void RegisterModule( CModule* moduleIn )
@@ -28,7 +41,6 @@ namespace NModuleManager
 		// Check to see if we have room left to register a module
 		if( m_moduleCount >= MAX_MODULES )
 		{
-			Serial.println( F( "ERROR: TOO MANY MODULES;" ) );
 			return;
 		}
 

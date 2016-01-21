@@ -14,7 +14,7 @@ BIN_DIR=${PROJECT_DIR}/bin
 TOOLCHAIN_DIR=/usr/bin
 
 # Build variables
-FQ_BOARDNAME="openrov:sam:trident_alpha"
+FQ_BOARDNAME="openrov:samd:trident_alpha"
 SOURCE_FILENAME="OpenROV"
 SOURCE_EXT=".ino"
 
