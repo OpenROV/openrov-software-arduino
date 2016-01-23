@@ -1,3 +1,8 @@
+#!/bin/bash
+
+filename=$1
+
+if [[ -n "$filename" ]]; then
 astyle \
 --style=allman \
 --indent=tab \
@@ -23,11 +28,8 @@ astyle \
 --remove-comment-prefix \
 --max-code-length=200 \
 --suffix=none \
---recursive \
 --lineend=linux \
-/opt/openrov/firmware/sketches/*.cpp \
-/opt/openrov/firmware/sketches/*.h \
-/opt/openrov/firmware/sketches/*.ino \
-/opt/openrov/firmware/sketches/*.c \
-/opt/openrov/firmware/sketches/*.hpp
-
+$filename
+else
+    echo "argument error"
+fi
