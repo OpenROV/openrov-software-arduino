@@ -7,9 +7,6 @@
 
 void setup()
 {
-	digitalWrite( PIN_EN_INTI2C, HIGH );
-	digitalWrite( PIN_EN_EXTI2C, HIGH );
-	
 	// Initialize main subsystems
 	NSysManager::Initialize();
 	NCommManager::Initialize();

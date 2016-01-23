@@ -2,7 +2,7 @@
 
 // Includes
 #include <Arduino.h>
-#include "Config.h"
+#include "SysConfig.h"
 
 // Includes
 #if MCUARCH == MCUARCH_AVR
@@ -16,6 +16,8 @@ namespace NSysManager
 
 	// Methods
 	extern void Initialize();
+
+	extern void EnableI2C();
 
 	extern void EnableWatchdogTimer();
 	extern void DisableWatchdogTimer();

@@ -14,7 +14,7 @@ namespace
 
 	// CRC-8 - based on the CRC8 formulas by Dallas/Maxim
 	// Code released under the therms of the GNU GPL 3.0 license
-	byte CRC8( byte start, char* data, byte len )
+	byte CRC8( byte start, char *data, byte len )
 	{
 		byte crc = 0x00;
 
@@ -100,14 +100,14 @@ namespace
 int CCommand::m_arguments[COMMAND_MAX_ARGUMENTS];
 char CCommand::m_text[COMMAND_DATA_BUFFER_SIZE + 1] ;
 
-boolean CCommand::Equals( const char* targetcommand )
+boolean CCommand::Equals( const char *targetcommand )
 {
 	if( !commandReady )
 	{
 		return false;
 	}
 
-	char* pos = strstr( m_text, targetcommand );
+	char *pos = strstr( m_text, targetcommand );
 
 	if( pos == m_text ) //starts with
 	{
@@ -191,7 +191,7 @@ boolean CCommand::GetCommandString()
 	return false;
 }
 
-void CCommand::PushCommand( char* cmdtext, int cmdargs[COMMAND_MAX_ARGUMENTS] )
+void CCommand::PushCommand( char *cmdtext, int cmdargs[COMMAND_MAX_ARGUMENTS] )
 {
 	// If commands are not being processed in time we overwrite the oldest ones.  Technically we should probably
 	// have a global array for all possible commands where only the most recent is ever processed to prevent
@@ -245,7 +245,7 @@ void CCommand::Reset()
 // get 'arguments' from command
 void CCommand::Parse()
 {
-	char* pch;
+	char *pch;
 	byte crc = 0;
 	byte i = 0;
 	crc = CRC8( 1, dataBuffer, dataBufferIndex - 1 );
@@ -280,7 +280,7 @@ void CCommand::Parse()
 		return;
 	}
 
-	char* db2 = dataBuffer;
+	char *db2 = dataBuffer;
 	db2++;
 	pch = strtok( db2, " ,();" );
 

@@ -10,12 +10,12 @@
 
 namespace NModuleManager
 {
-    // Attributes
-    extern int		m_moduleCount;
-    extern CModule* m_pModules[ MAX_MODULES ];
+	// Attributes
+	extern int		m_moduleCount;
+	extern CModule *m_pModules[ MAX_MODULES ];
 
-    // Methods
-    extern void Initialize();
-    extern void RegisterModule( CModule* moduleIn );
-    extern void HandleModuleUpdates( CCommand& commandIn );
+	// Methods
+	extern void Initialize();
+	extern void RegisterModule( CModule *moduleIn );
+	extern void HandleModuleUpdates( CCommand &commandIn );
 }

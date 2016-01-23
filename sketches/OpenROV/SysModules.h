@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Config.h"
+#include "SysConfig.h"
 
 // ---------------------------------------
 // Conditional module definitions
@@ -9,10 +9,10 @@
 // They can also be accessed individually as namespace members.
 // ---------------------------------------
 
-// #if( HAS_OROV_CONTROLLERBOARD_25 )
-// #include "CControllerBoard.h"
-// CControllerBoard m_controllerBoard;
-// #endif
+// Must have one of these!
+#include "CControllerBoard.h"
+CControllerBoard m_controllerBoard;
+
 
 // #if(HAS_STD_CAPE)
 // #include "CCape.h"
@@ -65,11 +65,10 @@
 // CAltServo altservo1;
 // #endif
 
-// #if(HAS_MS5803_XXBA)
-// #define DEPTH_ENABLED 1
-// #include "CMS5803_XXBA.h"
-// CMS5803_14BA m_depthSensor;
-// #endif
+#if(HAS_MS5803_30BA)
+#include "CMS5803_30BA.h"
+CMS5803_30BA m_depthSensor;
+#endif
 
 // #if(DEADMANSWITCH_ON)
 // #include "CDeadManSwitch.h"

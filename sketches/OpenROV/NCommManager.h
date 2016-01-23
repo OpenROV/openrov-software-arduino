@@ -5,12 +5,12 @@
 
 namespace NCommManager
 {
-    // Variables
-    extern CCommand m_currentCommand;
+	// Variables
+	extern CCommand m_currentCommand;
 
-    extern boolean	m_isCommandAvailable;
+	extern boolean	m_isCommandAvailable;
 
-    // Methods
-    extern void Initialize();
-    extern void GetCurrentCommand();
+	// Methods
+	extern void Initialize();
+	extern void GetCurrentCommand();
 }

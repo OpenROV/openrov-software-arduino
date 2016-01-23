@@ -27,7 +27,7 @@ namespace NVehicleManager
 {
 	// Variables
 	extern uint32_t m_capabilityBitmask;
-	
+
 	// These may or may not continue to live here
 	extern uint32_t m_throttleSmoothingIncrement;	// How aggressively the throttle changes
 	extern uint32_t m_deadZoneMin;
@@ -36,5 +36,5 @@ namespace NVehicleManager
 
 	// Methods
 	extern void Initialize();
-	extern void HandleMessages( CCommand& commandIn );
+	extern void HandleMessages( CCommand &commandIn );
 }

@@ -27,9 +27,9 @@ private:
 	// Methods
 public:
 	boolean GetCommandString();
-	boolean Equals( const char* commandStringIn );
+	boolean Equals( const char *commandStringIn );
 
-	static void PushCommand( char* textIn, int argumentsIn[ COMMAND_MAX_ARGUMENTS ] );
+	static void PushCommand( char *textIn, int argumentsIn[ COMMAND_MAX_ARGUMENTS ] );
 	static void Reset();
 
 private:

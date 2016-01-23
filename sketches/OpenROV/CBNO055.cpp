@@ -1,5 +1,5 @@
 
-#include "Config.h"
+#include "SysConfig.h"
 #if(HAS_BNO055)
 
 #include "CBNO055.h"
@@ -27,7 +27,7 @@ namespace
 	float roll = 0.0f;
 	float pitch = 0.0f;
 	float yaw = 0.0f;
-	
+
 	int m_wireInterfaceSelector = 0;
 	TwoWire *m_pWire = nullptr;
 
@@ -69,69 +69,69 @@ namespace
 void CBNO055::Initialize()
 {
 	Serial.println( "BNO055.Status:INIT;" );
-	
+
 	if( m_wireInterfaceSelector > WIRE_INTERFACES_COUNT )
 	{
 		// Invalid wire interface selected
 		Serial.println( "ERROR:Invalid wire interface selected for BNO055;" );
 		m_pWire = nullptr;
 	}
-	
+
 	switch( m_wireInterfaceSelector )
 	{
 		case BNO_WIRE_INTERFACE_0:
-		{
-			m_pWire = WIRE_INTERFACE_0;
-			break;
-		}
-		
+			{
+				m_pWire = WIRE_INTERFACE_0;
+				break;
+			}
+
 		case BNO_WIRE_INTERFACE_1:
-		{
-			m_pWire = WIRE_INTERFACE_1;
-			break;
-		}
-		
+			{
+				m_pWire = WIRE_INTERFACE_1;
+				break;
+			}
+
 		case BNO_WIRE_INTERFACE_2:
-		{
-			m_pWire = WIRE_INTERFACE_2;
-			break;
-		}
-		
+			{
+				m_pWire = WIRE_INTERFACE_2;
+				break;
+			}
+
 		case BNO_WIRE_INTERFACE_3:
-		{
-			m_pWire = WIRE_INTERFACE_3;
-			break;
-		}
-		
+			{
+				m_pWire = WIRE_INTERFACE_3;
+				break;
+			}
+
 		case BNO_WIRE_INTERFACE_4:
-		{
-			m_pWire = WIRE_INTERFACE_4;
-			break;
-		}
-		
+			{
+				m_pWire = WIRE_INTERFACE_4;
+				break;
+			}
+
 		case BNO_WIRE_INTERFACE_5:
-		{
-			m_pWire = WIRE_INTERFACE_5;
-			break;
-		}
-		
+			{
+				m_pWire = WIRE_INTERFACE_5;
+				break;
+			}
+
 		default:
 			m_pWire = nullptr;
 			break;
 	}
-	
+
 	//Reset timers
 	bno055_sample_timer.Reset();
 	report_timer.Reset();
 	imuTimer.Reset();
 	fusionTimer.Reset();
-	
+
 	Serial.println( "BNO055.Status:POSTINIT;" );
 }
 
 
 
-void CBNO055::Update( CCommand& commandIn )
+void CBNO055::Update( CCommand &commandIn )
 {
 	// 100hz
 	if( bno055_sample_timer.HasElapsed( 10 ) )
@@ -153,15 +153,15 @@ void CBNO055::Update( CCommand& commandIn )
 		bno.GetSystemStatus();
 		bno.GetSystemError();
 		bno.GetVector( bosch::EVectorType::VECTOR_EULER, euler );
-		
-		yaw = fmod(euler.x() + 90.0f,360.0f);
-		
-    	if (yaw < 0.0f)
-    	{
-        	yaw += 360.0f;
-    	}
-		
-		
+
+		yaw = fmod( euler.x() + 90.0f, 360.0f );
+
+		if( yaw < 0.0f )
+		{
+			yaw += 360.0f;
+		}
+
+
 		pitch		= euler.y();
 		roll		= euler.z();
 

@@ -10,7 +10,7 @@ namespace NDataManager
 	TThrusterData		m_thrusterData = {};
 	TCameraMountData	m_cameraMountData = {};
 	TControllerData		m_controllerData = {};
-	
+
 	CTimer				m_timer_1hz;
 	CTimer				m_timer_10hz;
 
@@ -20,8 +20,8 @@ namespace NDataManager
 	void Initialize()
 	{
 		Serial.println( "Systems.DataManager.Status:INIT;" );
-        
-        Serial.println( "Systems.DataManager.Status:READY;" );
+
+		Serial.println( "Systems.DataManager.Status:READY;" );
 	}
 
 	void OutputNavData()

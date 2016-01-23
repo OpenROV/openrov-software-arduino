@@ -7,7 +7,7 @@ namespace NVehicleManager
 	// ---------------------------------------------------------
 	// Variable initialization
 	// ---------------------------------------------------------
-	
+
 	uint32_t m_throttleSmoothingIncrement	= 40;
 	uint32_t m_deadZoneMin					= 50;
 	uint32_t m_deadZoneMax					= 50;
@@ -17,15 +17,15 @@ namespace NVehicleManager
 	// ---------------------------------------------------------
 	// Method Definitions
 	// ---------------------------------------------------------
-	
+
 	void Initialize()
 	{
 		Serial.println( "Systems.VehicleManager.Status:INIT;" );
-        
-        Serial.println( "Systems.VehicleManager.Status:READY;" );
+
+		Serial.println( "Systems.VehicleManager.Status:READY;" );
 	}
 
-	void HandleMessages( CCommand& commandIn )
+	void HandleMessages( CCommand &commandIn )
 	{
 		if( commandIn.Equals( "reportSetting" ) )
 		{

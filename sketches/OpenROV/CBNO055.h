@@ -14,7 +14,7 @@ class CBNO055 : public CModule
 {
 public:
 	virtual void Initialize();
-	virtual void Update( CCommand& commandIn );
+	virtual void Update( CCommand &commandIn );
 };
 
 
