@@ -18,7 +18,7 @@ namespace NSysManager
 	extern void Initialize();
 
 	extern void EnableI2C();
-
+	extern void SetPinModes();
 	extern void EnableWatchdogTimer();
 	extern void DisableWatchdogTimer();
 	extern void ResetWatchdogTimer();

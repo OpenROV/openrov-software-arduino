@@ -2,6 +2,7 @@
 #include "NSysManager.h"
 
 #include <Wire.h>
+#include "PinDefinitions.h"
 
 #if MCUARCH == MCUARCH_AVR
 	#include <EEPROM.h>
@@ -22,6 +23,9 @@ namespace NSysManager
 
 	void Initialize()
 	{
+		// Set pin modes
+		SetPinModes();
+		
 		// Initialize the serial ports
 		Serial.begin( 115200 );
 		Serial1.begin( 115200 );
@@ -44,11 +48,35 @@ namespace NSysManager
 	void EnableI2C()
 	{
 		// Note: The wire library will break if we attempt to use it with these low.
-		digitalWrite( PIN_EN_INTI2C, HIGH );
-		digitalWrite( PIN_EN_EXTI2C, HIGH );
+		digitalWrite( PIN_ENABLE_INT_I2C, HIGH );
+		digitalWrite( PIN_ENABLE_EXT_I2C, HIGH );
 
 		Wire.begin();
 		Wire1.begin();
+	}
+	
+	void SetPinModes()
+	{
+		#if CONTROLLERBOARD == CONTROLLERBOARD_TRIDENT
+		
+		    // Setup pinmodes for GPIO
+		    pinMode( PIN_LED_0,                 OUTPUT );
+		    pinMode( PIN_LED_1,                 OUTPUT );
+		    pinMode( PIN_ENABLE_INT_I2C,        OUTPUT );
+		    pinMode( PIN_ENABLE_EXT_I2C,        OUTPUT );
+		    pinMode( PIN_ENABLE_ESC,            OUTPUT );
+		    pinMode( PIN_ENABLE_ESC_PRECHARGE,  OUTPUT );
+		    pinMode( PIN_ENABLE_PROGRAM,        INPUT );
+		    
+		    pinMode( PIN_SERVO_1, 				OUTPUT );
+		    pinMode( PIN_SERVO_2, 				OUTPUT );
+		    pinMode( PIN_SERVO_3,				OUTPUT );
+		    pinMode( PIN_SERVO_4, 				OUTPUT );
+		    pinMode( PIN_SERVO_5, 				OUTPUT );
+		    pinMode( PIN_SERVO_6, 				OUTPUT );
+		    pinMode( PIN_SERVO_7, 				OUTPUT );
+		    pinMode( PIN_SERVO_8, 				OUTPUT );
+	    #endif
 	}
 
 	void EnableWatchdogTimer()

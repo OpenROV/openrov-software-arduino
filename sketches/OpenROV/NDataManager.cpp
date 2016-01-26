@@ -114,6 +114,8 @@ namespace NDataManager
 		// }
 
 		// Serial.println( ';' );
+		
+		//
 	}
 
 	void HandleOutputLoops()

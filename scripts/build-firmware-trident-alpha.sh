@@ -19,8 +19,9 @@ SOURCE_FILENAME="OpenROV"
 SOURCE_EXT=".ino"
 
 # Create temp build directory
-BUILD_DIR=`mktemp -d`
-echo "Created temporary build directory: ${BUILD_DIR}"
+mkdir ${PROJECT_DIR}/build
+BUILD_DIR=${PROJECT_DIR}/build
+#echo "Created temporary build directory: ${BUILD_DIR}"
 
 
 ${TOOLS_DIR}/arduino-builder -verbose -debug-level=1 -compile -build-path ${BUILD_DIR}/ -hardware ${HARDWARE_DIR}/ -tools ${TOOLCHAIN_DIR} -fqbn ${FQ_BOARDNAME} ${SOURCE_DIR}/${SOURCE_FILENAME}${SOURCE_EXT}

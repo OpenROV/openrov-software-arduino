@@ -25,7 +25,7 @@ void loop()
 
 	// Attempt to read a current command off of the command line
 	NCommManager::GetCurrentCommand();
-
+	
 	// Handle any vehicle information requests or updates
 	NVehicleManager::HandleMessages( NCommManager::m_currentCommand );
 
