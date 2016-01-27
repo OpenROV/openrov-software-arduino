@@ -7,6 +7,8 @@
 #include "CTimer.h"
 #include <Wire.h>
 
+#include "NDataManager.h"
+
 namespace
 {
 	CTimer bno055_sample_timer;
@@ -149,42 +151,121 @@ void CBNO055::Update( CCommand &commandIn )
 			return;
 		}
 
-		bno.GetCalibration();
-		bno.GetSystemStatus();
-		bno.GetSystemError();
-		bno.GetVector( bosch::EVectorType::VECTOR_EULER, euler );
+		// bno.GetCalibration();
+		// bno.GetSystemStatus();
+		// bno.GetSystemError();
+		// bno.GetVector( bosch::EVectorType::VECTOR_EULER, euler );
 
-		yaw = fmod( euler.x() + 90.0f, 360.0f );
+		// yaw = fmod( euler.x() + 90.0f, 360.0f );
 
-		if( yaw < 0.0f )
+		// if( yaw < 0.0f )
+		// {
+		// 	yaw += 360.0f;
+		// }
+
+
+		// pitch		= euler.y();
+		// roll		= euler.z();
+		
+		// System status checks
+		if( report_timer.HasElapsed( 1000 ) )
 		{
-			yaw += 360.0f;
+			// System calibration
+			if( bno.GetCalibration() )
+			{
+				Serial.print( "BNO055.CALIB_MAG:" );
+				Serial.print( bno.m_magCal );
+				Serial.println( ';' );
+				Serial.print( "BNO055.CALIB_ACC:" );
+				Serial.print( bno.m_accelCal );
+				Serial.println( ';' );
+				Serial.print( "BNO055.CALIB_GYR:" );
+				Serial.print( bno.m_gyroCal );
+				Serial.println( ';' );
+				Serial.print( "BNO055.CALIB_SYS:" );
+				Serial.print( bno.m_systemCal );
+				Serial.println( ';' );
+
+				// Get offsets
+				bno.GetGyroOffsets();
+				bno.GetAccelerometerOffsets();
+				bno.GetMagnetometerOffsets();
+			}
+			else
+			{
+				Serial.print( "BNO055.CALIB_MAG:" );
+				Serial.print( "N/A" );
+				Serial.println( ';' );
+				Serial.print( "BNO055.CALIB_ACC:" );
+				Serial.print( "N/A" );
+				Serial.println( ';' );
+				Serial.print( "BNO055.CALIB_GYR:" );
+				Serial.print( "N/A" );
+				Serial.println( ';' );
+				Serial.print( "BNO055.CALIB_SYS:" );
+				Serial.print( "N/A" );
+				Serial.println( ';' );
+			}
+
+			// Operating mode
+			if( bno.GetOperatingMode() )
+			{
+				Serial.print( "BNO055.MODE:" );
+				Serial.print( bno.m_operatingMode );
+				Serial.println( ';' );
+			}
+			else
+			{
+				Serial.print( "BNO055.MODE:" );
+				Serial.print( "N/A" );
+				Serial.println( ';' );
+			}
+
+			// System status
+			if( bno.GetSystemStatus() )
+			{
+				Serial.print( "BNO055_STATUS:" );
+				Serial.print( bno.m_systemStatus, HEX );
+				Serial.println( ";" );
+			}
+			else
+			{
+				Serial.print( "BNO055_STATUS:" );
+				Serial.print( "N/A" );
+				Serial.println( ";" );
+			}
+
+			// System Error
+			if( bno.GetSystemError() )
+			{
+				Serial.print( "BNO055_ERROR_FLAG:" );
+				Serial.print( bno.m_systemError );
+				Serial.println( ";" );
+			}
+			else
+			{
+				Serial.print( "BNO055_ERROR_FLAG:" );
+				Serial.print( "N/A" );
+				Serial.println( ";" );
+			}
+
 		}
 
-
-		pitch		= euler.y();
-		roll		= euler.z();
-
-		// Serial.print(millis());
-		// Serial.print('\t');
-		// Serial.print(bno.m_systemStatus);
-		// Serial.print('\t');
-		// Serial.print(bno.m_systemError);
-		// Serial.print('\t');
-		// Serial.print(bno.m_systemCal);
-		// Serial.print('\t');
-		// Serial.print(bno.m_accelCal);
-		// Serial.print('\t');
-		// Serial.print(bno.m_gyroCal);
-		// Serial.print('\t');
-		// Serial.print(bno.m_magCal);
-		// Serial.print('\t');
-		// Serial.print("BNO\t");
-		// Serial.print(roll, 2);
-		// Serial.print('\t');
-		// Serial.print(pitch, 2);
-		// Serial.print('\t');
-		// Serial.println(yaw, 2);
+		// Get orientation data
+        if( bno.GetVector( bosch::VECTOR_EULER, euler ) )
+        {			
+            // Throw out exactly zero heading values that are all zeroes - necessary when switching modes
+            if( euler.x() != 0.0f  )
+            {
+                // These may need adjusting
+                
+                NDataManager::m_navData.YAW		= euler.x();
+                NDataManager::m_navData.HDGD	= euler.x();
+            }
+			
+			NDataManager::m_navData.PITC	= euler.z();
+			NDataManager::m_navData.ROLL	= -euler.y();
+        }
 	}
 }
 

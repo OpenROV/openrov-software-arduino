@@ -14,20 +14,15 @@
 CControllerBoard m_controllerBoard;
 
 
-// #if(HAS_STD_CAPE)
-// #include "CCape.h"
-// CCape m_cape;
-// #endif
+#if(HAS_STD_LIGHTS)
+#include "CLights.h"
+CLights m_lights;
+#endif
 
-// #if(HAS_STD_LIGHTS)
-// #include "CLights.h"
-// CLights m_lights;
-// #endif
-
-// #if(HAS_STD_CALIBRATIONLASERS)
-// #include "CCalibrationLaser.h"
-// CalibrationLaser m_calibrationLaser;
-// #endif
+#if(HAS_STD_CALIBRATIONLASERS)
+#include "CCalibrationLaser.h"
+CalibrationLaser m_calibrationLaser;
+#endif
 
 // #if(THRUSTER_CONFIGURATION != THRUSTER_CONFIG_NONE )
 // #include "CThrusters.h"
@@ -60,20 +55,20 @@ CControllerBoard m_controllerBoard;
 // CMPU9150 m_mpu9150;
 // #endif
 
-// #if(HAS_ALT_SERVO)
-// #include "CAltServo.h"
-// CAltServo altservo1;
-// #endif
+#if(HAS_ALT_SERVO)
+#include "CAltServo.h"
+CAltServo altservo1;
+#endif
 
 #if(HAS_MS5803_30BA)
 #include "CMS5803_30BA.h"
 CMS5803_30BA m_depthSensor;
 #endif
 
-// #if(DEADMANSWITCH_ON)
-// #include "CDeadManSwitch.h"
-// CDeadManSwitch m_deadManSwitch;
-// #endif
+#if(DEADMANSWITCH_ON)
+#include "CDeadManSwitch.h"
+CDeadManSwitch m_deadManSwitch;
+#endif
 
 #if(HAS_BNO055)
 #include "CBNO055.h"
