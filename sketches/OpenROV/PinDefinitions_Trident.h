@@ -74,12 +74,12 @@
 #define PIN_ALTSERVO			    PIN_SERVO_8
 
 // PWM pins
-#define PIN_STANDARD_LIGHTS		    PIN_PWM_0
-// Not yet used                     PIN_PWM_1
-#define PIN_EXTERNAL_LIGHTS		    PIN_PWM_2
-#define PIN_LASERS                  PIN_PWM_3
-// Not yet used                     PIN_PWM_4
+#define PIN_STANDARD_LIGHTS		    PIN_PWM_1
+// Not yet used                     PIN_PWM_2
+#define PIN_EXTERNAL_LIGHTS		    PIN_PWM_3
+#define PIN_LASERS                  PIN_PWM_4
 // Not yet used                     PIN_PWM_5
+// Not yet used                     PIN_PWM_6
 
 
 // Analog pins (? = todo)
