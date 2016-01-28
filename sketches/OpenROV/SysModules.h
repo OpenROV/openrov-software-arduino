@@ -24,20 +24,20 @@ CLights m_lights;
 CalibrationLaser m_calibrationLaser;
 #endif
 
-// #if(THRUSTER_CONFIGURATION != THRUSTER_CONFIG_NONE )
-// #include "CThrusters.h"
-// CThrusters m_thrusters;
-// #endif
+#if(THRUSTER_CONFIGURATION != THRUSTER_CONFIG_NONE )
+#include "CThrusters.h"
+CThrusters m_thrusters;
+#endif
 
-// #if(HAS_STD_AUTOPILOT)
-// #include "CAutopilot.h"
-// CAutopilot m_autopilot;
-// #endif
+#if(HAS_STD_AUTOPILOT)
+#include "CAutopilot.h"
+CAutopilot m_autopilot;
+#endif
 
-// #if(HAS_STD_CAMERAMOUNT)
-// #include "CCameraMount.h"
-// CCameraMount m_cameraMount;
-// #endif
+#if(HAS_STD_CAMERAMOUNT)
+#include "CCameraMount.h"
+CCameraMount m_cameraMount;
+#endif
 
 // #if(HAS_POLOLU_MINIMUV)
 // #define COMPASS_ENABLED 1

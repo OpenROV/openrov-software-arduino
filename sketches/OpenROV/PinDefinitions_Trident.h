@@ -96,6 +96,7 @@
 #define PIN_BATT_BUS_V 		    	PIN_A14 	// ?
 #define PIN_ESC2_I 			    	PIN_A15 	// 0-11A
 
-
+// Other Defines
+#define HAS_ESC_POWER_SWITCH		1
 
 #endif

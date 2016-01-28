@@ -74,8 +74,8 @@
 
 #define HAS_STD_LIGHTS 				(1)
 #define HAS_STD_CALIBRATIONLASERS 	(1)
-#define HAS_STD_CAMERAMOUNT 		(0)
-#define HAS_STD_AUTOPILOT 			(0)
+#define HAS_STD_CAMERAMOUNT 		(1)
+#define HAS_STD_AUTOPILOT 			(1)
 #define HAS_EXP_AUTOPILOT 			(0)
 #define HAS_ALT_SERVO 				(1)
 #define HAS_DEADMAN_SWITCH 			(1)
