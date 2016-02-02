@@ -40,7 +40,6 @@ namespace
 		if( !bno.Initialize( m_pWire ) )
 		{
 			Serial.println( "BNO_INIT_STATUS:FAILED;" );
-			initalized = false;
 		}
 		else
 		{
@@ -57,7 +56,6 @@ namespace
 			Serial.print( bno.m_bootloaderRev );
 			Serial.println( ";" );
 
-			initalized = true;
 			inFusionMode = true;
 		}
 	}
@@ -138,7 +136,7 @@ void CBNO055::Update( CCommand &commandIn )
 	// 100hz
 	if( bno055_sample_timer.HasElapsed( 10 ) )
 	{
-		if( !initalized )
+		if( !bno.m_isInitialized )
 		{
 			// Attempt every 10 secs
 			if( report_timer.HasElapsed( 5000 ) )
