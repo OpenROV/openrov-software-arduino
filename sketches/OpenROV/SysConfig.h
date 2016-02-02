@@ -76,7 +76,6 @@
 #define HAS_STD_CALIBRATIONLASERS 	(1)
 #define HAS_STD_CAMERAMOUNT 		(1)
 #define HAS_STD_AUTOPILOT 			(1)
-#define HAS_EXP_AUTOPILOT 			(0)
 #define HAS_ALT_SERVO 				(1)
 #define HAS_DEADMAN_SWITCH 			(1)
 
@@ -97,12 +96,18 @@
 // Pololu MINIMUV
 #define HAS_POLOLU_MINIMUV 			(0)
 
-// MS5803_XXBA Depth Sensor
-#define HAS_MS5803_30BA 			(1)
-
 // MPU9150 IMU
 #define HAS_MPU9150 				(0)
 #define MPU9150_EEPROM_START 		(2)
 
 // BNO055 IMU
 #define HAS_BNO055 					(1)
+
+// MS5803_XXBA Depth Sensor
+#define HAS_MS5803					(1)
+#define HAS_MS5803_30BA 			(0)
+#define HAS_MS5803_14BA				(1)
+
+
+
+

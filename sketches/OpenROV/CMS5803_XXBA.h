@@ -3,7 +3,7 @@
 // Includes
 #include "CModule.h"
 
-class CMS5803_30BA : public CModule
+class CMS5803_XXBA : public CModule
 {
 public:
 	void Initialize();

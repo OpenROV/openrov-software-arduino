@@ -60,9 +60,9 @@ CCameraMount m_cameraMount;
 CAltServo altservo1;
 #endif
 
-#if(HAS_MS5803_30BA)
-#include "CMS5803_30BA.h"
-CMS5803_30BA m_depthSensor;
+#if(HAS_MS5803)
+#include "CMS5803_XXBA.h"
+CMS5803_XXBA m_depthSensor;
 #endif
 
 #if(DEADMANSWITCH_ON)

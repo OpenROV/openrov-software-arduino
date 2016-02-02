@@ -1,8 +1,13 @@
 #include "SysConfig.h"
-#if(HAS_MS5803_30BA)
+#if(HAS_MS5803)
 
-#include "CMS5803_30BA.h"
-#include <MS5803_30.h>
+#include "CMS5803_XXBA.h"
+
+#if(HAS_MS5803_30BA)
+	#include <MS5803_30.h>
+#elif( HAS_MS5803_14BA )
+	#include <MS5803_14.h>
+#endif
 
 #include "CTimer.h"
 
@@ -12,7 +17,12 @@
 namespace
 {
 	// Variables
-	MS5803_30 dev( 512U );
+	#if(HAS_MS5803_30BA)
+		MS5803_30 dev( 512U );
+	#elif( HAS_MS5803_14BA )
+		MS5803_14 dev( 512U );
+	#endif
+	
 
 	CTimer DepthSensorSamples;
 	CTimer InitTimer;
@@ -49,7 +59,7 @@ namespace
 }
 
 
-void CMS5803_30BA::Initialize()
+void CMS5803_XXBA::Initialize()
 {
 	// Reset the chip
 	dev.Initialize();
@@ -60,7 +70,7 @@ void CMS5803_30BA::Initialize()
 }
 
 
-void CMS5803_30BA::Update( CCommand& commandIn )
+void CMS5803_XXBA::Update( CCommand& commandIn )
 {
 	if( isInitialized )
 	{
