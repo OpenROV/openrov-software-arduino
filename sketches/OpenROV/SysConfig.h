@@ -82,9 +82,11 @@
 // Thrusters configurations
 #define THRUSTER_CONFIG_NONE 		(0)
 #define THRUSTER_CONFIG_2X1 		(1)
+#define THRUSTER_CONFIG_2XV2 		(2)
+#define THRUSTER_CONFIG_V2X1XV2 	(3)
 
 // Selected Thruster Configuration
-#define THRUSTER_CONFIGURATION 		THRUSTER_CONFIG_2X1
+#define THRUSTER_CONFIGURATION 		THRUSTER_CONFIG_V2X1XV2
 
 
 // ---------------------------------------------------------

@@ -56,6 +56,7 @@
 // Pin assignments
 // ------------------------------
 
+// -----------
 // GPIO
 #define PIN_ENABLE_ESC              PIN_D0
 #define PIN_ENABLE_EXT_I2C          PIN_D1
@@ -63,17 +64,40 @@
 #define PIN_ENABLE_PROGRAM          PIN_D3
 #define PIN_ENABLE_ESC_PRECHARGE    PIN_D4
 
+// -----------
 // Servos
+
+// Standard Motor pin setup
 #define PIN_PORT_MOTOR			    PIN_SERVO_1
 #define PIN_STARBOARD_MOTOR		    PIN_SERVO_2
 #define PIN_VERTICAL_MOTOR		    PIN_SERVO_3
-// Not used		                    PIN_SERVO_4
-// Not used		                    PIN_SERVO_5
-// Not used		                    PIN_SERVO_6
+// Not used						    PIN_SERVO_4
+// Not used						    PIN_SERVO_5
+// Not used							PIN_SERVO_6
+
+// 2xV2 alternative pin setup
+// PIN_PORT_MOTOR					PIN_SERVO_1
+// PIN_STARBOARD_MOTOR			    PIN_SERVO_2
+#define PIN_PORT_VERTICAL_MOTOR		PIN_SERVO_3
+#define PIN_STAR_VERTICAL_MOTOR		PIN_SERVO_4
+// Not used						    PIN_SERVO_5
+// Not used						    PIN_SERVO_6
+
+// V2x1xV2 alternative pin setup
+#define PIN_PORT_FORWARD_MOTOR		PIN_SERVO_1
+#define PIN_STAR_FORWARD_MOTOR		PIN_SERVO_2
+// PIN_VERTICAL_MOTOR				PIN_SERVO_3
+#define PIN_PORT_AFT_MOTOR			PIN_SERVO_4
+#define PIN_STAR_AFT_MOTOR			PIN_SERVO_5
+// Not used						    PIN_SERVO_6
+
+// Other Servos
 #define PIN_CAMERA_MOUNT		    PIN_SERVO_7
 #define PIN_ALTSERVO			    PIN_SERVO_8
 
+// -----------
 // PWM pins
+
 #define PIN_STANDARD_LIGHTS		    PIN_PWM_1
 // Not yet used                     PIN_PWM_2
 #define PIN_EXTERNAL_LIGHTS		    PIN_PWM_3
@@ -81,8 +105,9 @@
 // Not yet used                     PIN_PWM_5
 // Not yet used                     PIN_PWM_6
 
-
+// -----------
 // Analog pins (? = todo)
+
 #define PIN_BATT1_V  		    	PIN_A0		// ?
 #define PIN_BATT2_V  		    	PIN_A1 		// ?
 #define PIN_NON_ESC_I  		    	PIN_A2		// 0-3.3A

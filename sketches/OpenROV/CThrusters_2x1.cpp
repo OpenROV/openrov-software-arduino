@@ -249,7 +249,6 @@ void CThrusters::Update( CCommand& command )
         Serial.print( command.m_arguments[1] );
         Serial.println( ';' );
     }
-
     #endif
     else if( command.Equals( "start" ) )
     {
