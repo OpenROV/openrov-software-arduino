@@ -39,21 +39,13 @@ CAutopilot m_autopilot;
 CCameraMount m_cameraMount;
 #endif
 
-// #if(HAS_POLOLU_MINIMUV)
-// #define COMPASS_ENABLED 1
-// #define GYRO_ENABLED 1
-// #define ACCELEROMETER_ENABLED 1
-// #include "CMinIMU9.h"
-// CMinIMU9 m_miniMUV;
-// #endif
-
-// #if( HAS_MPU9150 )
-// #define COMPASS_ENABLED 1
-// #define GYRO_ENABLED 1
-// #define ACCELEROMETER_ENABLED 1
-// #include "CMPU9150.h"
-// CMPU9150 m_mpu9150;
-// #endif
+#if( HAS_MPU9150 )
+#define COMPASS_ENABLED 1
+#define GYRO_ENABLED 1
+#define ACCELEROMETER_ENABLED 1
+#include "CMPU9150.h"
+CMPU9150 m_mpu9150;
+#endif
 
 #if(HAS_ALT_SERVO)
 #include "CAltServo.h"

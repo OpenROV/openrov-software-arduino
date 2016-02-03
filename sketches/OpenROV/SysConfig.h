@@ -86,7 +86,7 @@
 #define THRUSTER_CONFIG_V2X1XV2 	(3)
 
 // Selected Thruster Configuration
-#define THRUSTER_CONFIGURATION 		THRUSTER_CONFIG_V2X1XV2
+#define THRUSTER_CONFIGURATION 		THRUSTER_CONFIG_2X1
 
 
 // ---------------------------------------------------------
@@ -94,9 +94,6 @@
 // ---------------------------------------------------------
 
 // Todo: These will eventually become standalone plugins!
-
-// Pololu MINIMUV
-#define HAS_POLOLU_MINIMUV 			(0)
 
 // MPU9150 IMU
 #define HAS_MPU9150 				(0)
@@ -107,8 +104,8 @@
 
 // MS5803_XXBA Depth Sensor
 #define HAS_MS5803					(1)
-#define HAS_MS5803_30BA 			(0)
-#define HAS_MS5803_14BA				(1)
+#define HAS_MS5803_30BA 			(1)
+#define HAS_MS5803_14BA				(0)
 
 
 
