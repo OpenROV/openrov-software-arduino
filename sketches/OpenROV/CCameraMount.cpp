@@ -25,8 +25,8 @@ namespace
 {
 	
 	#if MCUARCH == MCUARCH_AVR
-    	// Use normal servo library if the camera servo is not on pin 11, otherwise use AVR IO methods
-		#if( PIN_CAMERA_MOUNT != 11 )
+    	// Use normal servo library if not on the CB25. We use a hacky workaround because of timing issues if on the CB25
+		#if !( CONTROLLERBOARD == CONTROLLERBOARD_CB25 )
 		    Servo tilt;
 		#endif
 	#else
@@ -59,7 +59,7 @@ namespace
 void CCameraMount::Initialize()
 {
 	#if MCUARCH == MCUARCH_AVR
-	    #if(PIN_CAMERA_MOUNT != 11)
+	    #if !( CONTROLLERBOARD == CONTROLLERBOARD_CB25 )
 	    // Activate servo and set initial position
 	    tilt.attach( PIN_CAMERA_MOUNT );
 	    tilt.writeMicroseconds( tiltTarget );
@@ -109,7 +109,7 @@ void CCameraMount::Update( CCommand& command )
 
 		#if MCUARCH == MCUARCH_AVR
 	        // Write to servo
-	        #if( PIN_CAMERA_MOUNT != 11 )
+	        #if !( CONTROLLERBOARD == CONTROLLERBOARD_CB25 )
 	        	tilt.writeMicroseconds( tiltTarget );
 	        #else
 	        	SetCameraServoPosition( tiltTarget );

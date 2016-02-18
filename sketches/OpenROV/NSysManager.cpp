@@ -27,8 +27,7 @@ namespace NSysManager
 		SetPinModes();
 		
 		// Initialize the serial ports
-		Serial.begin( 115200 );
-		Serial1.begin( 115200 );
+		InitializeSerial();
 
 		Serial.println( "Systems.SysManager.Status:INIT;" );
 
@@ -44,21 +43,40 @@ namespace NSysManager
 
 		Serial.println( "Systems.SysManager.Status:READY;" );
 	}
+	
+	void InitializeSerial()
+	{
+		#if CONTROLLERBOARD == CONTROLLERBOARD_TRIDENT
+			Serial.begin( 115200 );
+			Serial1.begin( 115200 );
+		#elif CONTROLLERBOARD == CONTROLLERBOARD_CB25
+			Serial.begin( 115200 );
+		#elif CONTROLLERBOARD == CONTROLLERBOARD_CAPE
+			Serial.begin( 115200 );
+		#endif
+	}
 
 	void EnableI2C()
 	{
-		// Note: The wire library will break if we attempt to use it with these low.
-		digitalWrite( PIN_ENABLE_INT_I2C, HIGH );
-		digitalWrite( PIN_ENABLE_EXT_I2C, HIGH );
-
-		Wire.begin();
-		Wire1.begin();
+		#if CONTROLLERBOARD == CONTROLLERBOARD_TRIDENT
+			// Note: The wire library will break if we attempt to use it with these low.
+			digitalWrite( PIN_ENABLE_INT_I2C, HIGH );
+			digitalWrite( PIN_ENABLE_EXT_I2C, HIGH );
+	
+			Wire.begin();
+			Wire1.begin();
+		#elif CONTROLLERBOARD == CONTROLLERBOARD_CB25
+			digitalWrite( PIN_ENABLE_I2C, HIGH );
+	
+			Wire.begin();
+		#elif CONTROLLERBOARD == CONTROLLERBOARD_CAPE
+			Wire.begin();
+		#endif
 	}
 	
 	void SetPinModes()
 	{
 		#if CONTROLLERBOARD == CONTROLLERBOARD_TRIDENT
-		
 		    // Setup pinmodes for GPIO
 		    pinMode( PIN_LED_0,                 OUTPUT );
 		    pinMode( PIN_LED_1,                 OUTPUT );
@@ -76,7 +94,15 @@ namespace NSysManager
 		    pinMode( PIN_SERVO_6, 				OUTPUT );
 		    pinMode( PIN_SERVO_7, 				OUTPUT );
 		    pinMode( PIN_SERVO_8, 				OUTPUT );
-	    #endif
+
+	    #elif CONTROLLERBOARD == CONTROLLERBOARD_CB25
+			pinMode( PIN_LED_0,                 OUTPUT );
+			pinMode( PIN_LED_1,                 OUTPUT );
+			
+		#elif CONTROLLERBOARD == CONTROLLERBOARD_CAPE
+			pinMode( PIN_LED_0,                 OUTPUT );
+			pinMode( PIN_LED_1,                 OUTPUT );
+		#endif
 	}
 
 	void EnableWatchdogTimer()

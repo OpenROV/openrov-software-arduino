@@ -17,6 +17,7 @@ namespace NSysManager
 	// Methods
 	extern void Initialize();
 
+	extern void InitializeSerial();
 	extern void EnableI2C();
 	extern void SetPinModes();
 	extern void EnableWatchdogTimer();

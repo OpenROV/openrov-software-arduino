@@ -12,7 +12,7 @@
 #define MCUARCH_SAMD 	2
 
 // Select here
-#define MCUARCH			MCUARCH_SAMD
+#define MCUARCH			MCUARCH_AVR
 
 #if MCUARCH == 0
 	#error "SysConfig.h: You must select an MCU architecture!"
@@ -27,7 +27,7 @@
 #define CONTROLLERBOARD_TRIDENT			3
 
 // Select here
-#define CONTROLLERBOARD					CONTROLLERBOARD_TRIDENT
+#define CONTROLLERBOARD					CONTROLLERBOARD_CAPE
 
 #if CONTROLLERBOARD == 0
 	#error "SysConfig.h: You must select a board type!"
@@ -37,35 +37,47 @@
 // Peripheral Interfaces
 // ---------------------------------------------------------
 
-#if WIRE_INTERFACES_COUNT > 0
-	#define WIRE_INTERFACE_0	&Wire
+#if (MCUARCH == MCUARCH_SAMD)
+
+	#if WIRE_INTERFACES_COUNT > 0
+		#define WIRE_INTERFACE_0	&Wire
+	#else
+		#define WIRE_INTERFACE_0	nullptr
+	#endif
+	#if WIRE_INTERFACES_COUNT > 1
+		#define WIRE_INTERFACE_1	&Wire1
+	#else
+		#define WIRE_INTERFACE_1	nullptr
+	#endif
+	#if WIRE_INTERFACES_COUNT > 2
+		#define WIRE_INTERFACE_2	&Wire2
+	#else
+		#define WIRE_INTERFACE_2	nullptr
+	#endif
+	#if WIRE_INTERFACES_COUNT > 3
+		#define WIRE_INTERFACE_3	&Wire3
+	#else
+		#define WIRE_INTERFACE_3	nullptr
+	#endif
+	#if WIRE_INTERFACES_COUNT > 4
+		#define WIRE_INTERFACE_4	&Wire4
+	#else
+		#define WIRE_INTERFACE_4	nullptr
+	#endif
+	#if WIRE_INTERFACES_COUNT > 5
+		#define WIRE_INTERFACE_5	&Wire5
+	#else
+		#define WIRE_INTERFACE_5	nullptr
+	#endif
+
 #else
-	#define WIRE_INTERFACE_0	nullptr
-#endif
-#if WIRE_INTERFACES_COUNT > 1
-	#define WIRE_INTERFACE_1	&Wire1
-#else
-	#define WIRE_INTERFACE_1	nullptr
-#endif
-#if WIRE_INTERFACES_COUNT > 2
-	#define WIRE_INTERFACE_2	&Wire2
-#else
-	#define WIRE_INTERFACE_2	nullptr
-#endif
-#if WIRE_INTERFACES_COUNT > 3
-	#define WIRE_INTERFACE_3	&Wire3
-#else
-	#define WIRE_INTERFACE_3	nullptr
-#endif
-#if WIRE_INTERFACES_COUNT > 4
-	#define WIRE_INTERFACE_4	&Wire4
-#else
-	#define WIRE_INTERFACE_4	nullptr
-#endif
-#if WIRE_INTERFACES_COUNT > 5
-	#define WIRE_INTERFACE_5	&Wire5
-#else
-	#define WIRE_INTERFACE_5	nullptr
+	#define WIRE_INTERFACES_COUNT 	1
+	#define WIRE_INTERFACE_0		&Wire
+	#define WIRE_INTERFACE_1		nullptr
+	#define WIRE_INTERFACE_2		nullptr
+	#define WIRE_INTERFACE_3		nullptr
+	#define WIRE_INTERFACE_4		nullptr
+	#define WIRE_INTERFACE_5		nullptr
 #endif
 
 // ---------------------------------------------------------
@@ -76,8 +88,8 @@
 #define HAS_STD_CALIBRATIONLASERS 	(1)
 #define HAS_STD_CAMERAMOUNT 		(1)
 #define HAS_STD_AUTOPILOT 			(1)
-#define HAS_ALT_SERVO 				(1)
-#define HAS_DEADMAN_SWITCH 			(1)
+#define HAS_ALT_SERVO 				(0)
+#define HAS_DEADMAN_SWITCH 			(0)
 
 // Thrusters configurations
 #define THRUSTER_CONFIG_NONE 		(0)
