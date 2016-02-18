@@ -34,7 +34,7 @@ then
 
 	echo "Copied ${SOURCE_FILENAME}.bin to ${BIN_DIR}!"
 	# Copy the compiled .bin file to the bin directory
-	cp ${BUILD_DIR}/${SOURCE_FILENAME}${SOURCE_EXT}.bin ${BIN_DIR}/${SOURCE_FILENAME}.bin
+	cp ${BUILD_DIR}/${SOURCE_FILENAME}${SOURCE_EXT}.hex ${BIN_DIR}/${SOURCE_FILENAME}.hex
 else
 	echo "Firmware build failed!"
 	RET=1

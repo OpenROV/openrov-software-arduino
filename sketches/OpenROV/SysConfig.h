@@ -27,7 +27,7 @@
 #define CONTROLLERBOARD_TRIDENT			3
 
 // Select here
-#define CONTROLLERBOARD					CONTROLLERBOARD_CAPE
+#define CONTROLLERBOARD					CONTROLLERBOARD_CB25
 
 #if CONTROLLERBOARD == 0
 	#error "SysConfig.h: You must select a board type!"
@@ -88,7 +88,7 @@
 #define HAS_STD_CALIBRATIONLASERS 	(1)
 #define HAS_STD_CAMERAMOUNT 		(1)
 #define HAS_STD_AUTOPILOT 			(1)
-#define HAS_ALT_SERVO 				(0)
+#define HAS_ALT_SERVO 				(1)
 #define HAS_DEADMAN_SWITCH 			(0)
 
 // Thrusters configurations
