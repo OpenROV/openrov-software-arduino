@@ -1,3 +1,4 @@
 # Compiled binary files
-bin/*
-!bin/afro/
+bin/*/*.bin
+bin/*/*.hex
+!bin/afro/*.hex
