@@ -6,13 +6,15 @@ echo "Building firmware for OpenROV AtMega2560..."
 # Path variables
 PROJECT_DIR=/opt/openrov/firmware
 ARDUINO_DIR=/opt/openrov/arduino
-SCRIPTS_DIR=${PROJECT_DIR}/scripts
 SOURCE_DIR=${PROJECT_DIR}/sketches/OpenROV
 HARDWARE_DIR=${ARDUINO_DIR}/hardware
-LIBS_DIR=${ARDUINO_DIR}/libraries
+ARDUINO_LIBS_DIR=${ARDUINO_DIR}/libraries
+AVR_LIBS_DIR=${HARDWARE_DIR}/openrov/avr/libraries
 TOOLS_DIR=${HARDWARE_DIR}/tools
-BIN_DIR=${PROJECT_DIR}/bin
+BIN_DIR=${PROJECT_DIR}/bin/cb25
 TOOLCHAIN_DIR=/usr/bin
+
+mkdir -p ${BIN_DIR}
 
 # Build variables
 FQ_BOARDNAME="openrov:avr:mega:cpu=atmega2560"
@@ -24,15 +26,14 @@ mkdir ${PROJECT_DIR}/build
 BUILD_DIR=${PROJECT_DIR}/build
 #echo "Created temporary build directory: ${BUILD_DIR}"
 
-
-arduino-builder -verbose -debug-level=1 -compile -build-path ${BUILD_DIR}/ -hardware ${HARDWARE_DIR}/ -tools ${TOOLCHAIN_DIR} -libraries ${LIBS_DIR} -fqbn ${FQ_BOARDNAME} ${SOURCE_DIR}/${SOURCE_FILENAME}${SOURCE_EXT}
+arduino-builder -verbose -debug-level=1 -compile -build-path ${BUILD_DIR}/ -hardware ${HARDWARE_DIR}/ -tools ${TOOLCHAIN_DIR} -libraries ${ARDUINO_LIBS_DIR} -libraries ${AVR_LIBS_DIR} -fqbn ${FQ_BOARDNAME} ${SOURCE_DIR}/${SOURCE_FILENAME}${SOURCE_EXT}
 
 if [ $? -eq 0 ]
 then
 	echo "Successfully built firmware!"
 	RET=0
 
-	echo "Copied ${SOURCE_FILENAME}.bin to ${BIN_DIR}!"
+	echo "Copied ${SOURCE_FILENAME}.hex to ${BIN_DIR}!"
 	# Copy the compiled .bin file to the bin directory
 	cp ${BUILD_DIR}/${SOURCE_FILENAME}${SOURCE_EXT}.hex ${BIN_DIR}/${SOURCE_FILENAME}.hex
 else

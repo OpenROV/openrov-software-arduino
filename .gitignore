@@ -1,2 +1,3 @@
 # Compiled binary files
-*.bin
+bin/*
+!bin/afro/
