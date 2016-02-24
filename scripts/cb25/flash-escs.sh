@@ -11,8 +11,6 @@ ESC_FIRMWARE=$BIN_DIR/afro/afro_nfet.hex
 ${SCRIPTS_DIR}/build-usblinker.sh
 ${SCRIPTS_DIR}/upload-usblinker.sh
 
-# Flash the hex file onto the escs
-
 # Stop the cockpit service
 /etc/init.d/openrov stop
 
@@ -33,6 +31,9 @@ avrdude -p m8 -b 19200 -P /dev/ttyO1 -c avrispv2 -e -U flash:w:${ESC_FIRMWARE}:i
 # Reflash the OpenROV firmware onto the MCU
 ${SCRIPTS_DIR}/build.sh
 ${SCRIPTS_DIR}/upload.sh
+
+# Set UART back to 115200 baud
+stty -F /dev/ttyO1 115200
 
 # Restart the cockpit service
 /etc/init.d/openrov restart
