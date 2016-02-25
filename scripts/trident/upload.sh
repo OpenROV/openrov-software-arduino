@@ -26,7 +26,7 @@ then
         echo "Successfully uploaded firmware!"
 
 	# Reset the SAMD21 to start the program
-	/opt/openrov/cockpit/linux/reset-mcu.sh
+	/opt/openrov/cockpit/linux/scripts/reset-mcu.sh
 
 	exit 0
 else

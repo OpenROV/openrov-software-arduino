@@ -20,7 +20,7 @@ void setup()
 
 void loop()
 {
-	// // Reset the watchdog timer
+	// Reset the watchdog timer
 	NSysManager::ResetWatchdogTimer();
 
 	// Attempt to read a current command off of the command line
