@@ -1,4 +1,5 @@
 # Compiled binary files
 bin/trident/*.bin
+bin/trident/*.elf
 bin/cb25/*.hex
 bin/cape/*.hex
