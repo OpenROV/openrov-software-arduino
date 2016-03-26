@@ -47,7 +47,9 @@ void CLights::Update( CCommand& commandIn )
 	if( commandIn.Equals( "ligt" ) )
 	{
 		// 0 - 255
-		int value = commandIn.m_arguments[1];
+		float percentValue = ( float )commandIn.m_arguments[1] / 100.0f; //0 - 255
+		int value = (int)( 255.0f * percentValue );
+		
 		light.Write( value );
 
 		// LIGT - Light toggle
@@ -57,22 +59,11 @@ void CLights::Update( CCommand& commandIn )
 
 		// LIGP - Light percentage
 		Serial.print( F( "LIGP:" ) );
-		Serial.print( commandIn.m_arguments[1] / 255.0f );
+		Serial.print( percentValue );
 		Serial.println( ';' );
 	}
 
-	if( commandIn.Equals( "eligt" ) )
-	{
-		float percentvalue = ( float )commandIn.m_arguments[1] / 100.0f; //0 - 255
-		int value = 255 * percentvalue;
-		elight.Write( value );
-		Serial.print( F( "LIGTE:" ) );
-		Serial.print( value );
-		Serial.print( ';' );
-		Serial.print( F( "LIGPE:" ) );
-		Serial.print( percentvalue );
-		Serial.println( ';' );
-	}
+	
 }
 
 #endif
