@@ -35,9 +35,9 @@
 
 // Thrusters configurations  (These appear depricated and replaced by the THRUSTER_CONFIGURATION below)
 #define THRUSTER_CONFIG_NONE (0)
-#define THRUSTER_CONFIG_2X1 (0)
-#define THRUSTER_CONFIG_2Xv2 (0)
-#define THRUSTER_CONFIG_v2X1Xv2 (1)
+#define THRUSTER_CONFIG_2X1 (1)
+#define THRUSTER_CONFIG_2Xv2 (2)
+#define THRUSTER_CONFIG_v2X1Xv2 (3)
 
 // Selected Thruster Configuration
 #define THRUSTER_CONFIGURATION THRUSTER_CONFIG_2X1
