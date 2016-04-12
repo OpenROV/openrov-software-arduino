@@ -40,9 +40,9 @@
 #define THRUSTER_CONFIG_v2X1Xv2 (1)
 
 // Selected Thruster Configuration
-//#define THRUSTER_CONFIGURATION THRUSTER_CONFIG_2X1
+#define THRUSTER_CONFIGURATION THRUSTER_CONFIG_2X1
 //#define THRUSTER_CONFIGURATION THRUSTER_CONFIG_2Xv2
-#define THRUSTER_CONFIGURATION THRUSTER_CONFIG_v2X1Xv2
+//#define THRUSTER_CONFIGURATION THRUSTER_CONFIG_v2X1Xv2
 
 // ---------------------------------------------------------
 // After Market Modules
