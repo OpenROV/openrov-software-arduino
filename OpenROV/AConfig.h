@@ -33,13 +33,16 @@
 #define HAS_ALT_SERVO (1)
 #define DEADMANSWITCH_ON (1)
 
-// Thrusters configurations
+// Thrusters configurations  (These appear depricated and replaced by the THRUSTER_CONFIGURATION below)
 #define THRUSTER_CONFIG_NONE (0)
-#define THRUSTER_CONFIG_2X1 (1)
+#define THRUSTER_CONFIG_2X1 (0)
+#define THRUSTER_CONFIG_2Xv2 (0)
+#define THRUSTER_CONFIG_v2X1Xv2 (1)
 
 // Selected Thruster Configuration
-#define THRUSTER_CONFIGURATION THRUSTER_CONFIG_2X1
-
+//#define THRUSTER_CONFIGURATION THRUSTER_CONFIG_2X1
+//#define THRUSTER_CONFIGURATION THRUSTER_CONFIG_2Xv2
+#define THRUSTER_CONFIGURATION THRUSTER_CONFIG_v2X1Xv2
 
 // ---------------------------------------------------------
 // After Market Modules
