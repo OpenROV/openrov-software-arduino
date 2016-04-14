@@ -135,11 +135,13 @@ void CMS5837_30BA::Update( CCommand& commandIn )
             	if( NConfigManager::m_waterType == WATERTYPE_FRESH )
             	{
             		NConfigManager::m_waterType = WATERTYPE_SALT;
+            		m_sensor.SetWaterType( MS5837_WATERTYPE_SALT );
             		Serial.println( F( "dtwa:1;" ) );
             	}
             	else
             	{
             		NConfigManager::m_waterType = WATERTYPE_FRESH;
+            		m_sensor.SetWaterType( MS5837_WATERTYPE_FRESH );
             		Serial.println( F( "dtwa:0;" ) );
             	}
             }

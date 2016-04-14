@@ -13,8 +13,6 @@ namespace
 	CTimer imuTimer;
 
 	bool initalized				= false;
-	bool browserPingReceived	= false;
-
 	bool inFusionMode			= false;
 
 	CAdaBNO055 bno;
@@ -56,16 +54,12 @@ void CBNO055::Initialize()
 	bno055_sample_timer.Reset();
 	report_timer.Reset();
 	imuTimer.Reset();
+	
+	InitializeSensor();
 }
 
 void CBNO055::Update( CCommand& commandIn )
 {
-
-	if( commandIn.Equals( "ping" ) )
-	{
-		browserPingReceived = true;
-	}
-
 	if( commandIn.Equals( "imumode" ) )
 	{
 		if( initalized && commandIn.m_arguments[ 0 ] != 0 )
@@ -106,11 +100,8 @@ void CBNO055::Update( CCommand& commandIn )
 			// Attempt every 10 secs
 			if( report_timer.HasElapsed( 10000 ) )
 			{
-				if( browserPingReceived )
-				{
-					// Attempt to initialize the chip again
-					InitializeSensor();
-				}
+				// Attempt to initialize the chip again
+				InitializeSensor();
 			}
 
 			return;

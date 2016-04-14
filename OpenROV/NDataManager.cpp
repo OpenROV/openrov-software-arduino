@@ -36,6 +36,9 @@ namespace NDataManager
 		Serial.print( F( "deap:" ) );
 		Serial.print( m_navData.DEEP );
 		Serial.print( ';' );
+		Serial.print( F( "deep:" ) );		// Compatibility for 30.1.x cockpit updates
+		Serial.print( m_navData.DEEP );
+		Serial.print( ';' );
 		Serial.print( F( "pitc:" ) );
 		Serial.print( m_navData.PITC );
 		Serial.print( ';' );
