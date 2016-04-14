@@ -22,9 +22,10 @@ class MS5837_30BA
 public:
    
     // Attributes
-    float       m_depth;
-	float       m_depthOffset;
-
+    float m_pressure_mbar = 0;
+	float m_temperature_c = 0;
+	float m_depth_m = 0;
+	
 	bool        m_crcCheckSuccessful;
 
 	 // Methods
@@ -43,10 +44,6 @@ private:
 
     // Attributes
     uint8_t m_oversampleResolution;
-    
-	float m_pressure_mbar;
-	float m_temperature_c;
-	flaot m_depth_m;
 	
 	// Create array to hold the 8 sensor calibration coefficients
     uint16_t m_sensorCoeffs[8]; // unsigned 16-bit integer (0-65535)
@@ -71,9 +68,9 @@ private:
     int32_t P = 0;          // Temperature compensated pressure
     
     // Bytes to hold the results from I2C communications with the sensor
-    uint8_t HighByte;
-    uint8_t MidByte;
-    uint8_t LowByte;
+    uint8_t HighByte = 0;
+    uint8_t MidByte = 0;
+    uint8_t LowByte = 0;
     
     // Some constants used in calculations below
     const int32_t POW_2_7  = 128u;             // 2^7

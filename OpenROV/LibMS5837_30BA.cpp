@@ -52,7 +52,7 @@ int MS5837_30BA::GetCalibrationCoefficients()
 	    // Request data at each PROM register
 	    WriteRegisterByte( 0xA0 + ( i * 2 ) );
 	    
-	    if( I2c.read( I2C_ADDRESS, 2 ) )
+	    if( I2c.read( I2C_ADDRESS, 2 ) != 0 )
 		{
 		    HighByte    = I2c.receive();
 			LowByte     = I2c.receive();
@@ -60,8 +60,6 @@ int MS5837_30BA::GetCalibrationCoefficients()
 			// Combine high and low bytes
 			m_sensorCoeffs[i] = ( ( ( uint16_t )HighByte << 8 ) | LowByte );
 		}
-		
-	
 	}
 
     // Get the CRC value, which resides in the most significant four bits of C0

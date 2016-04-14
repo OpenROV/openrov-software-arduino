@@ -88,7 +88,7 @@ void CMS5837_30BA::Update( CCommand& commandIn )
             // Make an attempt to initialize the sensor every 10 seconds
             if( m_initTimer.HasElapsed( 10000 ) )
     		{
-            	if( m_sensor.Initialize() )
+            	if( m_sensor.Initialize() != 0 )
             	{
             	    m_initAttempts = 0;
             	    
