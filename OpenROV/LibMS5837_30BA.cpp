@@ -6,27 +6,29 @@
 #define I2C_ADDRESS             0x76    // or 0x77
 
 #define CMD_RESET               0x1E
+#define CMD_PROM_READ_BASE      0xA0    // 112 bytes of factory calibration and vendor data
 #define CMD_ADC_READ            0x00
 #define CMD_ADC_CONV_BASE	    0x40	// ADC conversion base command. Modify based on D1/D2 and resolution
 
 #define CMD_ADC_D1              0x00
 #define CMD_ADC_D2              0x10
 
-#define CMD_ADC_256             0x00	// ADC resolution = 256
-#define CMD_ADC_512             0x02	// ADC resolution = 512
-#define CMD_ADC_1024	        0x04	// ADC resolution = 1024
-#define CMD_ADC_2048        	0x06	// ADC resolution = 2048
-#define CMD_ADC_4096	        0x08	// ADC resolution = 4096
-#define CMD_ADC_8192	        0x0A	// ADC resolution = 8192
-
 // TODO: Add more error handling
+// TODO: The casting done in a lot of these calculations is terribly inefficient. Probably better to make more variables default to larger sizes.
+
+MS5837_30BA::MS5837_30BA( uint8_t resolutionIn = MS5837_ADC_4096 )
+{
+    m_oversampleResolution = resolutionIn;
+}
 
 int MS5837_30BA::Initialize()
 {
-    // First Reset
-    Reset();
+    int ret = Reset();
     
+    // TODO: This should be the real test, but we don't know if it will work yet
+    GetCalibrationCoefficients();
     
+    return ret;
 }
 
 int MS5837_30BA::Reset()
@@ -44,125 +46,96 @@ int MS5837_30BA::Reset()
 
 int MS5837_30BA::GetCalibrationCoefficients()
 {
-    bool ret = true;
-	bool gotCRC = true;
-
 	// Read sensor coefficients
-	for( int i = 0; i < 8; i++ )
+	for( int i = 0; i < 8; ++i )
 	{
-		// The PROM starts at address 0xA0
-		if( i != 7 )
+	    // Request data at each PROM register
+	    WriteRegisterByte( 0xA0 + ( i * 2 ) );
+	    
+	    if( I2c.read( I2C_ADDRESS, 2 ) )
 		{
-			ret &= WriteRegisterByte( 0xA0 + ( i * 2 ) );
+		    HighByte    = I2c.receive();
+			LowByte     = I2c.receive();
+			
+			// Combine high and low bytes
+			m_sensorCoeffs[i] = ( ( ( uint16_t )HighByte << 8 ) | LowByte );
 		}
-		else
-		{
-			gotCRC &= WriteRegisterByte( 0xA0 + ( i * 2 ) );
-		}
-
-		if( I2c.read( MS5803_I2C_ADDRESS, 2 ) )
-		{
-			// Don't treat the crc read as an overall failure (yet)
-			if( i != 7 )
-			{
-				ret &= false;
-			}
-			else
-			{
-				gotCRC &= false;
-			}
-
-			Serial.print( "Depth.CoeffFailure:C" );
-			Serial.print( i );
-			Serial.println( ";" );
-
-			// Print out coefficients
-			Serial.print( "Depth.C" );
-			Serial.print( i );
-			Serial.println( ":INVALID;" );
-			delay( 10 );
-		}
-		else
-		{
-			// Get coefficient bytes
-			while( I2c.available() )
-			{
-				HighByte = I2c.receive();
-				LowByte = I2c.receive();
-			}
-
-			// Combine bytes
-			sensorCoeffs[i] = ( ( ( unsigned int )HighByte << 8 ) + LowByte );
-
-			// Print out coefficient
-			Serial.print( "Depth.C" );
-			Serial.print( i );
-			Serial.print( ":" );
-			Serial.print( sensorCoeffs[i] );
-			Serial.println( ";" );
-			delay( 10 );
-		}
+		
+	
 	}
 
-	if( gotCRC == true )
-	{
-		// The last 4 bits of the 7th coefficient form a CRC error checking code.
-		unsigned char p_crc = sensorCoeffs[7];
-		// Use a function to calculate the CRC value
-		unsigned char n_crc = MS_5803_CRC( sensorCoeffs );
+    // Get the CRC value, which resides in the most significant four bits of C0
+    uint8_t crcRead = m_sensorCoeffs[ 0 ] >> 12;
+    
+    // Calculate the CRC value of the coefficients to make sure they are correct
+    uint8_t crcCalc = CalculateCRC4( m_sensorCoeffs );
 
-		// If the CRC value doesn't match the sensor's CRC value, then the
-		// connection can't be trusted. Check your wiring.
-		if( p_crc != n_crc )
-		{
-			Serial.println( "Depth.crcCheck:Failed;" );
-			//ret &= false;
-		}
-		else
-		{
-			Serial.println( "Depth.crcCheck:Succeeded;" );
-		}
+    if( crcRead == crcCalc )
+    {
+		
+		m_crcCheckSuccessful = true;
+		return 0;
 	}
 	else
 	{
-		Serial.println( "Depth.crcCheck:CantPerform;" );
+		Serial.println( "MS5837.crcCheck:Fail;" );
+		m_crcCheckSuccessful = false;
+		return 1;
 	}
+}
 
-	if( ret )
+int MS5837_30BA::StartConversion( int measurementTypeIn )
+{
+    // Send the command to do the ADC conversion on the chip, address dependent on measurement type and sampling resolution
+    if( measurementTypeIn == MS5837_MEAS_PRESSURE )
+    {
+	    return WriteRegisterByte( CMD_ADC_CONV + m_oversampleResolution + CMD_ADC_D1 );
+    }
+    else if( MS5837_MEAS_TEMPERATURE )
+    {
+	    return WriteRegisterByte( CMD_ADC_CONV + m_oversampleResolution + CMD_ADC_D2 );
+    }
+    
+    return -1;
+}
+
+int MS5837_30BA::Read( int measurementTypeIn )
+{
+    // Send the read command
+	WriteRegisterByte( CMD_ADC_READ );
+
+	// Then request the results. This should be a 24-bit result (3 bytes)
+	I2c.read( I2C_ADDRESS, 3 );
+
+	while( I2c.available() )
 	{
-		// Correct between 14mbar/30mbar sensor type
-		if( sensorCoeffs[0] != 0 )
-		{
-			m_is30bar = true;
-			m_divisor = 8192; // (2^13)
-		}
-		else
-		{
-			m_is30bar = false;
-			m_divisor = 32768; // (2^15)
-		}
+		HighByte = I2c.receive();
+		MidByte = I2c.receive();
+		LowByte = I2c.receive();
 	}
 
-	// Otherwise, return true when everything checks out OK.
-	return ret;
-}
-
-int MS5837_30BA::StartConversion()
-{
+	// Combine the bytes into one integer
+	result = ( ( uint32_t )HighByte << 16 ) + ( ( uint32_t )MidByte << 8 ) + ( uint32_t )LowByte;
+	
+	// Set the appropriate variable
+	if( measurementTypeIn == MS5837_MEAS_PRESSURE )
+    {
+        D1 = result;
+    }
+    else if( measurementTypeIn == MS5837_MEAS_TEMPERATURE )
+    {
+        D2 = result;
+    }
     
-}
-
-int MS5837_30BA::Read()
-{
-    
+    return 0;
 }
 
 void MS5837_30BA::SetWaterType( int waterTypeIn )
 {
-    
+    m_waterType = waterTypeIn;
 }
 
-uint8_t MS5837_30BA::GetCRC( uint32_t n_prom[] )
+uint8_t MS5837_30BA::CalculateCRC4( uint16_t n_prom[] )
 {
     int cnt; // simple counter
     uint32_t n_rem=0; // crc remainder
@@ -193,24 +166,56 @@ uint8_t MS5837_30BA::GetCRC( uint32_t n_prom[] )
     return (n_rem ^ 0x00);
 }
 
-uint32_t MS5837_30BA::CommandADC( uint8_t commandIn )
+void MS5837_30BA::CalculateOutputs()
 {
-    // Send the read command
-	WriteRegisterByte( CMD_ADC_READ );
-
-	// Then request the results. This should be a 24-bit result (3 bytes)
-	I2c.read( I2C_ADDRESS, 3 );
-
-	while( I2c.available() )
+    // Calculate base terms
+	dT      = (int32_t)D2 - ( (int32_t)m_sensorCoeffs[5] * POW_2_8 );
+	TEMP    = 2000 + ( ( (int64_t)dT * (int32_t)m_sensorCoeffs[6] ) / POW_2_23 );
+	
+	OFF     = ( (int64_t)m_sensorCoeffs[2] * POW_2_16 ) + ( ( (int64_t)m_sensorCoeffs[4] * dT ) / POW_2_7 );
+	SENS    = ( (int64_t)m_sensorCoeffs[1] * POW_2_15 ) + ( ( (int64_t)m_sensorCoeffs[3] * dT ) / POW_2_8 );
+	
+	// Calculate intermediate values depending on temperature
+	if( TEMP < 2000 )
 	{
-		HighByte = I2c.receive();
-		MidByte = I2c.receive();
-		LowByte = I2c.receive();
+	    // Temps < 20C
+		Ti      = 3 * ( ( int64_t )dT * dT ) / POW_2_33;
+		OFFi    = 3 * ( ( TEMP - 2000 ) * ( TEMP - 2000 ) ) / 2 ;
+		SENSi   = 5 * ( ( TEMP - 2000 ) * ( TEMP - 2000 ) ) / 8 ;
+		
+		// Additional compensation for very low temperatures (< -15C)
+    	if( TEMP < -1500 )
+    	{
+    		// For 14 bar model
+    		OFFi    = OFFi + 7 * ( ( TEMP + 1500 ) * ( TEMP + 1500 ) );
+    		SENSi   = SENSi + 4 * ( ( TEMP + 1500 ) * ( TEMP + 1500 ) );
+    	}
 	}
-
-	// Combine the bytes into one integer
-	result = ( ( uint32_t )HighByte << 16 ) + ( ( uint32_t )MidByte << 8 ) + ( uint32_t )LowByte;
-	return result;
+	else
+	{
+	    Ti      = 2 * ( ( int64_t )dT * dT ) / POW_2_37;
+		OFFi    = 1 * ( ( TEMP - 2000 ) * ( TEMP - 2000 ) ) / 16;
+		SENSi   = 0;
+	}
+	
+	OFF2    = OFF - OFFi;
+	SENS2   = SENS - SENSi;
+	
+	TEMP2 = (TEMP - Ti);
+	P = ( ( ( ( (int64_t)D1 * SENS2 ) / POW_2_21 ) - OFF2 ) / POW_2_13 );
+	
+	m_temperature_c = (float)TEMP2 / 100.0f;
+	m_pressure_mbar = (float)P / 10.0f;
+	
+	// Calculate depth based on water type
+	if( m_waterType == MS5837_WATERTYPE_FRESH )
+	{
+	    m_depth_m = ( m_pressure_mbar - 1013.25f ) * 1.019716f / 100.0f;
+	}
+	else
+	{
+	    m_depth_m = ( mbar - 1013.25f ) * 0.9945f / 100.0f;
+	}
 }
 
 int MS5837_30BA::WriteRegisterByte( uint8_t addressIn )

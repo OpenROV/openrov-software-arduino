@@ -4,15 +4,18 @@
 #include <Arduino.h>
 
 // Defines
-#define MS5837_RES_256          256u
-#define MS5837_RES_512          512u
-#define MS5837_RES_1024         1024u
-#define MS5837_RES_2048         2048u
-#define MS5837_RES_4096         4096u
-#define MS5837_RES_8192         8192u
-
 #define MS5837_WATERTYPE_FRESH  0
 #define MS5837_WATERTYPE_SALT   1
+
+#define MS5837_MEAS_PRESSURE    0
+#define MS5837_MEAS_TEMPERATURE 1
+
+#define MS5837_ADC_256          0x00	// ADC resolution = 256
+#define MS5837_ADC_512          0x02	// ADC resolution = 512
+#define MS5837_ADC_1024	        0x04	// ADC resolution = 1024
+#define MS5837_ADC_2048        	0x06	// ADC resolution = 2048
+#define MS5837_ADC_4096	        0x08	// ADC resolution = 4096
+#define MS5837_ADC_8192	        0x0A	// ADC resolution = 8192
 
 class MS5837_30BA
 {
@@ -22,25 +25,28 @@ public:
     float       m_depth;
 	float       m_depthOffset;
 
-	bool        m_hasValidCoefficients;
+	bool        m_crcCheckSuccessful;
 
 	 // Methods
-	MS5837_30BA( uint16_t resolutionIn = MS5837_RES_4096 );
+	MS5837_30BA( uint8_t resolutionIn = MS5837_ADC_4096 );
 	
 	int Initialize();
 	int GetCalibrationCoefficients();
 	int Reset();
-	int StartPressureConversion();
-	int StartTemperatureConversion();
-	int Read();
+	int StartConversion( int measurementTypeIn );
+	int Read( int measurementType );
+	void CalculateOutputs();
 	
 	void SetWaterType( int waterTypeIn );
 
 private:
 
     // Attributes
+    uint8_t m_oversampleResolution;
+    
 	float m_pressure_mbar;
 	float m_temperature_c;
+	flaot m_depth_m;
 	
 	// Create array to hold the 8 sensor calibration coefficients
     uint16_t m_sensorCoeffs[8]; // unsigned 16-bit integer (0-65535)
@@ -69,16 +75,19 @@ private:
     uint8_t MidByte;
     uint8_t LowByte;
     
-	uint16_t m_oversampleResolution;
-    
     // Some constants used in calculations below
-    const uint32_t POW_2_13 = 8192u;            // 2^13
-    const uint32_t POW_2_21 = 2097152u;         // 2^21
-    const uint64_t POW_2_33 = 8589934592ULL;    // 2^33
-    const uint64_t POW_2_37 = 137438953472ULL;  // 2^37
+    const int32_t POW_2_7  = 128u;             // 2^7
+    const int32_t POW_2_7  = 256u;             // 2^8
+    const int32_t POW_2_13 = 8192u;            // 2^13
+    const int32_t POW_2_15 = 32768u;           // 2^15
+    const int32_t POW_2_16 = 65536u;           // 2^16
+    const int32_t POW_2_21 = 2097152u;         // 2^21
+    const int32_t POW_2_23 = 8388608u;         // 2^23
+    const int64_t POW_2_33 = 8589934592ULL;    // 2^33
+    const int64_t POW_2_37 = 137438953472ULL;  // 2^37
 	
 	// Methods
-	uint8_t GetCRC( uint32_t n_prom[] );
+	uint8_t CalculateCRC4( uint16_t n_prom[] );
 	uint32_t CommandADC( uint8_t commandIn );
 	
 	int WriteRegisterByte( uint8_t addressIn );
