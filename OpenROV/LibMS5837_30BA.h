@@ -26,7 +26,11 @@ public:
 	float m_temperature_c = 0;
 	float m_depth_m = 0;
 	
-	bool        m_crcCheckSuccessful;
+	bool m_crcCheckSuccessful = false;
+	
+	int m_waterType;
+	
+	uint16_t m_sensorCoeffs[8]; // unsigned 16-bit integer (0-65535)
 
 	 // Methods
 	MS5837_30BA( uint8_t resolutionIn = MS5837_ADC_4096 );
@@ -44,9 +48,6 @@ private:
 
     // Attributes
     uint8_t m_oversampleResolution;
-	
-	// Create array to hold the 8 sensor calibration coefficients
-    uint16_t m_sensorCoeffs[8]; // unsigned 16-bit integer (0-65535)
     
     uint32_t D1 = 0;        // Digital pressure value
     uint32_t D2 = 0;        // Digital temperature value
@@ -74,7 +75,7 @@ private:
     
     // Some constants used in calculations below
     const int32_t POW_2_7  = 128u;             // 2^7
-    const int32_t POW_2_7  = 256u;             // 2^8
+    const int32_t POW_2_8  = 256u;             // 2^8
     const int32_t POW_2_13 = 8192u;            // 2^13
     const int32_t POW_2_15 = 32768u;           // 2^15
     const int32_t POW_2_16 = 65536u;           // 2^16

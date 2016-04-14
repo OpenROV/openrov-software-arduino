@@ -70,6 +70,12 @@ CAltServo altservo1;
 CMS5803_14BA m_depthSensor;
 #endif
 
+#if(HAS_MS5837_30BA)
+#define DEPTH_ENABLED 1
+#include "CMS5837_30BA.h"
+CMS5837_30BA m_depthSensor;
+#endif
+
 #if(DEADMANSWITCH_ON)
 #include "CDeadManSwitch.h"
 CDeadManSwitch m_deadManSwitch;

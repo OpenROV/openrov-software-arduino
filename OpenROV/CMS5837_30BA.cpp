@@ -12,12 +12,12 @@
 
 namespace
 {
-    enum class ESensorState
+    enum ESensorState
     {
-        UNINITIALIZED,
-        IDLE,
-        CONVERTING_PRESSURE,
-        CONVERTING_TEMPERATURE
+        MS5837_UNINITIALIZED,
+        MS5837_IDLE,
+        MS5837_CONVERTING_PRESSURE,
+        MS5837_CONVERTING_TEMPERATURE
     };
     
     MS5837_30BA m_sensor( MS5837_ADC_4096 );
@@ -34,7 +34,7 @@ namespace
 	const int k_maxAttempts = 5;
 	int m_initAttempts      = 0;
 
-	ESensorState m_state    = ESensorState::UNINITIALIZED;
+	ESensorState m_state    = MS5837_UNINITIALIZED;
 	
 	void PrintCoefficients()
 	{
@@ -44,7 +44,7 @@ namespace
     		Serial.print( "MS5837.C" );
     		Serial.print( i );
     		Serial.print( ":" );
-    		Serial.print( m_sensorCoeffs[i] );
+    		Serial.print( m_sensor.m_sensorCoeffs[i] );
     		Serial.println( ";" );
 	    }
 	    
@@ -62,8 +62,10 @@ namespace
 void CMS5837_30BA::Initialize()
 {
 	// Attempt to initialize the sensor
-	if( m_sensor.Initialize() != 0 )
+	if( m_sensor.Initialize() == 0 )
 	{
+	    Serial.println( "MS5837.init:Success;" );
+	    
 	    // Announce depth capability
 	    NConfigManager::m_capabilityBitmask |= ( 1 << DEPTH_CAPABLE );
 	    
@@ -71,26 +73,30 @@ void CMS5837_30BA::Initialize()
 	    PrintCoefficients();
 	    
 	    // Set the state to IDLE, ready to start fetching data
-	    m_state == ESensorState::IDLE;
+	    m_state = MS5837_IDLE;
 	}
-	
-	m_initTimer.Reset();
-	
+	else
+	{
+    	Serial.println( "MS5837.init:Fail;" );
+    	m_initTimer.Reset();
+	}
 }
 
 
 void CMS5837_30BA::Update( CCommand& commandIn )
 {
-    if( m_state == ESensorState::UNINITIALIZED )
+    if( m_state == MS5837_UNINITIALIZED )
     {
         if( m_initAttempts < k_maxAttempts )
         {
             // Make an attempt to initialize the sensor every 10 seconds
-            if( m_initTimer.HasElapsed( 10000 ) )
+            if( m_initTimer.HasElapsed( 5000 ) )
     		{
-            	if( m_sensor.Initialize() != 0 )
+            	if( m_sensor.Initialize() == 0 )
             	{
             	    m_initAttempts = 0;
+            	    
+            	    Serial.println( "MS5837.init:Success;" );
             	    
             	    // Announce depth capability
             	    NConfigManager::m_capabilityBitmask |= ( 1 << DEPTH_CAPABLE );
@@ -99,10 +105,12 @@ void CMS5837_30BA::Update( CCommand& commandIn )
             	    PrintCoefficients();
             	    
             	    // Set the state to IDLE, ready to start fetching data
-            	    m_state == ESensorState::IDLE;
+            	    m_state = MS5837_IDLE;
             	}
             	else
             	{
+            	    Serial.println( "MS5837.init:Fail;" );
+            	    
             	    m_initTimer.Reset();
             	    m_initAttempts++;
             	}
@@ -117,7 +125,7 @@ void CMS5837_30BA::Update( CCommand& commandIn )
             // Zero the depth value
             if( commandIn.Equals( "dzer" ) )
             {
-            	m_depthOffset = m_depth_m;
+            	m_depthOffset_m = m_depth_m;
             }
             else if( commandIn.Equals( "dtwa" ) )
             {
@@ -139,7 +147,7 @@ void CMS5837_30BA::Update( CCommand& commandIn )
         
         // TODO: Handle error checking for sensor actions, since they can fail due to I2C problems
         // Handle sensor update process
-        if( m_state == ESensorState::IDLE )
+        if( m_state == MS5837_IDLE )
         {
             // Kick off a conversion every 50ms
             if( m_readTimer.HasElapsed( 50 ) )
@@ -152,10 +160,10 @@ void CMS5837_30BA::Update( CCommand& commandIn )
                 // Start the conversion timer
                 m_conversionTimer.Reset();
                 
-                m_state = ESensorState::CONVERTING_PRESSURE;
+                m_state = MS5837_CONVERTING_PRESSURE;
     		}
         }
-        else if( m_state == ESensorState::CONVERTING_PRESSURE )
+        else if( m_state == MS5837_CONVERTING_PRESSURE )
         {
             // Wait 20ms for a conversion to complete
             if( m_conversionTimer.HasElapsed( 10 ) )
@@ -168,10 +176,10 @@ void CMS5837_30BA::Update( CCommand& commandIn )
                 
                 m_conversionTimer.Reset();
                 
-                m_state = ESensorState::CONVERTING_TEMPERATURE;
+                m_state = MS5837_CONVERTING_TEMPERATURE;
     		}
         }
-        else if( m_state == ESensorState::CONVERTING_TEMPERATURE )
+        else if( m_state == MS5837_CONVERTING_TEMPERATURE )
         {
             // Wait 20ms for a conversion to complete
             if( m_conversionTimer.HasElapsed( 10 ) )
@@ -187,23 +195,23 @@ void CMS5837_30BA::Update( CCommand& commandIn )
                 m_waterTemp_c   = m_sensor.m_temperature_c;
                 m_pressure_mbar = m_sensor.m_pressure_mbar;
                 
-                Serial.print( "MS5837.depth_m:" );
-    		    Serial.print( m_depth_m );
-    		    Serial.println( ";" );
-    		    
-    		    Serial.print( "MS5837.waterTemp_c:" );
-    		    Serial.print( m_waterTemp_c );
-    		    Serial.println( ";" );
-    		    
-    		    Serial.print( "MS5837.pressure_mbar:" );
-    		    Serial.print( m_pressure_mbar );
-    		    Serial.println( ";" );
+                //Serial.print( "MS5837.depth_m:" );
+                //Serial.print( m_depth_m );
+                //Serial.println( ";" );
+                
+                //Serial.print( "MS5837.waterTemp_c:" );
+                //Serial.print( m_waterTemp_c );
+                //Serial.println( ";" );
+                
+                //Serial.print( "MS5837.pressure_mbar:" );
+                //Serial.print( m_pressure_mbar );
+                //Serial.println( ";" );
     		    
     		    NDataManager::m_environmentData.TEMP = m_waterTemp_c;
     		    NDataManager::m_environmentData.PRES = m_pressure_mbar;
-    		    NDataManager::m_environmentData.DEEP = m_depth_m;
+    		    NDataManager::m_navData.DEEP = m_depth_m;
                 
-                m_state = ESensorState::IDLE;
+                m_state = MS5837_IDLE;
     		}
         }
     }

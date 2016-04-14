@@ -16,7 +16,7 @@
 // TODO: Add more error handling
 // TODO: The casting done in a lot of these calculations is terribly inefficient. Probably better to make more variables default to larger sizes.
 
-MS5837_30BA::MS5837_30BA( uint8_t resolutionIn = MS5837_ADC_4096 )
+MS5837_30BA::MS5837_30BA( uint8_t resolutionIn )
 {
     m_oversampleResolution = resolutionIn;
 }
@@ -50,9 +50,9 @@ int MS5837_30BA::GetCalibrationCoefficients()
 	for( int i = 0; i < 8; ++i )
 	{
 	    // Request data at each PROM register
-	    WriteRegisterByte( 0xA0 + ( i * 2 ) );
+	    WriteRegisterByte( CMD_PROM_READ_BASE + ( i * 2 ) );
 	    
-	    if( I2c.read( I2C_ADDRESS, 2 ) != 0 )
+	    if( I2c.read( I2C_ADDRESS, 2 ) == 0 )
 		{
 		    HighByte    = I2c.receive();
 			LowByte     = I2c.receive();
@@ -87,11 +87,11 @@ int MS5837_30BA::StartConversion( int measurementTypeIn )
     // Send the command to do the ADC conversion on the chip, address dependent on measurement type and sampling resolution
     if( measurementTypeIn == MS5837_MEAS_PRESSURE )
     {
-	    return WriteRegisterByte( CMD_ADC_CONV + m_oversampleResolution + CMD_ADC_D1 );
+	    return WriteRegisterByte( CMD_ADC_CONV_BASE + m_oversampleResolution + CMD_ADC_D1 );
     }
     else if( MS5837_MEAS_TEMPERATURE )
     {
-	    return WriteRegisterByte( CMD_ADC_CONV + m_oversampleResolution + CMD_ADC_D2 );
+	    return WriteRegisterByte( CMD_ADC_CONV_BASE + m_oversampleResolution + CMD_ADC_D2 );
     }
     
     return -1;
@@ -113,7 +113,7 @@ int MS5837_30BA::Read( int measurementTypeIn )
 	}
 
 	// Combine the bytes into one integer
-	result = ( ( uint32_t )HighByte << 16 ) + ( ( uint32_t )MidByte << 8 ) + ( uint32_t )LowByte;
+	uint32_t result = ( ( uint32_t )HighByte << 16 ) + ( ( uint32_t )MidByte << 8 ) + ( uint32_t )LowByte;
 	
 	// Set the appropriate variable
 	if( measurementTypeIn == MS5837_MEAS_PRESSURE )
@@ -212,7 +212,7 @@ void MS5837_30BA::CalculateOutputs()
 	}
 	else
 	{
-	    m_depth_m = ( mbar - 1013.25f ) * 0.9945f / 100.0f;
+	    m_depth_m = ( m_pressure_mbar - 1013.25f ) * 0.9945f / 100.0f;
 	}
 }
 
@@ -229,7 +229,7 @@ int MS5837_30BA::WriteDataByte( uint8_t addressIn, uint8_t dataIn )
 int MS5837_30BA::ReadByte( uint8_t addressIn, uint8_t& dataOut )
 {
     // Set address to request from
-	uint8_t ret = I2c.read( ( uint8_t )MS5803_I2C_ADDRESS, ( uint8_t )addressIn, ( uint8_t )1 );
+	uint8_t ret = I2c.read( ( uint8_t )I2C_ADDRESS, ( uint8_t )addressIn, ( uint8_t )1 );
 
 	// Non-zero failure
 	if( ret )
