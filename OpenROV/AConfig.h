@@ -52,8 +52,12 @@
 #define HAS_POLOLU_MINIMUV (0)
 
 // MS5803_XXBA Depth Sensor
-#define HAS_MS5803_XXBA (1)
+#define HAS_MS5803_XXBA (0)
 #define MS5803_XXBA_I2C_ADDRESS 0x76
+
+// MS5837_30BA Depth Sensor
+#define HAS_MS5837_30BA (1)
+#define MS5837_30BA_I2C_ADDRESS 0x76
 
 // MPU9150 IMU
 #define HAS_MPU9150 (1)

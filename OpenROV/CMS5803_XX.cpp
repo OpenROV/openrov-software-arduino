@@ -36,9 +36,12 @@
 
 #define CMD_RESET		0x1E	// ADC reset command
 #define CMD_ADC_READ	0x00	// ADC read command
+
 #define CMD_ADC_CONV	0x40	// ADC conversion command
+
 #define CMD_ADC_D1		0x00	// ADC D1 conversion
 #define CMD_ADC_D2		0x10	// ADC D2 conversion
+
 #define CMD_ADC_256		0x00	// ADC resolution=256
 #define CMD_ADC_512		0x02	// ADC resolution=512
 #define CMD_ADC_1024	0x04	// ADC resolution=1024
