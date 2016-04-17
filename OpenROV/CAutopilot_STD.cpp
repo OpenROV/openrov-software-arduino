@@ -48,127 +48,129 @@ void CAutopilot::Update( CCommand& command )
 {
 	//intended to respond to fly by wire commands: MaintainHeading(); TurnTo(compassheading); DiveTo(depth);
 
-
-
-	if( command.Equals( "headloff" ) )
+	if( NCommManager::m_isCommandAvailable )
 	{
-		_headingHoldEnabled = false;
-		raw_Left = 0;
-		raw_Right = 0;
-		hdg_Error_Integral = 0;  // Reset error integrator
-		tgt_Hdg = -500;  // -500 = system not in hdg hold
-
-		int m_argumentsToSend[] = {1, 00}; //include number of parms as fist parm
-		command.PushCommand( "yaw", m_argumentsToSend );
-		Serial.println( F( "log:heading_hold_disabled;" ) );
-		Serial.print( F( "targetHeading:" ) );
-		Serial.print( DISABLED );
-		Serial.println( ';' );
-
-	}
-
-	if( command.Equals( "headlon" ) )
-	{
-		_headingHoldEnabled = true;
-
-		if( command.m_arguments[0] == 0 )
+		
+		if( command.Equals( "headloff" ) || command.Equals( "holdHeading_off" )  )
 		{
-			_headingHoldTarget = NDataManager::m_navData.HDGD;
+			_headingHoldEnabled = false;
+			raw_Left = 0;
+			raw_Right = 0;
+			hdg_Error_Integral = 0;  // Reset error integrator
+			tgt_Hdg = -500;  // -500 = system not in hdg hold
+	
+			int m_argumentsToSend[] = {1, 00}; //include number of parms as fist parm
+			command.PushCommand( "yaw", m_argumentsToSend );
+			Serial.println( F( "log:heading_hold_disabled;" ) );
+			Serial.print( F( "targetHeading:" ) );
+			Serial.print( DISABLED );
+			Serial.println( ';' );
+	
 		}
-		else
+	
+		if( command.Equals( "headlon" ) || command.Equals( "holdHeading_off" ) )
 		{
-			_headingHoldTarget = command.m_arguments[1];
-		}
-
-		tgt_Hdg = _headingHoldTarget;
-		Serial.print( F( "log:heading_hold_enabled on=" ) );
-		Serial.print( tgt_Hdg );
-		Serial.println( ';' );
-		Serial.print( F( "targetHeading:" ) );
-		Serial.print( tgt_Hdg );
-		Serial.println( ';' );
-	}
-
-	//Backwards compatibility for a release or two (2.5.1 release)
-	if( command.Equals( "holdHeading_toggle" ) )
-	{
-		if( _headingHoldEnabled )
-		{
-			int m_argumentsToSend[] = {0}; //include number of parms as fist parm
-			command.PushCommand( "headloff", m_argumentsToSend );
-		}
-		else
-		{
+			_headingHoldEnabled = true;
+	
 			if( command.m_arguments[0] == 0 )
 			{
-				int m_argumentsToSend[] = {0}; //include number of parms as fist parm
-				command.PushCommand( "headlon", m_argumentsToSend );
+				_headingHoldTarget = NDataManager::m_navData.HDGD;
 			}
 			else
 			{
-				int m_argumentsToSend[] = {1, command.m_arguments[1]}; //include number of parms as fist parm
-				command.PushCommand( "headlon", m_argumentsToSend );
+				_headingHoldTarget = command.m_arguments[1];
 			}
-
+	
+			tgt_Hdg = _headingHoldTarget;
+			Serial.print( F( "log:heading_hold_enabled on=" ) );
+			Serial.print( tgt_Hdg );
+			Serial.println( ';' );
+			Serial.print( F( "targetHeading:" ) );
+			Serial.print( tgt_Hdg );
+			Serial.println( ';' );
 		}
-	}
-
-	if( command.Equals( "deptloff" ) )
-	{
-		_depthHoldEnabled = false;
-		raw_lift = 0;
-		target_depth = 0;
-
-		int m_argumentsToSend[] = {1, 0}; //include number of parms as fist parm
-		command.PushCommand( "lift", m_argumentsToSend );
-		Serial.println( F( "log:depth_hold_disabled;" ) );
-		Serial.print( F( "targetDepth:" ) );
-		Serial.print( DISABLED );
-		Serial.println( ';' );
-
-	}
-
-	if( command.Equals( "deptlon" ) )
-	{
-		_depthHoldEnabled = true;
-
-		if( command.m_arguments[0] == 0 )
+	
+		//Backwards compatibility for a release or two (2.5.1 release)
+		if( command.Equals( "holdHeading_toggle" ) )
 		{
-			_depthHoldTarget = NDataManager::m_navData.DEEP * 100; //casting to cm
-		}
-		else
-		{
-			_depthHoldTarget = command.m_arguments[1];
-		}
-
-		target_depth = _depthHoldTarget;
-		Serial.print( F( "log:depth_hold_enabled on=" ) );
-		Serial.print( target_depth );
-		Serial.println( ';' );
-		Serial.print( F( "targetDepth:" ) );
-		Serial.print( target_depth );
-		Serial.println( ';' );
-	}
-
-
-	if( command.Equals( "holdDepth_toggle" ) )
-	{
-		if( _depthHoldEnabled )
-		{
-			int m_argumentsToSend[] = {0}; //include number of parms as fist parm
-			command.PushCommand( "deptloff", m_argumentsToSend );
-		}
-		else
-		{
-			if( command.m_arguments[0] == 0 )
+			if( _headingHoldEnabled )
 			{
 				int m_argumentsToSend[] = {0}; //include number of parms as fist parm
-				command.PushCommand( "deptlon", m_argumentsToSend );
+				command.PushCommand( "headloff", m_argumentsToSend );
 			}
 			else
 			{
-				int m_argumentsToSend[] = {1, command.m_arguments[1]}; //include number of parms as fist parm
-				command.PushCommand( "deptlon", m_argumentsToSend );
+				if( command.m_arguments[0] == 0 )
+				{
+					int m_argumentsToSend[] = {0}; //include number of parms as fist parm
+					command.PushCommand( "headlon", m_argumentsToSend );
+				}
+				else
+				{
+					int m_argumentsToSend[] = {1, command.m_arguments[1]}; //include number of parms as fist parm
+					command.PushCommand( "headlon", m_argumentsToSend );
+				}
+	
+			}
+		}
+	
+		if( command.Equals( "deptloff" ) || command.Equals( "holdDepth_off" ) )
+		{
+			_depthHoldEnabled = false;
+			raw_lift = 0;
+			target_depth = 0;
+	
+			int m_argumentsToSend[] = {1, 0}; //include number of parms as fist parm
+			command.PushCommand( "lift", m_argumentsToSend );
+			Serial.println( F( "log:depth_hold_disabled;" ) );
+			Serial.print( F( "targetDepth:" ) );
+			Serial.print( DISABLED );
+			Serial.println( ';' );
+	
+		}
+	
+		if( command.Equals( "deptlon" ) || command.Equals( "holdDepth_on" ) )
+		{
+			_depthHoldEnabled = true;
+	
+			if( command.m_arguments[0] == 0 )
+			{
+				_depthHoldTarget = NDataManager::m_navData.DEEP * 100; //casting to cm
+			}
+			else
+			{
+				_depthHoldTarget = command.m_arguments[1];
+			}
+	
+			target_depth = _depthHoldTarget;
+			Serial.print( F( "log:depth_hold_enabled on=" ) );
+			Serial.print( target_depth );
+			Serial.println( ';' );
+			Serial.print( F( "targetDepth:" ) );
+			Serial.print( target_depth );
+			Serial.println( ';' );
+		}
+	
+	
+		if( command.Equals( "holdDepth_toggle" ) )
+		{
+			if( _depthHoldEnabled )
+			{
+				int m_argumentsToSend[] = {0}; //include number of parms as fist parm
+				command.PushCommand( "deptloff", m_argumentsToSend );
+			}
+			else
+			{
+				if( command.m_arguments[0] == 0 )
+				{
+					int m_argumentsToSend[] = {0}; //include number of parms as fist parm
+					command.PushCommand( "deptlon", m_argumentsToSend );
+				}
+				else
+				{
+					int m_argumentsToSend[] = {1, command.m_arguments[1]}; //include number of parms as fist parm
+					command.PushCommand( "deptlon", m_argumentsToSend );
+				}
 			}
 		}
 	}
