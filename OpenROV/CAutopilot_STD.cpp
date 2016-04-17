@@ -68,7 +68,7 @@ void CAutopilot::Update( CCommand& command )
 	
 		}
 	
-		if( command.Equals( "headlon" ) || command.Equals( "holdHeading_off" ) )
+		if( command.Equals( "headlon" ) || command.Equals( "holdHeading_on" ) )
 		{
 			_headingHoldEnabled = true;
 	
