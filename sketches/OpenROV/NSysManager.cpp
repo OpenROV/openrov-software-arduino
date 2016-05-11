@@ -26,6 +26,9 @@ namespace NSysManager
 		// Set pin modes
 		SetPinModes();
 		
+		// Enable LED0
+		digitalWrite( PIN_LED_0, HIGH );
+		
 		// Initialize the serial ports
 		InitializeSerial();
 

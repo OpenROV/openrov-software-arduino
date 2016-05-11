@@ -69,8 +69,8 @@
 
 // Standard Motor pin setup
 #define PIN_PORT_MOTOR			    PIN_SERVO_1
-#define PIN_STARBOARD_MOTOR		    PIN_SERVO_2
-#define PIN_VERTICAL_MOTOR		    PIN_SERVO_3
+#define PIN_VERTICAL_MOTOR		    PIN_SERVO_2
+#define PIN_STARBOARD_MOTOR		    PIN_SERVO_3
 // Not used						    PIN_SERVO_4
 // Not used						    PIN_SERVO_5
 // Not used							PIN_SERVO_6
