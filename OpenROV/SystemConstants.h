@@ -40,7 +40,6 @@
 #define STARBOARD_PIN			8
 #define ESCPOWER_PIN			16
 #define ALTSERVO_PIN			9
-#define ELIGHTS_PIN				46
 #define I2CPOWER_PIN			48
 #define PORT_FORWARD_PIN 9
 #define PORT_AFT_PIN 6

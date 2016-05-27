@@ -21,7 +21,6 @@
 namespace
 {
 	CPin light( "light", LIGHTS_PIN, CPin::kAnalog, CPin::kOutput );
-	CPin elight( "elight", ELIGHTS_PIN, CPin::kAnalog, CPin::kOutput );
 }
 
 void CLights::Initialize()
@@ -30,9 +29,6 @@ void CLights::Initialize()
 
 	light.Reset();
 	light.Write( 0 );
-
-	elight.Reset();
-	elight.Write( 0 );
 }
 
 void CLights::Update( CCommand& commandIn )
@@ -61,9 +57,7 @@ void CLights::Update( CCommand& commandIn )
 		Serial.print( F( "LIGP:" ) );
 		Serial.print( percentValue );
 		Serial.println( ';' );
-	}
-
-	
+	}   
 }
 
 #endif
