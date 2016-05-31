@@ -26,6 +26,7 @@
 #endif
 
 #define HAS_STD_LIGHTS (1)
+#define HAS_EXT_LIGHTS (1)
 #define HAS_STD_CALIBRATIONLASERS (1)
 #define HAS_STD_CAMERAMOUNT (1)
 #define HAS_STD_AUTOPILOT (1)

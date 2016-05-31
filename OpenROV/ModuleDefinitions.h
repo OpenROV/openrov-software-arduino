@@ -1,6 +1,8 @@
 #pragma once
 #include "AConfig.h"
 
+#include "PluginConfig.h"
+
 // ---------------------------------------
 // Conditional module definitions
 // -------------------------------
