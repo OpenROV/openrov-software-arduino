@@ -26,20 +26,24 @@
 #endif
 
 #define HAS_STD_LIGHTS (1)
+#define HAS_EXT_LIGHTS (1)
 #define HAS_STD_CALIBRATIONLASERS (1)
 #define HAS_STD_CAMERAMOUNT (1)
 #define HAS_STD_AUTOPILOT (1)
 #define HAS_EXP_AUTOPILOT (0)
 #define HAS_ALT_SERVO (1)
-#define DEADMANSWITCH_ON (1)
+#define DEADMANSWITCH_ON (0)
 
-// Thrusters configurations
+// Thrusters configurations  (These appear depricated and replaced by the THRUSTER_CONFIGURATION below)
 #define THRUSTER_CONFIG_NONE (0)
 #define THRUSTER_CONFIG_2X1 (1)
+#define THRUSTER_CONFIG_2Xv2 (2)
+#define THRUSTER_CONFIG_v2X1Xv2 (3)
 
 // Selected Thruster Configuration
 #define THRUSTER_CONFIGURATION THRUSTER_CONFIG_2X1
-
+//#define THRUSTER_CONFIGURATION THRUSTER_CONFIG_2Xv2
+//#define THRUSTER_CONFIGURATION THRUSTER_CONFIG_v2X1Xv2
 
 // ---------------------------------------------------------
 // After Market Modules
@@ -49,8 +53,12 @@
 #define HAS_POLOLU_MINIMUV (0)
 
 // MS5803_XXBA Depth Sensor
-#define HAS_MS5803_XXBA (1)
+#define HAS_MS5803_XXBA (0)
 #define MS5803_XXBA_I2C_ADDRESS 0x76
+
+// MS5837_30BA Depth Sensor
+#define HAS_MS5837_30BA (1)
+#define MS5837_30BA_I2C_ADDRESS 0x76
 
 // MPU9150 IMU
 #define HAS_MPU9150 (1)

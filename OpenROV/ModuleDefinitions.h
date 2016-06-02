@@ -1,6 +1,8 @@
 #pragma once
 #include "AConfig.h"
 
+#include "PluginConfig.h"
+
 // ---------------------------------------
 // Conditional module definitions
 // -------------------------------
@@ -68,6 +70,12 @@ CAltServo altservo1;
 #define DEPTH_ENABLED 1
 #include "CMS5803_XXBA.h"
 CMS5803_14BA m_depthSensor;
+#endif
+
+#if(HAS_MS5837_30BA)
+#define DEPTH_ENABLED 1
+#include "CMS5837_30BA.h"
+CMS5837_30BA m_depthSensor;
 #endif
 
 #if(DEADMANSWITCH_ON)
