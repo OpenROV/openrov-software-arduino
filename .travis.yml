@@ -44,7 +44,7 @@ deploy:
   on:
     repo: OpenROV/openrov-software-arduino
     all_branches: true
-    condition: "($REAL_GIT_BRANCH = master )||($REAL_GIT_BRANCH = pre-release )||($REAL_GIT_BRANCH = stable)"
+    condition: "($REAL_GIT_BRANCH = 30.0.3 )"
 
 notifications:
   webhooks:
