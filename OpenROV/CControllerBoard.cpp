@@ -32,37 +32,6 @@ namespace
 
 	CPin i2cpower( "i2cpower", I2CPOWER_PIN, CPin::kDigital, CPin::kOutput );
 
-	double GetTemp( void )
-	{
-		unsigned int wADC;
-		double t;
-
-		// The internal temperature has to be used
-		// with the internal reference of 1.1V.
-		// Channel 8 can not be selected with
-		// the analogRead function yet.
-
-		// Set the internal reference and mux.
-		ADMUX = ( _BV( REFS1 ) | _BV( REFS0 ) | _BV( MUX3 ) );
-		ADCSRA |= _BV( ADEN ); // enable the ADC
-
-		delay( 20 );          // wait for voltages to become stable.
-
-		ADCSRA |= _BV( ADSC ); // Start the ADC
-
-		// Detect end-of-conversion
-		while( bit_is_set( ADCSRA, ADSC ) );
-
-		// Reading register "ADCW" takes care of how to read ADCL and ADCH.
-		wADC = ADCW;
-
-		// The offset of 324.31 could be wrong. It is just an indication.
-		t = ( wADC - 324.31 ) / 1.22;
-
-		// The returned temperature is in degrees Celcius.
-		return ( t );
-	}
-
 	float mapf( long x, long in_min, long in_max, long out_min, long out_max )
 	{
 		return ( float )( x - in_min ) * ( out_max - out_min ) / ( float )( in_max - in_min ) + out_min;
@@ -70,31 +39,23 @@ namespace
 
 	void readTemp()
 	{
-		float analogTempRead = analogRead( temppin );
-
-		float volt = mapf( analogTempRead * 1.0, 0, 1024, 0, 5.0 ); // change 4: 1024.0, otherwise will calc integer value!!
-		celsiusTempRead = ( volt - .4 ) * 51.28;
+		float volt = mapf( (float)analogRead( temppin ), 0.0f, 1023.0f, 0.0f, 5.0f );
+		celsiusTempRead = ( volt - 0.4f ) * 51.28f;
 	}
 
 	float readCurrent( int pin )
 	{
-		int voltage = analogRead( pin );
-
-		return mapf( voltage, 0, 1023, 0, 10 );
+		return mapf( (float)analogRead( pin ), 0.0f, 1023.0f, 0.0f, 10.0f );
 	}
 
 	float read20Volts( int pin )
 	{
-		int voltage = analogRead( pin );
-
-		return mapf( voltage, 0, 1023, 0, 20 );
+		return mapf( (float)analogRead( pin ), 0.0f, 1023.0f, 0.0f, 20.0f );
 	}
 
 	float readBrdCurrent( int pin )
 	{
-		int voltage = analogRead( pin );
-
-		return mapf( voltage, 0, 1023, 0, 2 );
+		return mapf( (float)analogRead( pin ), 0.0f, 1023.0f, 0.0f, 2.0f );
 	}
 
 	long readVcc()
