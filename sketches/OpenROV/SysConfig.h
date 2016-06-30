@@ -1,5 +1,6 @@
 #pragma once
 
+#include "CompileOptions.h"
 #include <Wire.h>
 
 // TODO: The MCU ARCH and Board Type should eventually be passed in solely from the build script.

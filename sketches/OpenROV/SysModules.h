@@ -13,6 +13,7 @@
 #include "CControllerBoard.h"
 CControllerBoard m_controllerBoard;
 
+#include "Plugins.h"
 
 #if(HAS_STD_LIGHTS)
 #include "CLights.h"
