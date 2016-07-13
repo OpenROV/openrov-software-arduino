@@ -11,7 +11,7 @@ CI2C::CI2C( SERCOM *s, uint8_t pinSDA, uint8_t pinSCL )
 
 	m_options.baudRate 	= 100000;
 	m_options.setSCLSM 	= false;
-	m_options.setSMEN 	= false;
+	m_options.setSMEN 	= true;
 }
 
 CI2C::~CI2C()
@@ -77,8 +77,6 @@ I2C::ERetCode CI2C::WriteByte( uint8_t slaveAddressIn, uint8_t dataIn, bool issu
 	m_transfer.action				= I2C::EAction::WRITE;
 	m_transfer.issueRepeatedStart 	= issueRepeatedStart;
 
-	Serial.println( "Called bool" );
-
 	// Perform transfer
 	return m_pSercom->PerformTransfer_I2C( &m_transfer );
 }
@@ -95,8 +93,6 @@ I2C::ERetCode CI2C::WriteByte( uint8_t slaveAddressIn, uint8_t registerIn, uint8
 	m_transfer.length				= 2;
 	m_transfer.action				= I2C::EAction::WRITE;
 	m_transfer.issueRepeatedStart 	= false;
-
-	Serial.println( "Called Normal" );
 
 	// Perform transfer
 	return m_pSercom->PerformTransfer_I2C( &m_transfer );
