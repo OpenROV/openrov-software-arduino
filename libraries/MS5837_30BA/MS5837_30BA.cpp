@@ -231,9 +231,6 @@ int MS5837_30BA::WriteDataByte( uint8_t addressIn, uint8_t dataIn )
 
 int MS5837_30BA::ReadByte( uint8_t addressIn, uint8_t& dataOut )
 {
-    // Set address to request from
-	uint8_t ret = I2c.read( ( uint8_t )I2C_ADDRESS, ( uint8_t )addressIn, ( uint8_t )1 );
-
     I2C::ERetCode ret = I2C0.ReadByte( I2C_ADDRESS, addressIn, &dataOut );
 
 	// Non-zero failure
