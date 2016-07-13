@@ -319,3 +319,57 @@ I2C::ERetCode CI2C::Scan()
 
 	return I2C::ERetCode::ERR_UNSUPPORTED_OP;
 }
+
+
+#if WIRE_INTERFACES_COUNT > 0
+/*  In case new variant doesn't define these macros,
+    we put here the ones for Arduino Zero.
+    These values should be different on some variants!
+*/
+
+CI2C I2C0( &PERIPH_WIRE, PIN_WIRE_SDA, PIN_WIRE_SCL );
+
+void WIRE_IT_HANDLER( void )
+{
+}
+#endif
+
+#if WIRE_INTERFACES_COUNT > 1
+CI2C I2C1( &PERIPH_WIRE1, PIN_WIRE1_SDA, PIN_WIRE1_SCL );
+
+void WIRE1_IT_HANDLER( void )
+{
+}
+#endif
+
+#if WIRE_INTERFACES_COUNT > 2
+CI2C I2C2( &PERIPH_WIRE2, PIN_WIRE2_SDA, PIN_WIRE2_SCL );
+
+void WIRE2_IT_HANDLER( void )
+{
+}
+#endif
+
+#if WIRE_INTERFACES_COUNT > 3
+CI2C I2C3( &PERIPH_WIRE3, PIN_WIRE3_SDA, PIN_WIRE3_SCL );
+
+void WIRE3_IT_HANDLER( void )
+{
+}
+#endif
+
+#if WIRE_INTERFACES_COUNT > 4
+CI2C I2C4( &PERIPH_WIRE4, PIN_WIRE4_SDA, PIN_WIRE4_SCL );
+
+void WIRE4_IT_HANDLER( void )
+{
+}
+#endif
+
+#if WIRE_INTERFACES_COUNT > 5
+CI2C I2C5( &PERIPH_WIRE5, PIN_WIRE5_SDA, PIN_WIRE5_SCL );
+
+void WIRE5_IT_HANDLER( void )
+{
+}
+#endif
