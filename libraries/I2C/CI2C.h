@@ -1,5 +1,6 @@
 #pragma once
 
+#include <Arduino.h>
 #include "variant.h"
 #include "SERCOM.h"
 #include "RingBuffer.h"
