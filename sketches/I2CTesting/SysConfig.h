@@ -1,6 +1,6 @@
 #pragma once
 
-#include <I2C.h>
+#include <CI2C.h>
 
 // TODO: The MCU ARCH and Board Type should eventually be passed in solely from the build script.
 
