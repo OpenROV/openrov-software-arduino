@@ -54,8 +54,6 @@ namespace NSysManager
 			Serial1.begin( 115200 );
 		#elif CONTROLLERBOARD == CONTROLLERBOARD_CB25
 			Serial.begin( 115200 );
-		#elif CONTROLLERBOARD == CONTROLLERBOARD_CAPE
-			Serial.begin( 115200 );
 		#endif
 	}
 
@@ -66,14 +64,13 @@ namespace NSysManager
 			digitalWrite( PIN_ENABLE_INT_I2C, HIGH );
 			digitalWrite( PIN_ENABLE_EXT_I2C, HIGH );
 	
-			I2C0.Enable
-			Wire1.begin();
+			I2C0.Enable( 0, 0 );
+			I2C1.Enable( 0, 0 );
+
 		#elif CONTROLLERBOARD == CONTROLLERBOARD_CB25
 			digitalWrite( PIN_ENABLE_I2C, HIGH );
 	
-			Wire.begin();
-		#elif CONTROLLERBOARD == CONTROLLERBOARD_CAPE
-			Wire.begin();
+			I2C0.Enable( 0, 0 );
 		#endif
 	}
 	
@@ -101,10 +98,7 @@ namespace NSysManager
 	    #elif CONTROLLERBOARD == CONTROLLERBOARD_CB25
 			pinMode( PIN_LED_0,                 OUTPUT );
 			pinMode( PIN_LED_1,                 OUTPUT );
-			
-		#elif CONTROLLERBOARD == CONTROLLERBOARD_CAPE
-			pinMode( PIN_LED_0,                 OUTPUT );
-			pinMode( PIN_LED_1,                 OUTPUT );
+
 		#endif
 	}
 

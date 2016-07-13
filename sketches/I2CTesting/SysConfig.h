@@ -1,6 +1,5 @@
 #pragma once
 
-#include "CompileOptions.h"
 #include <I2C.h>
 
 // TODO: The MCU ARCH and Board Type should eventually be passed in solely from the build script.
@@ -23,7 +22,6 @@
 // Controller Board Selection
 // ---------------------------------------------------------
 #define CONTROLLERBOARD					0
-#define CONTROLLERBOARD_CAPE 			1
 #define CONTROLLERBOARD_CB25			2
 #define CONTROLLERBOARD_TRIDENT			3
 

@@ -7,6 +7,4 @@
 	#include "PinDefinitions_Trident.h"
 #elif CONTROLLERBOARD == CONTROLLERBOARD_CB25
 	#include "PinDefinitions_25.h"
-#elif CONTROLLERBOARD == CONTROLLERBOARD_CAPE
-	#include "PinDefinitions_Cape.h"
 #endif
