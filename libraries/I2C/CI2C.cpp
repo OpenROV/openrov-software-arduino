@@ -174,7 +174,7 @@ I2C::ERetCode CI2C::WriteWords( uint8_t slaveAddressIn, uint16_t *dataIn, uint8_
 {
 	// Set up transfer
 	m_transfer.slaveAddress			= slaveAddressIn;
-	m_transfer.buffer 				= dataIn;				// Directly use the user's buffer
+	m_transfer.buffer 				= (uint8_t*)dataIn;				// Directly use the user's buffer
 	m_transfer.length				= numberWordsIn * 2;
 	m_transfer.action				= I2C::EAction::WRITE;
 	m_transfer.issueRepeatedStart 	= false;
@@ -194,7 +194,7 @@ I2C::ERetCode CI2C::WriteWords( uint8_t slaveAddressIn, uint8_t registerIn, uint
 	// TODO: This could possibly be made more efficient by just splitting it into two transfers with a repeated start
 	// Set up internal data buffer
 	m_pTransferBuffer[ 0 ] = registerIn;					
-	memcpy( m_pTransferBuffer + 1, dataIn, numberWordsIn );	// Copy data from users buffer
+	memcpy( m_pTransferBuffer + 1, dataIn, numberWordsIn * 2 );	// Copy data from users buffer
 
 	// Set up transfer
 	m_transfer.slaveAddress 		= slaveAddressIn;
@@ -237,7 +237,7 @@ I2C::ERetCode CI2C::ReadWord( uint8_t slaveAddressIn, uint8_t registerIn, uint16
 	{
 		// Set up transfer to user's data buffer
 		m_transfer.slaveAddress 		= slaveAddressIn;
-		m_transfer.buffer 				= dataOut;
+		m_transfer.buffer 				= (uint8_t*)dataOut;
 		m_transfer.length				= 2;
 		m_transfer.action				= I2C::EAction::READ;
 		m_transfer.issueRepeatedStart 	= false;
@@ -280,7 +280,7 @@ I2C::ERetCode CI2C::ReadWords( uint8_t slaveAddressIn, uint8_t registerIn, uint1
 	{
 		// Set up transfer to user's data buffer
 		m_transfer.slaveAddress 		= slaveAddressIn;
-		m_transfer.buffer 				= dataOut;
+		m_transfer.buffer 				= (uint8_t*)dataOut;
 		m_transfer.length				= numberWordsIn * 2;
 		m_transfer.action				= I2C::EAction::READ;
 		m_transfer.issueRepeatedStart 	= false;
