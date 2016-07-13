@@ -196,9 +196,9 @@ void CMS5837_30BA::Update( CCommand& commandIn )
                 m_waterTemp_c   = m_sensor.m_temperature_c;
                 m_pressure_mbar = m_sensor.m_pressure_mbar;
                 
-                //Serial.print( "MS5837.depth_m:" );
-                //Serial.print( m_depth_m );
-                //Serial.println( ";" );
+                Serial.print( "MS5837.depth_m:" );
+                Serial.print( m_depth_m );
+                Serial.println( ";" );
                 
                 //Serial.print( "MS5837.waterTemp_c:" );
                 //Serial.print( m_waterTemp_c );
