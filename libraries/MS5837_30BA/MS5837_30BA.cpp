@@ -46,12 +46,12 @@ int MS5837_30BA::Reset()
 
 int MS5837_30BA::GetCalibrationCoefficients()
 {
+    uint8_t coeffs[ 2 ];
+
 	// Read sensor coefficients
 	for( int i = 0; i < 8; ++i )
 	{
-
-        uint8_t coeffs[ 2 ];
-
+        // Read coefficient register
         I2C::ERetCode ret = I2C0.ReadBytes( I2C_ADDRESS, CMD_PROM_READ_BASE + ( i * 2 ), coeffs, 2 );
 
 		if( ret )
@@ -102,21 +102,19 @@ int MS5837_30BA::StartConversion( int measurementTypeIn )
 
 int MS5837_30BA::Read( int measurementTypeIn )
 {
-    // Send the read command
-	WriteRegisterByte( CMD_ADC_READ );
+    uint8_t bytes[ 3 ];
 
-	// Then request the results. This should be a 24-bit result (3 bytes)
-	I2c.read( I2C_ADDRESS, 3 );
+    I2C::ERetCode ret = I2C0.ReadBytes( I2C_ADDRESS, CMD_ADC_READ, bytes, 3 );
 
-	while( I2c.available() )
-	{
-		HighByte = I2c.receive();
-		MidByte = I2c.receive();
-		LowByte = I2c.receive();
-	}
+    if( ret )
+    {
+        Serial.print( "Failed to read bytes. Reason: " );
+        Serial.println( (int32_t)ret );
+        return (int32_t)ret;
+    }
 
 	// Combine the bytes into one integer
-	uint32_t result = ( ( uint32_t )HighByte << 16 ) + ( ( uint32_t )MidByte << 8 ) + ( uint32_t )LowByte;
+	uint32_t result = ( ( uint32_t )bytes[ 0 ] << 16 ) + ( ( uint32_t )bytes[ 1 ] << 8 ) + ( uint32_t )bytes[ 2 ];
 	
 	// Set the appropriate variable
 	if( measurementTypeIn == MS5837_MEAS_PRESSURE )
