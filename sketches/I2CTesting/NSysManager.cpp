@@ -63,9 +63,18 @@ namespace NSysManager
 			// Note: The wire library will break if we attempt to use it with these low.
 			digitalWrite( PIN_ENABLE_INT_I2C, HIGH );
 			digitalWrite( PIN_ENABLE_EXT_I2C, HIGH );
-	
-			I2C0.Enable( 0, 0 );
-			I2C1.Enable( 0, 0 );
+
+			int32_t ret = 99;
+
+			ret = (int32_t)I2C0.Enable( 0, 0 );
+
+			Serial.print( "I2C0: " );
+			Serial.println( ret );
+
+			ret = (int32_t)I2C1.Enable( 0, 0 );
+
+			Serial.print( "I2C1: " );
+			Serial.println( ret );
 
 		#elif CONTROLLERBOARD == CONTROLLERBOARD_CB25
 			digitalWrite( PIN_ENABLE_I2C, HIGH );
