@@ -49,7 +49,7 @@ int MS5837_30BA::GetCalibrationCoefficients()
     uint8_t coeffs[ 2 ];
 
 	// Read sensor coefficients
-	for( int i = 0; i < 8; ++i )
+	for( int i = 0; i < 7; ++i )
 	{
         // Read coefficient register
         I2C::ERetCode ret = I2C0.ReadBytes( I2C_ADDRESS, CMD_PROM_READ_BASE + ( i * 2 ), coeffs, 2 );
