@@ -77,6 +77,8 @@ I2C::ERetCode CI2C::WriteByte( uint8_t slaveAddressIn, uint8_t dataIn, bool issu
 	m_transfer.action				= I2C::EAction::WRITE;
 	m_transfer.issueRepeatedStart 	= issueRepeatedStart;
 
+	Serial.println( "Called bool" );
+
 	// Perform transfer
 	return m_pSercom->PerformTransfer_I2C( &m_transfer );
 }
@@ -93,6 +95,8 @@ I2C::ERetCode CI2C::WriteByte( uint8_t slaveAddressIn, uint8_t registerIn, uint8
 	m_transfer.length				= 2;
 	m_transfer.action				= I2C::EAction::WRITE;
 	m_transfer.issueRepeatedStart 	= false;
+
+	Serial.println( "Called Normal" );
 
 	// Perform transfer
 	return m_pSercom->PerformTransfer_I2C( &m_transfer );
