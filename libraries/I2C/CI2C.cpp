@@ -10,8 +10,8 @@ CI2C::CI2C( SERCOM *s, uint8_t pinSDA, uint8_t pinSCL )
 	m_pinSCL			= pinSCL;
 
 	m_options.baudRate 	= 100000;
-	m_options.setSCLSM 	= true;
-	m_options.setSMEN 	= false;
+	m_options.setSCLSM 	= false;	// NOT WORKING YET
+	m_options.setSMEN 	= false;	// NOT WORKING YET
 }
 
 CI2C::~CI2C()
