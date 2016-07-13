@@ -118,6 +118,8 @@
 #define HAS_MS5803_30BA 			(0)
 #define HAS_MS5803_14BA				(0)
 
+#define HAS_MS5837_30BA				(1)
+
 
 
 
