@@ -1,0 +1,62 @@
+#pragma once
+
+// Defines
+
+#define DISABLED F("DISABLED")
+
+// Camera Servo Module
+#define CAMERA_SERVO_TARGET_MIN_US				1000
+#define CAMERA_SERVO_TARGET_MIDPOINT_US			1500
+#define CAMERA_SERVO_TARGET_MAX_US				2000
+
+// Motors
+#define MOTOR_TARGET_MIN_US						1000
+#define MOTOR_TARGET_NEUTRAL_US					1500
+#define MOTOR_TARGET_MAX_US						2000
+#define MOTOR_DEFAULT_POSITIVE_MOD				1.0f
+#define MOTOR_DEFAULT_NEGATIVE_MOD				1.0f
+#define MOTOR_DEFAULT_POSITIVE_DEADZONE_BUFFER	50
+#define MOTOR_DEFAULT_NEGATIVE_DEADZONE_BUFFER	50
+
+// Timers
+#define SEC_PER_MIN								60
+#define SEC_PER_HOUR							3600
+
+// Pins
+#define MAX_PIN_OUTPUT_STRING_LENGTH			50
+
+// Deadman Switch
+#define DEADMAN_SWITCH_DELAY_TO_ARM_MS			180000
+
+// Controller Board
+// Pin Defines
+#define LIGHTS_PIN				44
+#define CAMERAMOUNT_PIN			11
+#define CALIBRATIONLASERS_PIN	45
+#define PORT_PIN				6
+#define VERTICAL_PIN			7
+#define PORT_VERTICAL_PIN 7
+#define STARBOARD_VERTICAL_PIN 9
+#define STARBOARD_PIN			8
+#define ESCPOWER_PIN			16
+#define ALTSERVO_PIN			9
+#define I2CPOWER_PIN			48
+#define PORT_FORWARD_PIN 9
+#define PORT_AFT_PIN 6
+#define STARBOARD_FORWARD_PIN 10
+#define STARBOARD_AFT_PIN 8
+
+// Commands
+#define COMMAND_MAX_ARGUMENTS			10
+#define COMMAND_MAX_STRING_LENGTH		40
+#define COMMAND_MAX_COUNT				5	// Use 3 for 328p
+#define COMMAND_DATA_BUFFER_SIZE		80
+
+// System Settings
+#define WATERTYPE_FRESH			0
+#define WATERTYPE_SALT			1
+
+// AltServo
+#define ALTS_MIDPOINT 1500
+#define ALTS_MINPOINT 1000
+#define ALTS_MAXPOINT 2000
