@@ -1,6 +1,5 @@
 // Includes
 #include <EEPROM.h>
-#include <SPI.h>
 
 #include "NArduinoManager.h"
 #include "NConfigManager.h"
