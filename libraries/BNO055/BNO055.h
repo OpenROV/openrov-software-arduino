@@ -29,18 +29,18 @@
 #define BNO055_ID        (0xA0)
 
 // Forward declaration
-class TwoWire;
+class CI2C;
 
-class CBNO055Driver
+class BNO055
 {
 public:
 
-	CBNO055Driver( int32_t sensorIdIn = -1, uint8_t addressIn = BNO055_ADDRESS_A );
+	BNO055( CI2C *i2cInterfaceIn, int32_t sensorIdIn = -1, uint8_t addressIn = BNO055_ADDRESS_A );
 
-	bool Initialize( TwoWire *wireInterfaceIn );
+	bool Initialize();
 	bool Reset();
 	bool SetMode( bosch::EOpMode modeIn );
-	bool SetExternalCrystalUse( boolean shouldUseIn );
+	bool SetExternalCrystalUse( bool shouldUseIn );
 	bool SetPowerMode( bosch::EPowerMode powerModeIn );
 	bool SetSelectedRegisterPage( byte pageIdIn );
 	bool SetUpUnitsAndOrientation();
@@ -64,9 +64,7 @@ public:
 	bool EnterIMUMode();
 	bool EnterNDOFMode();
 
-	// CAdafruitSensor implementation
-
-	bool m_isInitialized;
+	bool m_isInitialized = false;
 
 	uint8_t m_systemCal;
 	uint8_t m_gyroCal;
@@ -89,9 +87,7 @@ private:
 	bool ReadNBytes( bosch::ERegisterAddress addressIn, uint8_t* dataOut, uint8_t byteCountIn );
 	bool WriteByte( bosch::ERegisterAddress addressIn, uint8_t dataIn );
 
-	void ClearWire();
-
-	bool m_lastRetcode;
+	bool m_lastRetcode = true;
 
 	static const unsigned long	k_configToOpDelay_ms	= 30;
 	static const unsigned long	k_opToConfigDelay_ms	= 30;
@@ -106,5 +102,5 @@ private:
 	bosch::TCalibrationOffsets m_gyroOffsets;
 	bosch::TCalibrationOffsets m_magOffsets;
 	
-	TwoWire *m_pWire;
+	CI2C *m_pI2C;
 };
