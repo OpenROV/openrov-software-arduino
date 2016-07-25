@@ -57,8 +57,6 @@ int MS5837_30BA::GetCalibrationCoefficients()
 
 		if( ret )
 		{
-			Serial.print( "Failed to read bytes. Reason: " );
-			Serial.println( (int32_t)ret );
 			return (int32_t)ret;
 		}
 
@@ -109,8 +107,6 @@ int MS5837_30BA::Read( int measurementTypeIn )
 
     if( ret )
     {
-        Serial.print( "Failed to read bytes. Reason: " );
-        Serial.println( (int32_t)ret );
         return (int32_t)ret;
     }
 
@@ -235,8 +231,6 @@ int MS5837_30BA::ReadByte( uint8_t addressIn, uint8_t& dataOut )
 	// Non-zero failure
 	if( ret )
 	{
-        Serial.print( "Failed to read bytes. Reason: " );
-        Serial.println( (int32_t)ret );
 		return (int32_t)ret;
 	}
 
