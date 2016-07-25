@@ -9,7 +9,6 @@
 // MCU Architecture Selection
 // ---------------------------------------------------------
 #define MCUARCH			0
-#define MCUARCH_AVR 	1
 #define MCUARCH_SAMD 	2
 
 // Select here
@@ -23,8 +22,6 @@
 // Controller Board Selection
 // ---------------------------------------------------------
 #define CONTROLLERBOARD					0
-#define CONTROLLERBOARD_CAPE 			1
-#define CONTROLLERBOARD_CB25			2
 #define CONTROLLERBOARD_TRIDENT			3
 
 // Select here
