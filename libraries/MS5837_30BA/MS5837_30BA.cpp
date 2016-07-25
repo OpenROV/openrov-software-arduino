@@ -16,9 +16,10 @@
 // TODO: Add more error handling
 // TODO: The casting done in a lot of these calculations is terribly inefficient. Probably better to make more variables default to larger sizes.
 
-MS5837_30BA::MS5837_30BA( uint8_t resolutionIn )
+MS5837_30BA::MS5837_30BA( CI2C *i2cInterfaceIn, uint8_t resolutionIn )
+    : m_pI2C( i2cInterfaceIn )
+    , m_oversampleResolution( resolutionIn )
 {
-    m_oversampleResolution = resolutionIn;
 }
 
 int MS5837_30BA::Initialize()
@@ -52,7 +53,7 @@ int MS5837_30BA::GetCalibrationCoefficients()
 	for( int i = 0; i < 7; ++i )
 	{
         // Read coefficient register
-        I2C::ERetCode ret = I2C0.ReadBytes( I2C_ADDRESS, CMD_PROM_READ_BASE + ( i * 2 ), coeffs, 2 );
+        I2C::ERetCode ret = m_pI2C->ReadBytes( I2C_ADDRESS, CMD_PROM_READ_BASE + ( i * 2 ), coeffs, 2 );
 
 		if( ret )
 		{
@@ -104,7 +105,7 @@ int MS5837_30BA::Read( int measurementTypeIn )
 {
     uint8_t bytes[ 3 ];
 
-    I2C::ERetCode ret = I2C0.ReadBytes( I2C_ADDRESS, CMD_ADC_READ, bytes, 3 );
+    I2C::ERetCode ret = m_pI2C->ReadBytes( I2C_ADDRESS, CMD_ADC_READ, bytes, 3 );
 
     if( ret )
     {
@@ -219,17 +220,17 @@ void MS5837_30BA::CalculateOutputs()
 
 int MS5837_30BA::WriteRegisterByte( uint8_t addressIn )
 {
-    return (int32_t)I2C0.WriteByte( I2C_ADDRESS, addressIn );
+    return (int32_t)m_pI2C->WriteByte( I2C_ADDRESS, addressIn );
 }
 
 int MS5837_30BA::WriteDataByte( uint8_t addressIn, uint8_t dataIn )
 {
-    return (int32_t)I2C0.WriteByte( I2C_ADDRESS, addressIn, dataIn );
+    return (int32_t)m_pI2C->WriteByte( I2C_ADDRESS, addressIn, dataIn );
 }
 
 int MS5837_30BA::ReadByte( uint8_t addressIn, uint8_t& dataOut )
 {
-    I2C::ERetCode ret = I2C0.ReadByte( I2C_ADDRESS, addressIn, &dataOut );
+    I2C::ERetCode ret = m_pI2C->ReadByte( I2C_ADDRESS, addressIn, &dataOut );
 
 	// Non-zero failure
 	if( ret )

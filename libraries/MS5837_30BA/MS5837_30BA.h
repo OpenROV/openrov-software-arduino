@@ -17,6 +17,9 @@
 #define MS5837_ADC_4096	        0x08	// ADC resolution = 4096
 #define MS5837_ADC_8192	        0x0A	// ADC resolution = 8192
 
+// Forward decs
+class CI2C;
+
 class MS5837_30BA
 {
 public:
@@ -33,7 +36,7 @@ public:
 	uint16_t m_sensorCoeffs[8]; // unsigned 16-bit integer (0-65535)
 
 	 // Methods
-	MS5837_30BA( uint8_t resolutionIn = MS5837_ADC_4096 );
+	MS5837_30BA( CI2C *i2cInterfaceIn, uint8_t resolutionIn = MS5837_ADC_4096 );
 	
 	int Initialize();
 	int GetCalibrationCoefficients();
@@ -45,6 +48,8 @@ public:
 	void SetWaterType( int waterTypeIn );
 
 private:
+
+    CI2C *m_pI2C;
 
     // Attributes
     uint8_t m_oversampleResolution;
