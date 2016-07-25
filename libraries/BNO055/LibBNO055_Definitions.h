@@ -2,7 +2,7 @@
 
 namespace bosch
 {
-	enum ERegisterAddress
+	enum ERegisterAddress : uint8_t
 	{
 		/* Page id register definition */
 		BNO055_PAGE_ID_ADDR                                     = 0X07,
