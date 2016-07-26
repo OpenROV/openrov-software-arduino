@@ -1,7 +1,7 @@
 #pragma once
 #include "AConfig.h"
 
-#include "PluginConfig.h"
+#include "Plugins.h"
 
 // ---------------------------------------
 // Conditional module definitions
