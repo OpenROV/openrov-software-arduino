@@ -34,3 +34,8 @@ CBNO055 m_boschIMU( WIRE_INTERFACE_0 );
 #include "CMS5837_30BA.h"
 CMS5837_30BA m_depthSensor( WIRE_INTERFACE_0 );
 #endif
+
+#if(HAS_BMP280)
+#include "CBMP280.h"
+CBMP280 m_bmp280( WIRE_INTERFACE_0 );
+#endif
