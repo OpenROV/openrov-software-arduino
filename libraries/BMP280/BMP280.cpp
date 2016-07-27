@@ -55,22 +55,17 @@ int32_t BMP280::WriteByte( uint8_t registerIn, uint8_t dataIn )
 
 int32_t BMP280::ReadByte( uint8_t addressIn, uint8_t &dataOut )
 {
-	return (int32_t)m_pI2C->ReadByte( m_i2cAddress, (uint8_t)addressIn, dataOut );
-}
-
-int32_t BMP280::ReadNBytes( uint8_t addressIn, uint8_t *dataOut, uint8_t byteCountIn )
-{
-	return (int32_t)m_pI2C->ReadBytes( m_i2cAddress, (uint8_t)addressIn, dataOut, byteCountIn );
+	return (int32_t)m_pI2C->ReadByte( m_i2cAddress, (uint8_t)addressIn, &dataOut );
 }
 
 int32_t BMP280::ReadWord( uint8_t addressIn, uint16_t &dataOut )
 {
-	return (int32_t)m_pI2C->ReadWord( m_i2cAddress, (uint8_t)addressIn, dataOut );
+	return (int32_t)m_pI2C->ReadWord( m_i2cAddress, (uint8_t)addressIn, &dataOut );
 }
 
 int32_t BMP280::ReadWord_Signed( uint8_t addressIn, int16_t &dataOut )
 {
-	return (int32_t)m_pI2C->ReadWord( m_i2cAddress, (uint8_t)addressIn, (uint16_t&)dataOut );
+	return ReadWord( addressIn, (uint16_t&)dataOut );
 }
 
 int32_t BMP280::ReadWord_LE( uint8_t addressIn, uint16_t &dataOut )
@@ -78,7 +73,7 @@ int32_t BMP280::ReadWord_LE( uint8_t addressIn, uint16_t &dataOut )
   uint16_t temp = 0;
 
   // The sample trimmer registers are ordered LSB/MSB, so this allows you to read them as MSB/LSB
-  int32_t ret = (int32_t)m_pI2C->ReadWord( m_i2cAddress, (uint8_t)addressIn, temp );
+  int32_t ret = (int32_t)m_pI2C->ReadWord( m_i2cAddress, (uint8_t)addressIn, &temp );
 
   // Flip the bytes
   dataOut = ( temp >> 8 ) | ( temp << 8 );
@@ -91,7 +86,7 @@ int32_t BMP280::ReadWord_Signed_LE( uint8_t addressIn, int16_t &dataOut )
   uint16_t temp = 0;
 
   // The sample trimmer registers are ordered LSB/MSB, so this allows you to read them as MSB/LSB
-  int32_t ret = (int32_t)m_pI2C->ReadWord( m_i2cAddress, (uint8_t)addressIn, temp );
+  int32_t ret = (int32_t)m_pI2C->ReadWord( m_i2cAddress, (uint8_t)addressIn, &temp );
 
   // Flip the bytes
   dataOut = (int16_t)( (temp >> 8) | (temp << 8) );
