@@ -76,17 +76,17 @@ class BMP280
     uint8_t   m_i2cAddress;
     int32_t   m_tFine;
 
-    bmp280::TCalibrationData m_calibData;
+    TCalibrationData m_calibData;
 
     // Methods
-    int32_t WriteByte( uint8_t registerIn, uint8_t dataIn )
-    int32_t ReadByte( uint8_t addressIn, uint8_t &dataOut )
-    int32_t ReadWord( uint8_t addressIn, uint16_t &dataOut )
-    int32_t ReadWord_Signed( uint8_t addressIn, int16_t &dataOut )
-    int32_t ReadWord_LE( uint8_t addressIn, uint16_t &dataOut )
-    int32_t ReadWord_Signed_LE( uint8_t addressIn, int16_t &dataOut )
-    int32_t ReadCoefficients()
-    int32_t ReadRawPressureAndTemperature( int32_t &rawPresOut, int32_t &rawTempOut )
+    int32_t WriteByte( uint8_t registerIn, uint8_t dataIn );
+    int32_t ReadByte( uint8_t addressIn, uint8_t &dataOut );
+    int32_t ReadWord( uint8_t addressIn, uint16_t &dataOut );
+    int32_t ReadWord_Signed( uint8_t addressIn, int16_t &dataOut );
+    int32_t ReadWord_LE( uint8_t addressIn, uint16_t &dataOut );
+    int32_t ReadWord_Signed_LE( uint8_t addressIn, int16_t &dataOut );
+    int32_t ReadCoefficients();
+    int32_t ReadRawPressureAndTemperature( int32_t &rawPresOut, int32_t &rawTempOut );
 };
 
 
