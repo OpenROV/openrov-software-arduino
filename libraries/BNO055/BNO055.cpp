@@ -750,7 +750,7 @@ bool BNO055::WriteByte( ERegisterAddress addressIn, uint8_t dataIn )
 
 bool BNO055::ReadByte( ERegisterAddress addressIn, uint8_t &dataOut )
 {
-	I2C::ERetCode ret = m_pI2C->ReadByte( m_i2cAddress, (uint8_t)addressIn, dataOut );
+	I2C::ERetCode ret = m_pI2C->ReadByte( m_i2cAddress, (uint8_t)addressIn, &dataOut );
 
 	// Non-zero failure
 	if( ret )
