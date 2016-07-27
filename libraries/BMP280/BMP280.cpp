@@ -17,45 +17,34 @@
 #include "BMP280.h"
 #include <CI2C.h>
 
-
-/***************************************************************************
- PRIVATE FUNCTIONS
- ***************************************************************************/
-
 BMP280::BMP280( CI2C *i2cInterfaceIn )
   : m_pI2C( i2cInterfaceIn )
+  , m_i2cAddress( BMP280_ADDRESS )
 {
-  
 }
 
 int32_t BMP280::Initialize()
 {
 
-  int32_t ret;
-
+  int32_t ret = 0;
   uint8_t chipId = 0x00;
-  ReadByte( BMP280_REGISTER_CHIPID, chipId );
 
-  if( chipId != 0x58 )
+  ret = ReadByte( BMP280_REGISTER_CHIPID, chipId );
+
+  if( ret || chipId != 0x58 )
   {
     return -1;
   }
   
-  ret = ReadCoefficients();
-
-  if( ret )
+  if( ReadCoefficients() )
   {
-    return ret;
+    return -1;
   }
 
-  ret = WriteByte( BMP280_REGISTER_CONTROL, 0x3F );
+  // Set temp oversampling to 2x, pres oversampling to 16x, and mode to normal. Good resolution at 10hz
+  ret = WriteByte( BMP280_REGISTER_CONTROL, 0x57 );
 
-  if( ret )
-  {
-    return ret;
-  }
-
-  return 0;
+  return ret;
 }
 
 
@@ -71,144 +60,129 @@ int32_t BMP280::ReadByte( uint8_t addressIn, uint8_t &dataOut )
 
 int32_t BMP280::ReadNBytes( uint8_t addressIn, uint8_t *dataOut, uint8_t byteCountIn )
 {
-	return (int32_t)m_pI2C->ReadBytes( m_i2cAddress, (uint8_t)addressIn, dataOut, byteCountIn );;
+	return (int32_t)m_pI2C->ReadBytes( m_i2cAddress, (uint8_t)addressIn, dataOut, byteCountIn );
 }
 
-
-uint16_t BMP280::read16(byte reg)
+int32_t BMP280::ReadWord( uint8_t addressIn, uint16_t &dataOut )
 {
-  uint16_t value;
-
-  
-    Wire.beginTransmission((uint8_t)_i2caddr);
-    Wire.write((uint8_t)reg);
-    Wire.endTransmission();
-    Wire.requestFrom((uint8_t)_i2caddr, (byte)2);
-    value = (Wire.read() << 8) | Wire.read();
-
-  return value;
+	return (int32_t)m_pI2C->ReadWord( m_i2cAddress, (uint8_t)addressIn, dataOut );
 }
 
-uint16_t BMP280::read16_LE(byte reg) 
+int32_t BMP280::ReadWord_Signed( uint8_t addressIn, int16_t &dataOut )
 {
-  uint16_t temp = read16(reg);
-  return (temp >> 8) | (temp << 8);
-
+	return (int32_t)m_pI2C->ReadWord( m_i2cAddress, (uint8_t)addressIn, (uint16_t&)dataOut );
 }
 
-/**************************************************************************/
-/*!
-    @brief  Reads a signed 16 bit value over I2C
-*/
-/**************************************************************************/
-int16_t BMP280::readS16(byte reg)
+int32_t BMP280::ReadWord_LE( uint8_t addressIn, uint16_t &dataOut )
 {
-  return (int16_t)read16(reg);
+  uint16_t temp = 0;
 
+  // The sample trimmer registers are ordered LSB/MSB, so this allows you to read them as MSB/LSB
+  int32_t ret = (int32_t)m_pI2C->ReadWord( m_i2cAddress, (uint8_t)addressIn, temp );
+
+  // Flip the bytes
+  dataOut = ( temp >> 8 ) | ( temp << 8 );
+
+	return ret;
 }
 
-int16_t BMP280::readS16_LE(byte reg)
+int32_t BMP280::ReadWord_Signed_LE( uint8_t addressIn, int16_t &dataOut )
 {
-  return (int16_t)read16_LE(reg);
+  uint16_t temp = 0;
 
+  // The sample trimmer registers are ordered LSB/MSB, so this allows you to read them as MSB/LSB
+  int32_t ret = (int32_t)m_pI2C->ReadWord( m_i2cAddress, (uint8_t)addressIn, temp );
+
+  // Flip the bytes
+  dataOut = (int16_t)( (temp >> 8) | (temp << 8) );
+
+	return ret;
 }
 
-uint32_t BMP280::read24(byte reg)
+int32_t BMP280::ReadCoefficients()
 {
-  uint32_t value;
+    int32_t ret = 0;
+    ret |= ReadWord_LE( BMP280_REGISTER_DIG_T1, m_calibData.dig_T1 );
+    ret |= ReadWord_Signed_LE( BMP280_REGISTER_DIG_T2, m_calibData.dig_T2 );
+    ret |= ReadWord_Signed_LE( BMP280_REGISTER_DIG_T3, m_calibData.dig_T3 );
 
-    Wire.beginTransmission((uint8_t)_i2caddr);
-    Wire.write((uint8_t)reg);
-    Wire.endTransmission();
-    Wire.requestFrom((uint8_t)_i2caddr, (byte)3);
-    
-    value = Wire.read();
-    value <<= 8;
-    value |= Wire.read();
-    value <<= 8;
-    value |= Wire.read();
+    ret |= ReadWord_LE( BMP280_REGISTER_DIG_P1, m_calibData.dig_P1 );
+    ret |= ReadWord_Signed_LE( BMP280_REGISTER_DIG_P2, m_calibData.dig_P2 );
+    ret |= ReadWord_Signed_LE( BMP280_REGISTER_DIG_P3, m_calibData.dig_P3 );
+    ret |= ReadWord_Signed_LE( BMP280_REGISTER_DIG_P4, m_calibData.dig_P4 );
+    ret |= ReadWord_Signed_LE( BMP280_REGISTER_DIG_P5, m_calibData.dig_P5 );
+    ret |= ReadWord_Signed_LE( BMP280_REGISTER_DIG_P6, m_calibData.dig_P6 );
+    ret |= ReadWord_Signed_LE( BMP280_REGISTER_DIG_P7, m_calibData.dig_P7 );
+    ret |= ReadWord_Signed_LE( BMP280_REGISTER_DIG_P8, m_calibData.dig_P8 );
+    ret |= ReadWord_Signed_LE( BMP280_REGISTER_DIG_P9, m_calibData.dig_P9 );
 
-  return value;
+    return ret;
 }
 
-void BMP280::ReadCoefficients()
+int32_t BMP280::ReadRawPressureAndTemperature( int32_t &rawPresOut, int32_t &rawTempOut )
 {
-    _bmp280_calib.dig_T1 = read16_LE(BMP280_REGISTER_DIG_T1);
-    _bmp280_calib.dig_T2 = readS16_LE(BMP280_REGISTER_DIG_T2);
-    _bmp280_calib.dig_T3 = readS16_LE(BMP280_REGISTER_DIG_T3);
+  // Read raw pressure and temperature
+  uint8_t buf[ 6 ] = { 0 };
 
-    _bmp280_calib.dig_P1 = read16_LE(BMP280_REGISTER_DIG_P1);
-    _bmp280_calib.dig_P2 = readS16_LE(BMP280_REGISTER_DIG_P2);
-    _bmp280_calib.dig_P3 = readS16_LE(BMP280_REGISTER_DIG_P3);
-    _bmp280_calib.dig_P4 = readS16_LE(BMP280_REGISTER_DIG_P4);
-    _bmp280_calib.dig_P5 = readS16_LE(BMP280_REGISTER_DIG_P5);
-    _bmp280_calib.dig_P6 = readS16_LE(BMP280_REGISTER_DIG_P6);
-    _bmp280_calib.dig_P7 = readS16_LE(BMP280_REGISTER_DIG_P7);
-    _bmp280_calib.dig_P8 = readS16_LE(BMP280_REGISTER_DIG_P8);
-    _bmp280_calib.dig_P9 = readS16_LE(BMP280_REGISTER_DIG_P9);
+  int32_t ret = (int32_t)m_pI2C->ReadBytes( m_i2cAddress, BMP280_REGISTER_PRESSUREDATA, buf, 6 );
+
+  rawPresOut = (int32_t)( ( ((uint32_t)(buf[0])) << 12 ) |
+                          ( ((uint32_t)(buf[1])) << 4 ) |
+                          ( ((uint32_t)(buf[2])) >> 4 ) );
+
+  rawTempOut = (int32_t)( ( ((uint32_t)(buf[3])) << 12 ) |
+                          ( ((uint32_t)(buf[4])) << 4 ) |
+                          ( ((uint32_t)(buf[5])) >> 4 ) );
+
+  return ret;
 }
 
-float BMP280::readTemperature(void)
+int32_t BMP280::ReadCompensatedPressureAndTemperature( float &presOut, float &tempOut )
 {
-  int32_t var1, var2;
+  int32_t adc_P, adc_T;
 
-  int32_t adc_T = read24(BMP280_REGISTER_TEMPDATA);
-  adc_T >>= 4;
+  int32_t ret = ReadRawPressureAndTemperature( adc_P, adc_T );
 
-  var1  = ((((adc_T>>3) - ((int32_t)_bmp280_calib.dig_T1 <<1))) *
-	   ((int32_t)_bmp280_calib.dig_T2)) >> 11;
+  if( !ret )
+  {
+    // ----------------------
+    // Calculate Compensated Temperature
 
-  var2  = (((((adc_T>>4) - ((int32_t)_bmp280_calib.dig_T1)) *
-	     ((adc_T>>4) - ((int32_t)_bmp280_calib.dig_T1))) >> 12) *
-	   ((int32_t)_bmp280_calib.dig_T3)) >> 14;
+    int32_t var1 = ( ( ( ( adc_T >> 3 ) - ( (int32_t)m_calibData.dig_T1 << 1 ) ) ) * ((int32_t)m_calibData.dig_T2) ) >> 11;
+    int32_t var2 = ( ( ( ( ( adc_T >> 4 ) - ( (int32_t)m_calibData.dig_T1 ) ) * ( ( adc_T >> 4 ) - ( (int32_t)m_calibData.dig_T1 ) ) ) >> 12 ) * ( (int32_t)m_calibData.dig_T3 ) ) >> 14;
 
-  t_fine = var1 + var2;
+    m_tFine = var1 + var2;
 
-  float T  = (t_fine * 5 + 128) >> 8;
-  return T/100;
-}
+    tempOut = (float)( ( m_tFine * 5 + 128 ) >> 8 ) / 100.0f;
 
-/**************************************************************************/
-/*!
+    // ----------------------
+    // Calculate Compensated Pressure
 
-*/
-/**************************************************************************/
-float BMP280::readPressure(void) {
-  int64_t var1, var2, p;
+    int64_t var3 = ( (int64_t)m_tFine ) - 128000;
+    int64_t var4 = var3 * var3 * (int64_t)m_calibData.dig_P6;
 
-  // Must be done first to get the t_fine variable set up
-  readTemperature();
+    var4 = var4 + ((var3*(int64_t)m_calibData.dig_P5)<<17);
+    var4 = var4 + (((int64_t)m_calibData.dig_P4)<<35);
+    var3 = ((var3 * var3 * (int64_t)m_calibData.dig_P3)>>8) + ((var3 * (int64_t)m_calibData.dig_P2)<<12);
+    var3 = (((((int64_t)1)<<47)+var3))*((int64_t)m_calibData.dig_P1)>>33;
 
-  int32_t adc_P = read24(BMP280_REGISTER_PRESSUREDATA);
-  adc_P >>= 4;
+    // Avoid exception caused by division by zero
+    if( var3 == 0 ) 
+    {
+      return -1;  
+    }
 
-  var1 = ((int64_t)t_fine) - 128000;
-  var2 = var1 * var1 * (int64_t)_bmp280_calib.dig_P6;
-  var2 = var2 + ((var1*(int64_t)_bmp280_calib.dig_P5)<<17);
-  var2 = var2 + (((int64_t)_bmp280_calib.dig_P4)<<35);
-  var1 = ((var1 * var1 * (int64_t)_bmp280_calib.dig_P3)>>8) +
-    ((var1 * (int64_t)_bmp280_calib.dig_P2)<<12);
-  var1 = (((((int64_t)1)<<47)+var1))*((int64_t)_bmp280_calib.dig_P1)>>33;
+    int64_t p = 1048576 - adc_P;
 
-  if (var1 == 0) {
-    return 0;  // avoid exception caused by division by zero
+    p = (((p<<31) - var4)*3125) / var3;
+
+    var3 = (((int64_t)m_calibData.dig_P9) * (p>>13) * (p>>13)) >> 25;
+    var4 = (((int64_t)m_calibData.dig_P8) * p) >> 19;
+
+    p = ((p + var3 + var4) >> 8) + (((int64_t)m_calibData.dig_P7)<<4);
+
+    presOut = (float)p / 256.0f;
   }
-  p = 1048576 - adc_P;
-  p = (((p<<31) - var2)*3125) / var1;
-  var1 = (((int64_t)_bmp280_calib.dig_P9) * (p>>13) * (p>>13)) >> 25;
-  var2 = (((int64_t)_bmp280_calib.dig_P8) * p) >> 19;
 
-  p = ((p + var1 + var2) >> 8) + (((int64_t)_bmp280_calib.dig_P7)<<4);
-  return (float)p/256;
-}
-
-float BMP280::readAltitude(float seaLevelhPa) {
-  float altitude;
-
-  float pressure = readPressure(); // in Si units for Pascal
-  pressure /= 100;
-
-  altitude = 44330 * (1.0 - pow(pressure / seaLevelhPa, 0.1903));
-
-  return altitude;
+  return ret;
 }
