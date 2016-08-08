@@ -47,9 +47,13 @@ void CBNO055::Initialize()
 void CBNO055::InitializeSensor()
 {
 	// Attempt to initialize. If this fails, we try every 30 seconds in its update loop
-	if( !m_bno.Initialize() )
+	int32_t ret = m_bno.Initialize();
+	if( ret != 0 )
 	{
 		Serial.println( "BNO_INIT_STATUS:FAILED;" );
+		Serial.print( "BNO_FAIL_REASON:" );
+		Serial.print( ret );
+		Serial.println( ";" );
 	}
 	else
 	{
@@ -94,7 +98,7 @@ void CBNO055::Update( CCommand &commandIn )
 		if( report_timer.HasElapsed( 1000 ) )
 		{
 			// System calibration
-			if( m_bno.GetCalibration() )
+			if( !m_bno.GetCalibration() )
 			{
 				Serial.print( "BNO055.CALIB_MAG:" );
 				Serial.print( m_bno.m_magCal );
@@ -131,7 +135,7 @@ void CBNO055::Update( CCommand &commandIn )
 			}
 
 			// Operating mode
-			if( m_bno.GetOperatingMode() )
+			if( !m_bno.GetOperatingMode() )
 			{
 				Serial.print( "BNO055.MODE:" );
 				Serial.print( m_bno.m_operatingMode );
@@ -145,7 +149,7 @@ void CBNO055::Update( CCommand &commandIn )
 			}
 
 			// System status
-			if( m_bno.GetSystemStatus() )
+			if( !m_bno.GetSystemStatus() )
 			{
 				Serial.print( "BNO055_STATUS:" );
 				Serial.print( m_bno.m_systemStatus, HEX );
@@ -159,7 +163,7 @@ void CBNO055::Update( CCommand &commandIn )
 			}
 
 			// System Error
-			if( m_bno.GetSystemError() )
+			if( !m_bno.GetSystemError() )
 			{
 				Serial.print( "BNO055_ERROR_FLAG:" );
 				Serial.print( m_bno.m_systemError );
@@ -175,7 +179,7 @@ void CBNO055::Update( CCommand &commandIn )
 		}
 
 		// Get orientation data
-        if( m_bno.GetVector( bosch::VECTOR_EULER, euler ) )
+        if( !m_bno.GetVector( bosch::VECTOR_EULER, euler ) )
         {			
             // Throw out exactly zero heading values that are all zeroes - necessary when switching modes
             if( euler.x() != 0.0f  )
