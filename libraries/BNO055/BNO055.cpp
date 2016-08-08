@@ -535,7 +535,7 @@ bool BNO055::VerifyChipId()
 	// Read the chip ID
 	uint8_t id;
 
-	if( ReadByte( BNO055_CHIP_ID_ADDR, id ) != true )
+	if( !ReadByte( BNO055_CHIP_ID_ADDR, id ) )
 	{
 		return false;
 	}
