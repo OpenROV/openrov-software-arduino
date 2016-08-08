@@ -51,7 +51,8 @@ namespace
 		r_pinVoltage = util::mapf( (float)analogRead( PIN_BOARD_TEMP ), 0.0f, 4095.0f, 0.0f, 3.3f );
 		
 		// Convert voltage to Celsius
-		return ( ( r_pinVoltage - .4f ) * 51.28f );
+		return r_pinVoltage;
+		//return ( ( r_pinVoltage - .4f ) * 51.28f );
 	}
 	
 	float ReadHumidity()

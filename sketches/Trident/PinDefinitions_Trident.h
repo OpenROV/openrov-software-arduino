@@ -113,9 +113,9 @@
 #define PIN_NON_ESC_I  		    	PIN_A2		// 0-3.3A
 #define PIN_ESC3_I  		    	PIN_A3 		// 0-11A
 #define PIN_BATT_TUBE1_I  	    	PIN_A8 		// 0-11A
-#define PIN_BATT_TUBE2_I  	    	PIN_A9 		// 0-11A
+#define PIN_BOARD_TEMP  	    	PIN_A9 		// 0-11A
 #define PIN_HUMIDITY 		    	PIN_A10		// ?
-#define PIN_BOARD_TEMP 		    	PIN_A11 	// ?
+#define PIN_BATT_TUBE2_I 		    PIN_A11 	// ?
 #define PIN_EXT_LOAD_I 		    	PIN_A12 	// ?
 #define PIN_ESC1_I 			    	PIN_A13 	// 0-11A
 #define PIN_BATT_BUS_V 		    	PIN_A14 	// ?
