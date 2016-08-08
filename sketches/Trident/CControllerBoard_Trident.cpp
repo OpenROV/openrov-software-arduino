@@ -47,12 +47,26 @@ namespace
 	
 	float ReadBoardTemperature()
 	{
+		uint32_t value = analogRead( PIN_BOARD_TEMP );
+		float fValue = (float)value;
+
+		Serial.print( F( "value:" ) );
+		Serial.print( value );
+		Serial.println( ';' );
+
+		Serial.print( F( "fValue:" ) );
+		Serial.print( fValue );
+		Serial.println( ';' );
+
 		// Map ADC range to voltage
-		r_pinVoltage = util::mapf( (float)analogRead( PIN_BOARD_TEMP ), 0.0f, 1023.0f, 0.0f, 3.3f );
+		r_pinVoltage = util::mapToRange( fValue, 0.0f, 1023.0f, 0.0f, 3.3f );
 		
+		Serial.print( F( "r_pinVoltage:" ) );
+		Serial.print( r_pinVoltage );
+		Serial.println( ';' );
+
 		// Convert voltage to Celsius
-		return r_pinVoltage;
-		//return ( ( r_pinVoltage - .4f ) * 51.28f );
+		return ( ( r_pinVoltage - .4f ) * 51.28f );
 	}
 	
 	float ReadHumidity()
