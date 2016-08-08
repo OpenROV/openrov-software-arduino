@@ -37,32 +37,32 @@ public:
 
 	BNO055( CI2C *i2cInterfaceIn, int32_t sensorIdIn = -1, uint8_t addressIn = BNO055_ADDRESS_A );
 
-	bool Initialize();
-	bool Reset();
-	bool SetMode( bosch::EOpMode modeIn );
-	bool SetExternalCrystalUse( bool shouldUseIn );
-	bool SetPowerMode( bosch::EPowerMode powerModeIn );
-	bool SetSelectedRegisterPage( byte pageIdIn );
-	bool SetUpUnitsAndOrientation();
-	bool VerifyChipId();
-	bool GetCalibration();
-	bool GetRevInfo( bosch::TRevisionInfo& revInfoOut );
-	bool GetVector( bosch::EVectorType vectorTypeIn, imu::Vector<3>& vectorOut );
-	bool GetQuat( imu::Quaternion& quatOut );
-	bool GetTemperature( int8_t& temperatureOut );
-	bool GetPowerOnSelfTestResults();
-	bool GetSystemStatus();
-	bool GetSystemError();
-	bool GetSoftwareVersion();
-	bool GetBootloaderRev();
-	bool GetOperatingMode();
+	int32_t Initialize();
+	int32_t Reset();
+	int32_t SetMode( bosch::EOpMode modeIn );
+	int32_t SetExternalCrystalUse( bool shouldUseIn );
+	int32_t SetPowerMode( bosch::EPowerMode powerModeIn );
+	int32_t SetSelectedRegisterPage( byte pageIdIn );
+	int32_t SetUpUnitsAndOrientation();
+	int32_t VerifyChipId();
+	int32_t GetCalibration();
+	int32_t GetRevInfo( bosch::TRevisionInfo& revInfoOut );
+	int32_t GetVector( bosch::EVectorType vectorTypeIn, imu::Vector<3>& vectorOut );
+	int32_t GetQuat( imu::Quaternion& quatOut );
+	int32_t GetTemperature( int8_t& temperatureOut );
+	int32_t GetPowerOnSelfTestResults();
+	int32_t GetSystemStatus();
+	int32_t GetSystemError();
+	int32_t GetSoftwareVersion();
+	int32_t GetBootloaderRev();
+	int32_t GetOperatingMode();
 
-	bool GetAccelerometerOffsets();
-	bool GetGyroOffsets();
-	bool GetMagnetometerOffsets();
+	int32_t GetAccelerometerOffsets();
+	int32_t GetGyroOffsets();
+	int32_t GetMagnetometerOffsets();
 
-	bool EnterIMUMode();
-	bool EnterNDOFMode();
+	int32_t EnterIMUMode();
+	int32_t EnterNDOFMode();
 
 	bool m_isInitialized = false;
 
@@ -83,11 +83,11 @@ public:
 	uint8_t m_operatingMode;
 
 private:
-	bool ReadByte( bosch::ERegisterAddress addressIn, uint8_t& dataOut );
-	bool ReadNBytes( bosch::ERegisterAddress addressIn, uint8_t* dataOut, uint8_t byteCountIn );
-	bool WriteByte( bosch::ERegisterAddress addressIn, uint8_t dataIn );
+	int32_t ReadByte( bosch::ERegisterAddress addressIn, uint8_t& dataOut );
+	int32_t ReadNBytes( bosch::ERegisterAddress addressIn, uint8_t* dataOut, uint8_t byteCountIn );
+	int32_t WriteByte( bosch::ERegisterAddress addressIn, uint8_t dataIn );
 
-	bool m_lastRetcode = true;
+	int32_t m_lastRetcode = 0;
 
 	static const unsigned long	k_configToOpDelay_ms	= 30;
 	static const unsigned long	k_opToConfigDelay_ms	= 30;

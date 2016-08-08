@@ -34,31 +34,28 @@ BNO055::BNO055( CI2C *i2cInterfaceIn, int32_t sensorIdIn, uint8_t addressIn )
 {
 }
 
-bool BNO055::Initialize()
+int32_t BNO055::Initialize()
 {
 	m_isInitialized = false;
 
 	delay( 500 );
 
-	// Idempotent
 	// Verify chip ID
-	if( VerifyChipId() != true )
+	if( VerifyChipId() != I2C::ERetCode::SUCCESS )
 	{
-		return false;
+		return -1;
 	}
 
 	delay( 10 );
 
-	// Non-idempotent - Uninitializes and puts device in unconfigured default state
 	// Reset the device
-	if( Reset() != true )
+	if( Reset() != I2C::ERetCode::SUCCESS )
 	{
-		return false;
+		return -2;
 	}
 
 	unsigned long start = millis();
 
-	// Idempotent
 	// Try every 10ms to verify the chip ID again after reset
 	while( true )
 	{
@@ -66,7 +63,7 @@ bool BNO055::Initialize()
 
 		delay( 10 );
 
-		if( m_lastRetcode == true )
+		if( m_lastRetcode == I2C::ERetCode::SUCCESS )
 		{
 			// Successfully reset
 			break;
@@ -75,89 +72,89 @@ bool BNO055::Initialize()
 		if( ( millis() - start ) > 1000 )
 		{
 			// TODO: Error message
-			return m_lastRetcode;
-
+			return -3;
 		}
 	}
 
-	// Idempotent
 	// Switch to config mode
-	if( WriteByte( BNO055_OPR_MODE_ADDR, ( uint8_t )OPERATION_MODE_CONFIG ) != true )
+	if( WriteByte( BNO055_OPR_MODE_ADDR, ( uint8_t )OPERATION_MODE_CONFIG ) != I2C::ERetCode::SUCCESS )
 	{
-		return false;
+		return -4;
 	}
 
 	delay( 1000 );
 
-	if( SetSelectedRegisterPage( 0 ) != true )
+	if( SetSelectedRegisterPage( 0 ) != I2C::ERetCode::SUCCESS  )
 	{
-		return false;
+		return -5;
 	}
 
 	delay( 10 );
 
 	// Get the Power-on self test results
-	if( GetPowerOnSelfTestResults() != true )
+	if( GetPowerOnSelfTestResults() != I2C::ERetCode::SUCCESS  )
 	{
-		return false;
+		return -6;
 	}
 
 	delay( 10 );
 
 	if( m_powerOnSelfTestResult != 0x0F )
 	{
-		return false;
+		return -7;
 	}
 
 	delay( 10 );
 
-	if( GetSoftwareVersion() != true )
+	if( GetSoftwareVersion() != I2C::ERetCode::SUCCESS )
 	{
-		return false;
+		return -8;
 	}
 
 	delay( 10 );
 
-	if( GetBootloaderRev() != true )
+	if( GetBootloaderRev() != I2C::ERetCode::SUCCESS )
 	{
-		return false;
+		return -9;
 	}
 
 	// Idempotent
-	if( SetUpUnitsAndOrientation() != true )
+	if( SetUpUnitsAndOrientation() != I2C::ERetCode::SUCCESS )
 	{
-		return false;
+		return -10;
 	}
 
 	delay( 10 );
 
 	// Idempotent
 	// Set the power mode to normal
-	if( SetPowerMode( POWER_MODE_NORMAL ) != true )
+	if( SetPowerMode( POWER_MODE_NORMAL ) != I2C::ERetCode::SUCCESS )
 	{
-		return false;
+		return -11;
 	}
 
 	delay( 10 );
 
 	// Move to NDOF mode out of config mode
-	if( WriteByte( BNO055_OPR_MODE_ADDR, ( uint8_t )OPERATION_MODE_NDOF ) != true )
+	if( WriteByte( BNO055_OPR_MODE_ADDR, ( uint8_t )OPERATION_MODE_NDOF ) != I2C::ERetCode::SUCCESS  )
 	{
-		return false;
+		return -12;
 	}
 
 	delay( 100 );
 
 	m_isInitialized = true;
 
-	return true;
+	return 0;
 }
 
-bool BNO055::SetMode( EOpMode modeIn )
+int32_t BNO055::SetMode( EOpMode modeIn )
 {
-	if( !WriteByte( BNO055_OPR_MODE_ADDR, modeIn ) )
+	m_lastRetcode = WriteByte( BNO055_OPR_MODE_ADDR, modeIn );
+
+	if( m_lastRetcode != I2C::ERetCode::SUCCESS )
 	{
-		return false;
+		return m_lastRetcode;
 	}
 
 	// Update our current mode
@@ -167,51 +164,58 @@ bool BNO055::SetMode( EOpMode modeIn )
 	// Wait for required amount of time for mode change
 	delay( k_configToOpDelay_ms );
 
-	return true;
+	return m_lastRetcode;
 }
 
-bool BNO055::SetExternalCrystalUse( bool shouldUseIn )
+int32_t BNO055::SetExternalCrystalUse( bool shouldUseIn )
 {
 	EOpMode originalMode = m_mode;
 
+	m_lastRetcode = SetMode( OPERATION_MODE_CONFIG );
+
 	// Switch to config mode (just in case since this is the default)
-	if( SetMode( OPERATION_MODE_CONFIG ) != true )
+	if( m_lastRetcode != I2C::ERetCode::SUCCESS )
 	{
-		return false;
+		return m_lastRetcode;
 	}
 
+	m_lastRetcode = WriteByte( BNO055_PAGE_ID_ADDR, 0 );
+
 	// Make sure we are on page 0
-	if( !WriteByte( BNO055_PAGE_ID_ADDR, 0 ) )
+	if( m_lastRetcode != I2C::ERetCode::SUCCESS )
 	{
-		return false;
+		return m_lastRetcode;
 	}
 
 	// Set the external crystal use register
 	if( shouldUseIn )
 	{
-		if( !WriteByte( BNO055_SYS_TRIGGER_ADDR, 0x80 ) )
+		m_lastRetcode = WriteByte( BNO055_SYS_TRIGGER_ADDR, 0x80 );
+		if( m_lastRetcode != I2C::ERetCode::SUCCESS )
 		{
-			return false;
+			return m_lastRetcode;
 		}
 	}
 	else
 	{
-		if( !WriteByte( BNO055_SYS_TRIGGER_ADDR, 0x00 ) )
+		m_lastRetcode = WriteByte( BNO055_SYS_TRIGGER_ADDR, 0x00 );
+		if( m_lastRetcode != I2C::ERetCode::SUCCESS )
 		{
-			return false;
+			return m_lastRetcode;
 		}
 	}
 
 	// Go back to the mode we were originally in
-	if( SetMode( originalMode )  != true )
+	m_lastRetcode = SetMode( originalMode );
+	if( m_lastRetcode != I2C::ERetCode::SUCCESS )
 	{
-		return false;
+		return m_lastRetcode;
 	}
 
-	return true;
+	return m_lastRetcode;
 }
 
-bool BNO055::GetSystemStatus()
+int32_t BNO055::GetSystemStatus()
 {
 	// System Status (see section 4.3.58)
 	// ---------------------------------
@@ -223,15 +227,10 @@ bool BNO055::GetSystemStatus()
 	// 5 = Sensor fusio algorithm running
 	// 6 = System running without fusion algorithms
 
-	if( !ReadByte( BNO055_SYS_STAT_ADDR, m_systemStatus ) )
-	{
-		return false;
-	}
-
-	return true;
+	return ReadByte( BNO055_SYS_STAT_ADDR, m_systemStatus );
 }
 
-bool BNO055::GetSystemError()
+int32_t BNO055::GetSystemError()
 {
 	// System Error (see section 4.3.59)
 	// ---------------------------------
@@ -247,72 +246,59 @@ bool BNO055::GetSystemError()
 	// 9 = Fusion algorithm configuration error
 	// A = Sensor configuration error
 
-	if( !ReadByte( BNO055_SYS_ERR_ADDR, m_systemError ) )
-	{
-		return false;
-	}
-
-	return true;
+	return ReadByte( BNO055_SYS_ERR_ADDR, m_systemError );
 }
 
-bool BNO055::GetSoftwareVersion()
+int32_t BNO055::GetSoftwareVersion()
 {
-	if( !ReadByte( BNO055_SW_REV_ID_LSB_ADDR, m_softwareVersionMinor ) )
+	m_lastRetcode = ReadByte( BNO055_SW_REV_ID_LSB_ADDR, m_softwareVersionMinor );
+	if( m_lastRetcode != I2C::ERetCode::SUCCESS )
 	{
-		return false;
+		return m_lastRetcode;
 	}
 
-	if( !ReadByte( BNO055_SW_REV_ID_MSB_ADDR, m_softwareVersionMajor ) )
+	m_lastRetcode = ReadByte( BNO055_SW_REV_ID_MSB_ADDR, m_softwareVersionMajor );
+	if( m_lastRetcode != I2C::ERetCode::SUCCESS )
 	{
-		return false;
+		return m_lastRetcode;
 	}
 
-	return true;
+	return m_lastRetcode;
 }
 
-bool BNO055::GetBootloaderRev()
+int32_t BNO055::GetBootloaderRev()
 {
-	if( !ReadByte( BNO055_BL_REV_ID_ADDR, m_bootloaderRev ) )
-	{
-		return false;
-	}
-
-	return true;
+	return ReadByte( BNO055_BL_REV_ID_ADDR, m_bootloaderRev );
 }
 
-bool BNO055::GetOperatingMode()
+int32_t BNO055::GetOperatingMode()
 {
-	if( !ReadByte( BNO055_OPR_MODE_ADDR, m_operatingMode ) )
-	{
-		return false;
-	}
-
-	return true;
+	return ReadByte( BNO055_OPR_MODE_ADDR, m_operatingMode );
 }
 
-bool BNO055::GetAccelerometerOffsets()
+int32_t BNO055::GetAccelerometerOffsets()
 {
-	bool ret = true;
+	int32_t ret = 0;
 
 	uint8_t lsb = 0;
 	uint8_t msb = 0;
 
-	ret &= ReadByte( ACCEL_OFFSET_X_LSB_ADDR, lsb );
-	ret &= ReadByte( ACCEL_OFFSET_X_MSB_ADDR, msb );
+	ret |= ReadByte( ACCEL_OFFSET_X_LSB_ADDR, lsb );
+	ret |= ReadByte( ACCEL_OFFSET_X_MSB_ADDR, msb );
 
 	m_accOffsets.x = ( ( ( uint16_t )msb ) << 8 ) | ( ( uint16_t )lsb );
 
-	ret &= ReadByte( ACCEL_OFFSET_Y_LSB_ADDR, lsb );
-	ret &= ReadByte( ACCEL_OFFSET_Y_MSB_ADDR, msb );
+	ret |= ReadByte( ACCEL_OFFSET_Y_LSB_ADDR, lsb );
+	ret |= ReadByte( ACCEL_OFFSET_Y_MSB_ADDR, msb );
 
 	m_accOffsets.y = ( ( ( uint16_t )msb ) << 8 ) | ( ( uint16_t )lsb );
 
-	ret &= ReadByte( ACCEL_OFFSET_Z_LSB_ADDR, lsb );
-	ret &= ReadByte( ACCEL_OFFSET_Z_MSB_ADDR, msb );
+	ret |= ReadByte( ACCEL_OFFSET_Z_LSB_ADDR, lsb );
+	ret |= ReadByte( ACCEL_OFFSET_Z_MSB_ADDR, msb );
 
 	m_accOffsets.z = ( ( ( uint16_t )msb ) << 8 ) | ( ( uint16_t )lsb );
 
-	if( ret )
+	if( ret == I2C::ERetCode::SUCCESS )
 	{
 		Serial.print( "BNO055.acc.offset.x:" );
 		Serial.print( m_accOffsets.x );
@@ -330,29 +316,29 @@ bool BNO055::GetAccelerometerOffsets()
 	return ret;
 }
 
-bool BNO055::GetGyroOffsets()
+int32_t BNO055::GetGyroOffsets()
 {
-	bool ret = true;
+	int32_t ret = 0;
 
 	uint8_t lsb = 0;
 	uint8_t msb = 0;
 
-	ret &= ReadByte( GYRO_OFFSET_X_LSB_ADDR, lsb );
-	ret &= ReadByte( GYRO_OFFSET_X_MSB_ADDR, msb );
+	ret |= ReadByte( GYRO_OFFSET_X_LSB_ADDR, lsb );
+	ret |= ReadByte( GYRO_OFFSET_X_MSB_ADDR, msb );
 
 	m_gyroOffsets.x = ( ( ( uint16_t )msb ) << 8 ) | ( ( uint16_t )lsb );
 
-	ret &= ReadByte( GYRO_OFFSET_Y_LSB_ADDR, lsb );
-	ret &= ReadByte( GYRO_OFFSET_Y_MSB_ADDR, msb );
+	ret |= ReadByte( GYRO_OFFSET_Y_LSB_ADDR, lsb );
+	ret |= ReadByte( GYRO_OFFSET_Y_MSB_ADDR, msb );
 
 	m_gyroOffsets.y = ( ( ( uint16_t )msb ) << 8 ) | ( ( uint16_t )lsb );
 
-	ret &= ReadByte( GYRO_OFFSET_Z_LSB_ADDR, lsb );
-	ret &= ReadByte( GYRO_OFFSET_Z_MSB_ADDR, msb );
+	ret |= ReadByte( GYRO_OFFSET_Z_LSB_ADDR, lsb );
+	ret |= ReadByte( GYRO_OFFSET_Z_MSB_ADDR, msb );
 
 	m_gyroOffsets.z = ( ( ( uint16_t )msb ) << 8 ) | ( ( uint16_t )lsb );
 
-	if( ret )
+	if( ret == I2C::ERetCode::SUCCESS )
 	{
 		Serial.print( "BNO055.gyro.offset.x:" );
 		Serial.print( m_gyroOffsets.x );
@@ -370,29 +356,29 @@ bool BNO055::GetGyroOffsets()
 	return ret;
 }
 
-bool BNO055::GetMagnetometerOffsets()
+int32_t BNO055::GetMagnetometerOffsets()
 {
-	bool ret = true;
+	int32_t ret = 0;
 
 	uint8_t lsb = 0;
 	uint8_t msb = 0;
 
-	ret &= ReadByte( MAG_OFFSET_X_LSB_ADDR, lsb );
-	ret &= ReadByte( MAG_OFFSET_X_MSB_ADDR, msb );
+	ret |= ReadByte( MAG_OFFSET_X_LSB_ADDR, lsb );
+	ret |= ReadByte( MAG_OFFSET_X_MSB_ADDR, msb );
 
 	m_magOffsets.x = ( ( ( uint16_t )msb ) << 8 ) | ( ( uint16_t )lsb );
 
-	ret &= ReadByte( MAG_OFFSET_Y_LSB_ADDR, lsb );
-	ret &= ReadByte( MAG_OFFSET_Y_MSB_ADDR, msb );
+	ret |= ReadByte( MAG_OFFSET_Y_LSB_ADDR, lsb );
+	ret |= ReadByte( MAG_OFFSET_Y_MSB_ADDR, msb );
 
 	m_magOffsets.y = ( ( ( uint16_t )msb ) << 8 ) | ( ( uint16_t )lsb );
 
-	ret &= ReadByte( MAG_OFFSET_Z_LSB_ADDR, lsb );
-	ret &= ReadByte( MAG_OFFSET_Z_MSB_ADDR, msb );
+	ret |= ReadByte( MAG_OFFSET_Z_LSB_ADDR, lsb );
+	ret |= ReadByte( MAG_OFFSET_Z_MSB_ADDR, msb );
 
 	m_magOffsets.z = ( ( ( uint16_t )msb ) << 8 ) | ( ( uint16_t )lsb );
 
-	if( ret )
+	if( ret == I2C::ERetCode::SUCCESS )
 	{
 		Serial.print( "BNO055.mag.offset.x:" );
 		Serial.print( m_magOffsets.x );
@@ -410,55 +396,35 @@ bool BNO055::GetMagnetometerOffsets()
 	return ret;
 }
 
-bool BNO055::EnterIMUMode()
+int32_t BNO055::EnterIMUMode()
 {
 	// Get all of the offsets
 	GetGyroOffsets();
 	GetAccelerometerOffsets();
 	GetMagnetometerOffsets();
 
-	//Serial.print( "BNO055.gyro.offsets:" );
-	//Serial.print( m_gyroOffsets.x );
-	//Serial.print( "|" );
-	//Serial.print( m_gyroOffsets.y );
-	//Serial.print( "|" );
-	//Serial.print( m_gyroOffsets.z );
-	//Serial.println( ";" );
-
-	//Serial.print( "BNO055.acc.offsets:" );
-	//Serial.print( m_accOffsets.x );
-	//Serial.print( "|" );
-	//Serial.print( m_accOffsets.y );
-	//Serial.print( "|" );
-	//Serial.print( m_accOffsets.z );
-	//Serial.println( ";" );
-
-	//Serial.print( "BNO055.mag.offsets:" );
-	//Serial.print( m_magOffsets.x );
-	//Serial.print( "|" );
-	//Serial.print( m_magOffsets.y );
-	//Serial.print( "|" );
-	//Serial.print( m_magOffsets.z );
-	//Serial.println( ";" );
-
 	// Switch to config mode first
-	if( SetMode( OPERATION_MODE_CONFIG ) != true )
+	m_lastRetcode = SetMode( OPERATION_MODE_CONFIG );
+	if( m_lastRetcode != I2C::ERetCode::SUCCESS )
 	{
-		return false;
+		return m_lastRetcode;
 	}
 
 	// Switch to IMU mode
-	if( SetMode( OPERATION_MODE_IMUPLUS ) != true )
+	m_lastRetcode = SetMode( OPERATION_MODE_IMUPLUS );
+	if( m_lastRetcode != I2C::ERetCode::SUCCESS )
 	{
-		return false;
+		return m_lastRetcode;
 	}
 
 	Serial.print( "bno.mode:" );
 	Serial.print( "IMU" );
 	Serial.println( ';' );
+
+	return m_lastRetcode;
 }
 
-bool BNO055::EnterNDOFMode()
+int32_t BNO055::EnterNDOFMode()
 {
 	// Get all of the offsets
 	GetGyroOffsets();
@@ -466,23 +432,27 @@ bool BNO055::EnterNDOFMode()
 	GetMagnetometerOffsets();
 
 	// Switch to config mode first
-	if( SetMode( OPERATION_MODE_CONFIG ) != true )
+	m_lastRetcode = SetMode( OPERATION_MODE_CONFIG );
+	if( m_lastRetcode != I2C::ERetCode::SUCCESS )
 	{
-		return false;
+		return m_lastRetcode;
 	}
 
 	// Switch to NDOF mode
-	if( SetMode( OPERATION_MODE_NDOF ) != true )
+	m_lastRetcode = SetMode( OPERATION_MODE_NDOF );
+	if( m_lastRetcode != I2C::ERetCode::SUCCESS )
 	{
-		return false;
+		return m_lastRetcode;
 	}
 
 	Serial.print( "bno.mode:" );
 	Serial.print( "NDOF" );
 	Serial.println( ';' );
+
+	return m_lastRetcode;
 }
 
-bool BNO055::GetRevInfo( TRevisionInfo &revInfoOut )
+int32_t BNO055::GetRevInfo( TRevisionInfo &revInfoOut )
 {
 	uint8_t a, b;
 
@@ -493,33 +463,34 @@ bool BNO055::GetRevInfo( TRevisionInfo &revInfoOut )
 	revInfoOut.bl_rev = 0;
 	revInfoOut.sw_rev = 0;
 
-	bool ret = true;
+	int32_t ret = 0;
 
-	ret &= ReadByte( BNO055_ACCEL_REV_ID_ADDR, revInfoOut.accel_rev );	// Accelerometer
-	ret &= ReadByte( BNO055_MAG_REV_ID_ADDR, revInfoOut.mag_rev );		// Magnetometer
-	ret &= ReadByte( BNO055_GYRO_REV_ID_ADDR, revInfoOut.gyro_rev );		// Gyrometer
-	ret &= ReadByte( BNO055_BL_REV_ID_ADDR, revInfoOut.bl_rev );			// Bootloader
-	ret &= ReadByte( BNO055_SW_REV_ID_LSB_ADDR, a );						// Software Version LSB
-	ret &= ReadByte( BNO055_SW_REV_ID_MSB_ADDR, b );						// Software Version MSB
+	ret |= ReadByte( BNO055_ACCEL_REV_ID_ADDR, revInfoOut.accel_rev );	// Accelerometer
+	ret |= ReadByte( BNO055_MAG_REV_ID_ADDR, revInfoOut.mag_rev );		// Magnetometer
+	ret |= ReadByte( BNO055_GYRO_REV_ID_ADDR, revInfoOut.gyro_rev );		// Gyrometer
+	ret |= ReadByte( BNO055_BL_REV_ID_ADDR, revInfoOut.bl_rev );			// Bootloader
+	ret |= ReadByte( BNO055_SW_REV_ID_LSB_ADDR, a );						// Software Version LSB
+	ret |= ReadByte( BNO055_SW_REV_ID_MSB_ADDR, b );						// Software Version MSB
 
-	if( !ret )
+	if( ret != I2C::ERetCode::SUCCESS )
 	{
-		return false;
+		return ret;
 	}
 
 	// Combine the LSB and MSB
 	revInfoOut.sw_rev = ( ( ( uint16_t )b ) << 8 ) | ( ( uint16_t )a );
 
-	return true;
+	return ret;
 }
 
-bool BNO055::GetCalibration()
+int32_t BNO055::GetCalibration()
 {
 	uint8_t calData;
 
-	if( !ReadByte( BNO055_CALIB_STAT_ADDR, calData ) )
+	m_lastRetcode = ReadByte( BNO055_CALIB_STAT_ADDR, calData );
+	if( m_lastRetcode != I2C::ERetCode::SUCCESS )
 	{
-		return false;
+		return m_lastRetcode;
 	}
 
 	m_systemCal	= ( calData >> 6 ) & 0x03;
@@ -527,64 +498,55 @@ bool BNO055::GetCalibration()
 	m_accelCal	= ( calData >> 2 ) & 0x03;
 	m_magCal	= calData & 0x03;
 
-	return true;
+	return m_lastRetcode;
 }
 
-bool BNO055::VerifyChipId()
+int32_t BNO055::VerifyChipId()
 {
 	// Read the chip ID
 	uint8_t id;
 
-	if( !ReadByte( BNO055_CHIP_ID_ADDR, id ) )
+	m_lastRetcode = ReadByte( BNO055_CHIP_ID_ADDR, id );
+	if( m_lastRetcode != I2C::ERetCode::SUCCESS )
 	{
-		return false;
-	}
-
-	if( id != BNO055_ID )
-	{
-		return false;
+		return m_lastRetcode;
 	}
 
 	// Check to see if it matches the proper ID (0xA0)
-	return true;
+	if( id != BNO055_ID )
+	{
+		return -1;
+	}
+
+	return m_lastRetcode;
 }
 
-bool BNO055::Reset()
+int32_t BNO055::Reset()
 {
 	// Set System Reset bit
-	if( !WriteByte( BNO055_SYS_TRIGGER_ADDR, 0x20 ) )
+	m_lastRetcode = WriteByte( BNO055_SYS_TRIGGER_ADDR, 0x20 );
+	if( m_lastRetcode != I2C::ERetCode::SUCCESS )
 	{
-		return false;
+		return m_lastRetcode;
 	}
 
 	// Delay for required time to perform a reset
 	delay( k_resetDelay_ms );
 
-	return true;
+	return m_lastRetcode;
 }
 
-bool BNO055::SetPowerMode( EPowerMode powerModeIn )
+int32_t BNO055::SetPowerMode( EPowerMode powerModeIn )
 {
-	if( !WriteByte( BNO055_PWR_MODE_ADDR, powerModeIn ) )
-	{
-		return false;
-	}
-
-	return true;
+	return WriteByte( BNO055_PWR_MODE_ADDR, powerModeIn );
 }
 
-bool BNO055::SetSelectedRegisterPage( byte pageIdIn )
+int32_t BNO055::SetSelectedRegisterPage( byte pageIdIn )
 {
-	// TODO: Bounding checks
-	if( !WriteByte( BNO055_PAGE_ID_ADDR, pageIdIn ) )
-	{
-		return false;
-	}
-
-	return true;
+	return WriteByte( BNO055_PAGE_ID_ADDR, pageIdIn );
 }
 
-bool BNO055::SetUpUnitsAndOrientation()
+int32_t BNO055::SetUpUnitsAndOrientation()
 {
 	// Select the output units
 	uint8_t unitSelect =	( 0 << 7 ) |	// Orientation = Android
@@ -594,38 +556,39 @@ bool BNO055::SetUpUnitsAndOrientation()
 	                        ( 1 << 0 );		// Accelerometer = mg
 
 
-	bool ret = true;
+	int32_t ret = 0;
 
-	ret &= WriteByte( BNO055_UNIT_SEL_ADDR, unitSelect );
+	ret |= WriteByte( BNO055_UNIT_SEL_ADDR, unitSelect );
 
 	// Wires forward, sensors down
 	// What this actually means is: X=X, Y=-Y, Z=-Z
-	ret &= WriteByte( BNO055_AXIS_MAP_CONFIG_ADDR, 0x24 );	// This is the default value
-	ret &= WriteByte( BNO055_AXIS_MAP_SIGN_ADDR, 0x00 );		// Negate Y and Z axes from default (Z-down configuration)
+	ret |= WriteByte( BNO055_AXIS_MAP_CONFIG_ADDR, 0x24 );	// This is the default value
+	ret |= WriteByte( BNO055_AXIS_MAP_SIGN_ADDR, 0x00 );		// Negate Y and Z axes from default (Z-down configuration)
 
-	if( !ret )
+	if( ret != I2C::ERetCode::SUCCESS )
 	{
-		return false;
+		return -1;
 	}
 
-	return true;
+	return ret;
 }
 
-bool BNO055::GetTemperature( int8_t &temperatureOut )
+int32_t BNO055::GetTemperature( int8_t &temperatureOut )
 {
 	uint8_t temp;
 
-	if( !ReadByte( BNO055_TEMP_ADDR, temp ) )
+	m_lastRetcode = ReadByte( BNO055_TEMP_ADDR, temp );
+	if( m_lastRetcode != I2C::ERetCode::SUCCESS )
 	{
-		return false;
+		return m_lastRetcode;
 	}
 
 	temperatureOut = ( int8_t )temp;
 
-	return true;
+	return m_lastRetcode;
 }
 
-bool BNO055::GetPowerOnSelfTestResults()
+int32_t BNO055::GetPowerOnSelfTestResults()
 {
 	// Self Test Results (see section )
 	// --------------------------------
@@ -638,15 +601,10 @@ bool BNO055::GetPowerOnSelfTestResults()
 	//
 	// 0x0F = all good!
 
-	if( !ReadByte( BNO055_SELFTEST_RESULT_ADDR, m_powerOnSelfTestResult ) )
-	{
-		return false;
-	}
-
-	return true;
+	return ReadByte( BNO055_SELFTEST_RESULT_ADDR, m_powerOnSelfTestResult );
 }
 
-bool BNO055::GetVector( EVectorType vectorTypeIn, imu::Vector<3> &vectorOut )
+int32_t BNO055::GetVector( EVectorType vectorTypeIn, imu::Vector<3> &vectorOut )
 {
 	// Create and zero buffer
 	uint8_t buffer[6];
@@ -658,9 +616,10 @@ bool BNO055::GetVector( EVectorType vectorTypeIn, imu::Vector<3> &vectorOut )
 
 
 	// Read vector data (6 bytes)
-	if( !ReadNBytes( ( ERegisterAddress )vectorTypeIn, buffer, 6 ) )
+	m_lastRetcode = ReadNBytes( ( ERegisterAddress )vectorTypeIn, buffer, 6 );
+	if( m_lastRetcode != I2C::ERetCode::SUCCESS )
 	{
-		return false;
+		return m_lastRetcode;
 	}
 
 	x = ( ( int16_t )buffer[0] ) | ( ( ( int16_t )buffer[1] ) << 8 );
@@ -702,10 +661,10 @@ bool BNO055::GetVector( EVectorType vectorTypeIn, imu::Vector<3> &vectorOut )
 			break;
 	}
 
-	return true;
+	return m_lastRetcode;
 }
 
-bool BNO055::GetQuat( imu::Quaternion &quatOut )
+int32_t BNO055::GetQuat( imu::Quaternion &quatOut )
 {
 	// Create and zero buffer
 	uint8_t buffer[8];
@@ -718,9 +677,10 @@ bool BNO055::GetQuat( imu::Quaternion &quatOut )
 
 
 	// Read quat data (8 bytes)
-	if( !ReadNBytes( BNO055_QUATERNION_DATA_W_LSB_ADDR, buffer, 8 ) )
+	m_lastRetcode = ReadNBytes( BNO055_QUATERNION_DATA_W_LSB_ADDR, buffer, 8 );
+	if( m_lastRetcode != I2C::ERetCode::SUCCESS )
 	{
-		return false;
+		return m_lastRetcode;
 	}
 
 	w = ( ( ( uint16_t )buffer[1] ) << 8 ) | ( ( uint16_t )buffer[0] );
@@ -734,42 +694,26 @@ bool BNO055::GetQuat( imu::Quaternion &quatOut )
 
 	quatOut = imu::Quaternion( scale * w, scale * x, scale * y, scale * z );
 
-	return true;
+	return m_lastRetcode;
 }
 
 /***************************************************************************
     PRIVATE FUNCTIONS
  ***************************************************************************/
 
+// Note: Non-zero returns are errors which correlate to specific I2C failures. Zero return means success.
 
-bool BNO055::WriteByte( ERegisterAddress addressIn, uint8_t dataIn )
+int32_t BNO055::WriteByte( ERegisterAddress addressIn, uint8_t dataIn )
 {
 	return (int32_t)m_pI2C->WriteByte( m_i2cAddress, (uint8_t)addressIn, dataIn );
 }
 
-
-bool BNO055::ReadByte( ERegisterAddress addressIn, uint8_t &dataOut )
+int32_t BNO055::ReadByte( ERegisterAddress addressIn, uint8_t &dataOut )
 {
-	I2C::ERetCode ret = m_pI2C->ReadByte( m_i2cAddress, (uint8_t)addressIn, &dataOut );
-
-	// Non-zero failure
-	if( ret )
-	{
-		return (int32_t)ret;
-	}
-
-	return (int32_t)ret;
+	return (int32_t)m_pI2C->ReadByte( m_i2cAddress, (uint8_t)addressIn, &dataOut );
 }
 
-bool BNO055::ReadNBytes( ERegisterAddress addressIn, uint8_t *dataOut, uint8_t byteCountIn )
+int32_t BNO055::ReadNBytes( ERegisterAddress addressIn, uint8_t *dataOut, uint8_t byteCountIn )
 {
-	I2C::ERetCode ret = m_pI2C->ReadBytes( m_i2cAddress, (uint8_t)addressIn, dataOut, byteCountIn );
-
-	// Non-zero failure
-	if( ret )
-	{
-		return (int32_t)ret;
-	}
-
-	return (int32_t)ret;
+	return (int32_t)m_pI2C->ReadBytes( m_i2cAddress, (uint8_t)addressIn, dataOut, byteCountIn );
 }
