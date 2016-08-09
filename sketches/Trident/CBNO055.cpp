@@ -98,7 +98,7 @@ void CBNO055::Update( CCommand &commandIn )
 		if( report_timer.HasElapsed( 1000 ) )
 		{
 			// System calibration
-			if( !m_bno.GetCalibration() )
+			if( m_bno.GetCalibration() == 0 )
 			{
 				Serial.print( "BNO055.CALIB_MAG:" );
 				Serial.print( m_bno.m_magCal );
@@ -135,7 +135,7 @@ void CBNO055::Update( CCommand &commandIn )
 			}
 
 			// Operating mode
-			if( !m_bno.GetOperatingMode() )
+			if( m_bno.GetOperatingMode() == 0 )
 			{
 				Serial.print( "BNO055.MODE:" );
 				Serial.print( m_bno.m_operatingMode );
@@ -149,7 +149,7 @@ void CBNO055::Update( CCommand &commandIn )
 			}
 
 			// System status
-			if( !m_bno.GetSystemStatus() )
+			if( m_bno.GetSystemStatus() == 0 )
 			{
 				Serial.print( "BNO055_STATUS:" );
 				Serial.print( m_bno.m_systemStatus, HEX );
@@ -163,7 +163,7 @@ void CBNO055::Update( CCommand &commandIn )
 			}
 
 			// System Error
-			if( !m_bno.GetSystemError() )
+			if( m_bno.GetSystemError() == 0 )
 			{
 				Serial.print( "BNO055_ERROR_FLAG:" );
 				Serial.print( m_bno.m_systemError );
@@ -179,7 +179,7 @@ void CBNO055::Update( CCommand &commandIn )
 		}
 
 		// Get orientation data
-        if( !m_bno.GetVector( bosch::VECTOR_EULER, euler ) )
+        if( m_bno.GetVector( bosch::VECTOR_EULER, euler ) == 0 )
         {			
             // Throw out exactly zero heading values that are all zeroes - necessary when switching modes
             if( euler.x() != 0.0f  )
