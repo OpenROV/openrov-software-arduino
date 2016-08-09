@@ -52,13 +52,8 @@ namespace
 		// Map ADC range to voltage
 		r_pinVoltage = util::mapToRange( fValue, 0.0f, 1023.0f, 0.0f, 3.3f );
 
-
-		Serial.print( "BTEMP_ADC:" );
-		Serial.print( fValue );
-		Serial.println( ";" );
-
 		// Convert voltage to Celsius
-		return ( ( r_pinVoltage - .4f ) * 51.28f );
+		return ( r_pinVoltage * 100.0f ) - 50.0f;
 	}
 	
 	float ReadHumidity()
