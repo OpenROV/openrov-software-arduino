@@ -300,17 +300,17 @@ int32_t BNO055::GetAccelerometerOffsets()
 
 	if( ret == I2C::ERetCode::SUCCESS )
 	{
-		Serial.print( "BNO055.acc.offset.x:" );
-		Serial.print( m_accOffsets.x );
-		Serial.println( ";" );
+		// Serial.print( "BNO055.acc.offset.x:" );
+		// Serial.print( m_accOffsets.x );
+		// Serial.println( ";" );
 
-		Serial.print( "BNO055.acc.offset.y:" );
-		Serial.print( m_accOffsets.y );
-		Serial.println( ";" );
+		// Serial.print( "BNO055.acc.offset.y:" );
+		// Serial.print( m_accOffsets.y );
+		// Serial.println( ";" );
 
-		Serial.print( "BNO055.acc.offset.z:" );
-		Serial.print( m_accOffsets.z );
-		Serial.println( ";" );
+		// Serial.print( "BNO055.acc.offset.z:" );
+		// Serial.print( m_accOffsets.z );
+		// Serial.println( ";" );
 	}
 
 	return ret;
@@ -340,17 +340,17 @@ int32_t BNO055::GetGyroOffsets()
 
 	if( ret == I2C::ERetCode::SUCCESS )
 	{
-		Serial.print( "BNO055.gyro.offset.x:" );
-		Serial.print( m_gyroOffsets.x );
-		Serial.println( ";" );
+		// Serial.print( "BNO055.gyro.offset.x:" );
+		// Serial.print( m_gyroOffsets.x );
+		// Serial.println( ";" );
 
-		Serial.print( "BNO055.gyro.offset.y:" );
-		Serial.print( m_gyroOffsets.y );
-		Serial.println( ";" );
+		// Serial.print( "BNO055.gyro.offset.y:" );
+		// Serial.print( m_gyroOffsets.y );
+		// Serial.println( ";" );
 
-		Serial.print( "BNO055.gyro.offset.z:" );
-		Serial.print( m_gyroOffsets.z );
-		Serial.println( ";" );
+		// Serial.print( "BNO055.gyro.offset.z:" );
+		// Serial.print( m_gyroOffsets.z );
+		// Serial.println( ";" );
 	}
 
 	return ret;
@@ -380,17 +380,17 @@ int32_t BNO055::GetMagnetometerOffsets()
 
 	if( ret == I2C::ERetCode::SUCCESS )
 	{
-		Serial.print( "BNO055.mag.offset.x:" );
-		Serial.print( m_magOffsets.x );
-		Serial.println( ";" );
+		// Serial.print( "BNO055.mag.offset.x:" );
+		// Serial.print( m_magOffsets.x );
+		// Serial.println( ";" );
 
-		Serial.print( "BNO055.mag.offset.y:" );
-		Serial.print( m_magOffsets.y );
-		Serial.println( ";" );
+		// Serial.print( "BNO055.mag.offset.y:" );
+		// Serial.print( m_magOffsets.y );
+		// Serial.println( ";" );
 
-		Serial.print( "BNO055.mag.offset.z:" );
-		Serial.print( m_magOffsets.z );
-		Serial.println( ";" );
+		// Serial.print( "BNO055.mag.offset.z:" );
+		// Serial.print( m_magOffsets.z );
+		// Serial.println( ";" );
 	}
 
 	return ret;
