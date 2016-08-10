@@ -83,7 +83,6 @@ namespace
 void CControllerBoard::Initialize()
 {
 	// Reset timers
-	m_averagedBoardCurrentTimer.Reset();
 	m_1hzTimer.Reset();
 	m_10hzTimer.Reset();
 }
