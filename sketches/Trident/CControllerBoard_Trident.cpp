@@ -12,17 +12,8 @@
 // File local variables and methods
 namespace
 {
-	// Define the number of samples to keep track of. The higher the number, the more the readings will be smoothed, but the slower the output will respond to the input.
-	const int numReadings 		= 1;
-	float readings[numReadings]	= {0};      // the readings from the analog input
-
-	CTimer m_averagedBoardCurrentTimer;
 	CTimer m_1hzTimer;
 	CTimer m_10hzTimer;
-
-	int ind						= 0;            // the ind of the current reading
-	int total					= 0;            // the running total
-	int average					= 0;			// the average
 
 	float m_boardVoltage		= 0.0f;
 	float m_boardCurrent		= 0.0f;
@@ -99,30 +90,23 @@ void CControllerBoard::Initialize()
 
 void CControllerBoard::Update( CCommand& commandIn )
 {
-	// Averaged the board current
-	if( m_averagedBoardCurrentTimer.HasElapsed( 100 ) )
+	// Update Cape Data voltages and currents
+	if( m_10hzTimer.HasElapsed( 100 ) )
 	{
-		// Subtract the last reading:
-		total = total - readings[ind];
-		
-		// Read from the sensors
-		readings[ind] = ReadTotalCurrent();
+		ReadTemperatures();
+		ReadCurrents();
+		ReadVoltages();
+		ReadHumidity();
 
-		// Add the reading to the total:
-		total = total + readings[ind];
-		
-		// Advance to the next position in the array:
-		ind = ind + 1;
+		NDataManager::m_capeData.VOUT = m_boardVoltage;
 
-		// If we're at the end of the array...
-		if( ind >= numReadings )
-		{
-			// ...wrap around to the beginning:
-			ind = 0;
-		}
+		// #315: deprecated: this is the same thing as BRDI:
+		NDataManager::m_capeData.IOUT = m_boardCurrent;
 
-		// Calculate the average:
-		average = total / numReadings;
+		// Total current draw from batteries:
+		NDataManager::m_capeData.BTTI = m_boardCurrent;
+		NDataManager::m_capeData.FMEM = 1; //util::FreeMemory(); TODO: Implement FreeMemory for SAMD21
+		NDataManager::m_capeData.UTIM = millis();
 	}
 
 	if( m_1hzTimer.HasElapsed( 1000 ) )
@@ -141,25 +125,6 @@ void CControllerBoard::Update( CCommand& commandIn )
 		Serial.print( "HUMI:" ); Serial.print( m_humidity ); Serial.println( ';' );
 
 		Serial.println( "ControllerBoard:1;" );
-	}
-
-	// Update Cape Data voltages and currents
-	if( m_10hzTimer.HasElapsed( 100 ) )
-	{
-		ReadTemperatures();
-		ReadCurrents();
-		ReadVoltages();
-		ReadHumidity();
-
-		NDataManager::m_capeData.VOUT = m_boardVoltage;
-
-		// #315: deprecated: this is the same thing as BRDI:
-		NDataManager::m_capeData.IOUT = m_boardCurrent;
-
-		// Total current draw from batteries:
-		NDataManager::m_capeData.BTTI = m_boardCurrent;
-		NDataManager::m_capeData.FMEM = 1; //util::FreeMemory(); TODO: Implement FreeMemory for SAMD21
-		NDataManager::m_capeData.UTIM = millis();
 	}
 }
 
