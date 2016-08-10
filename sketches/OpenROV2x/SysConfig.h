@@ -33,3 +33,5 @@
 #if CONTROLLERBOARD == 0
 	#error "SysConfig.h: You must select a board type!"
 #endif
+
+#define HAS_EXT_LIGHTS (1)
