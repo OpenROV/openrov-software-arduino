@@ -37,17 +37,17 @@ namespace
 
 	inline float ReadCurrent3_3A( uint8_t pin )
 	{
-		return util::mapToRange( (float)analogRead( pin ), 0.0f, 1023.0f, 0.0f, 3.3f );
+		return 2.0f * util::mapToRange( (float)analogRead( pin ), 0.0f, 1023.0f, 0.0f, 3.3f );
 	}
 
 	inline float ReadCurrent10A( uint8_t pin )
 	{
-		return util::mapToRange( (float)analogRead( pin ), 0.0f, 1023.0f, 0.0f, 10.0f );
+		return 2.0f * util::mapToRange( (float)analogRead( pin ), 0.0f, 1023.0f, 0.0f, 10.0f );
 	}
 
 	inline float ReadVoltage20A( uint8_t pin )
 	{
-		return util::mapToRange( (float)analogRead( pin ), 0.0f, 1023.0f, 0.0f, 20.0f );
+		return 2.0f * util::mapToRange( (float)analogRead( pin ), 0.0f, 1023.0f, 0.0f, 20.0f );
 	}
 
 	void ReadTemperatures()
