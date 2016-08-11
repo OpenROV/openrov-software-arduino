@@ -100,6 +100,3 @@
 
 // MS5837 Depth Sensor
 #define HAS_MS5837_30BA				(1)
-
-// BMP280 Barometer
-#define HAS_BMP280					(1)
