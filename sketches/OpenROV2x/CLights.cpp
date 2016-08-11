@@ -42,22 +42,25 @@ void CLights::Update( CCommand& commandIn )
 	// Handle messages
 	if( commandIn.Equals( "ligt" ) )
 	{
-		// 0 - 255
-		float percentValue = ( float )commandIn.m_arguments[1] / 100.0f; //0 - 255
-		int value = (int)( 255.0f * percentValue );
+		// Should be between 0-255, with 255 being full brightness
+		int value = commandIn.m_arguments[1];
+
+		// Bounds corrections
+		if( value < 0 )
+		{
+			value = 0;
+		}
+		if( value > 255 )
+		{
+			value = 255;
+		}
 		
 		light.Write( value );
-
-		// LIGT - Light toggle
+		
 		Serial.print( F( "LIGT:" ) );
 		Serial.print( value );
 		Serial.print( ';' );
-
-		// LIGP - Light percentage
-		Serial.print( F( "LIGP:" ) );
-		Serial.print( percentValue );
-		Serial.println( ';' );
-	}   
+	}
 }
 
 #endif
