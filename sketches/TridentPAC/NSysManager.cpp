@@ -1,7 +1,7 @@
 // Includes
 #include "NSysManager.h"
 
-#include <Wire.h>
+#include <CI2C.h>
 #include "PinDefinitions.h"
 
 namespace NSysManager
@@ -27,7 +27,6 @@ namespace NSysManager
 		EnableI2C();
 
 		Serial.println( "Systems.SysManager.Status:READY;" );
-		SerialDebug.println( "heya" );
 	}
 	
 	void InitializeSerial()
@@ -42,7 +41,7 @@ namespace NSysManager
 	void EnableI2C()
 	{
 		digitalWrite( PIN_ENABLE_I2C, HIGH );
-		Wire.begin();
+		I2C0.Enable( 0, 0 );
 	}
 	
 	void SetPinModes()

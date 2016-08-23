@@ -50,8 +50,6 @@
 #define PIN_A13   		    	    6u
 #define PIN_A14   		    	    9u
 #define PIN_A15   		    	    10u
-#define PIN_A18   		    	    19u
-#define PIN_A19   		    	    20u
 
 // ------------------------------
 // Pin assignments
@@ -78,18 +76,21 @@
 // -----------
 // Analog pins (? = todo)
 
-#define PIN_BATT1_V  		    	PIN_A0		// ?
-#define PIN_BATT2_V  		    	PIN_A1 		// ?
-#define PIN_NON_ESC_I  		    	PIN_A2		// 0-3.3A
-#define PIN_ESC3_I  		    	PIN_A3 		// 0-11A
-#define PIN_BATT_TUBE1_I  	    	PIN_A8 		// 0-11A
-#define PIN_BATT_TUBE2_I  	    	PIN_A9 		// 0-11A
-#define PIN_HUMIDITY 		    	PIN_A10		// ?
-#define PIN_BOARD_TEMP 		    	PIN_A11 	// ?
-#define PIN_EXT_LOAD_I 		    	PIN_A12 	// ?
-#define PIN_ESC1_I 			    	PIN_A13 	// 0-11A
-#define PIN_BATT_BUS_V 		    	PIN_A14 	// ?
-#define PIN_ESC2_I 			    	PIN_A15 	// 0-11A
+#define PIN_TEMP0  		    	PIN_A0	// T = 100V * 50
+#define PIN_TEMP1  		    	PIN_A1	// T = 100V * 50	
+#define PIN_TEMP2  		    	PIN_A8	// T = 100V * 50
+#define PIN_TEMP3  		    	PIN_A9	// T = 100V * 50
+#define PIN_TEMP4  	    		PIN_A12	// T = 100V * 50
+#define PIN_TEMP5  	    		PIN_A11	// T = 100V * 50
+
+#define PIN_HUMIDITY			PIN_A10	// ?
+
+#define PIN_ESC0_I				PIN_A13	// mapf( 0A - 11A )
+#define PIN_ESC1_I				PIN_A15	// mapf( 0A - 11A )
+#define PIN_ESC2_I				PIN_A3	// mapf( 0A - 11A )
+
+#define PIN_NONESC_I  	    	PIN_A2	// mapf( 0A - 3.3A )
+#define PIN_BATT_V 		    	PIN_A14	// mapf( 0V - 20V )
 
 // Other Defines
 #define HAS_ESC_POWER_SWITCH		1

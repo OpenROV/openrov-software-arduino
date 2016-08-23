@@ -12,172 +12,118 @@
 // File local variables and methods
 namespace
 {
-	// Define the number of samples to keep track of. The higher the number, the more the readings will be smoothed, but the slower the output will respond to the input.
-	const int numReadings 		= 1;
-	float readings[numReadings]	= {0};      // the readings from the analog input
-
-	CTimer m_averagedBoardCurrentTimer;
 	CTimer m_1hzTimer;
 	CTimer m_10hzTimer;
 
-	int ind						= 0;            // the ind of the current reading
-	int total					= 0;            // the running total
-	int average					= 0;			// the average
+	float m_boardVoltage		= 0.0f;
+	float m_boardCurrent		= 0.0f;
+	float m_esc0Current			= 0.0f;
+	float m_esc1Current			= 0.0f;
+	float m_esc2Current			= 0.0f;
+	float m_totalCurrent		= 0.0f;
 
-	float r_pinVoltage			= 0.0f;			// Re-usable variable
+	float m_temp0				= 0.0f;
+	float m_temp1				= 0.0f;
+	float m_temp2				= 0.0f;
+	float m_temp3				= 0.0f;
+	float m_temp4				= 0.0f;
+	float m_temp5				= 0.0f;
+	float m_humidity			= 0.0f;
 
-	// TODO: All ranges, adc resolutions, etc should be configurable defines, not hardcoded
-
-	// TODO: Finish finding out the board ranges
-
-	float ReadVoltage_Batt1()
+	inline float ReadTemperature( uint8_t pin )
 	{
-		return 0.0f;
-	}
-	
-	float ReadVoltage_Batt2()
-	{
-		return 0.0f;
-	}
-	
-	float ReadVoltage_BattBus()
-	{
-		return 0.0f;
-	}
-	
-	float ReadBoardTemperature()
-	{
-		// Map ADC range to voltage
-		r_pinVoltage = util::mapf( (float)analogRead( PIN_BOARD_TEMP ), 0.0f, 1023.0f, 0.0f, 3.3f );
-		
-		// Convert voltage to Celsius
-		return ( ( r_pinVoltage - .4f ) * 51.28f );
-	}
-	
-	float ReadHumidity()
-	{
-		return 0.0f;
+		return ( ( util::mapToRange( (float)analogRead( pin ), 0.0f, 1023.0f, 0.0f, 3.3f ) * 100.0f ) - 50.0f );
 	}
 
-	float ReadCurrent_NonESC()
+	inline float ReadCurrent3_3A( uint8_t pin )
 	{
-		return util::mapf( (float)analogRead( PIN_NON_ESC_I ), 0.0f, 1023.0f, 0.0f, 3.3f );;
+		return 2.0f * util::mapToRange( (float)analogRead( pin ), 0.0f, 1023.0f, 0.0f, 3.3f );
 	}
 
-	float ReadCurrent_ESC1()
+	inline float ReadCurrent10A( uint8_t pin )
 	{
-		return util::mapf( (float)analogRead( PIN_ESC1_I ), 0.0f, 1023.0f, 0.0f, 11.0f );;
+		return 2.0f * util::mapToRange( (float)analogRead( pin ), 0.0f, 1023.0f, 0.0f, 10.0f );
 	}
 
-	float ReadCurrent_ESC2()
+	inline float ReadVoltage20A( uint8_t pin )
 	{
-		return util::mapf( (float)analogRead( PIN_ESC2_I ), 0.0f, 1023.0f, 0.0f, 11.0f );;
+		return 2.0f * util::mapToRange( (float)analogRead( pin ), 0.0f, 1023.0f, 0.0f, 20.0f );
 	}
 
-	float ReadCurrent_ESC3()
+	void ReadTemperatures()
 	{
-		return util::mapf( (float)analogRead( PIN_ESC3_I ), 0.0f, 1023.0f, 0.0f, 11.0f );;
+		m_temp0	= ReadTemperature( PIN_TEMP0 );
+		m_temp1	= ReadTemperature( PIN_TEMP1 );
+		m_temp2	= ReadTemperature( PIN_TEMP2 );
+		m_temp3	= ReadTemperature( PIN_TEMP3 );
+		m_temp4	= ReadTemperature( PIN_TEMP4 );
+		m_temp5	= ReadTemperature( PIN_TEMP5 );
+	}
+
+	void ReadCurrents()
+	{
+		m_esc0Current = ReadCurrent10A( PIN_ESC0_I );
+		m_esc1Current = ReadCurrent10A( PIN_ESC1_I );
+		m_esc2Current = ReadCurrent10A( PIN_ESC2_I );
+		m_boardCurrent = ReadCurrent3_3A( PIN_NONESC_I );
+		m_totalCurrent = m_esc0Current + m_esc1Current + m_esc2Current + m_boardCurrent;
 	}
 	
-	float ReadCurrent_BattTube1()
+	void ReadVoltages()
 	{
-		return util::mapf( (float)analogRead( PIN_BATT_TUBE1_I ), 0.0f, 1023.0f, 0.0f, 11.0f );;
+		m_boardVoltage = ReadVoltage20A( PIN_BATT_V );
 	}
-	
-	float ReadCurrent_BattTube2()
+
+	void ReadHumidity()
 	{
-		return util::mapf( (float)analogRead( PIN_BATT_TUBE2_I ), 0.0f, 1023.0f, 0.0f, 11.0f );;
-	}
-	
-	float ReadCurrent_ExtLoad()
-	{
-		return util::mapf( (float)analogRead( PIN_EXT_LOAD_I ), 0.0f, 1023.0f, 0.0f, 11.0f );;
-	}
-	
-	float ReadTotalCurrent()
-	{
-		return ReadCurrent_BattTube1() + ReadCurrent_BattTube1();
+		m_humidity = (float)analogRead( PIN_HUMIDITY );
 	}
 }
 
 void CControllerBoard::Initialize()
 {
 	// Reset timers
-	m_averagedBoardCurrentTimer.Reset();
 	m_1hzTimer.Reset();
 	m_10hzTimer.Reset();
 }
 
 void CControllerBoard::Update( CCommand& commandIn )
 {
-	// Averaged the board current
-	if( m_averagedBoardCurrentTimer.HasElapsed( 100 ) )
+	// Update Cape Data voltages and currents
+	if( m_10hzTimer.HasElapsed( 100 ) )
 	{
-		// Subtract the last reading:
-		total = total - readings[ind];
-		
-		// Read from the sensors
-		readings[ind] = ReadTotalCurrent();
+		ReadTemperatures();
+		ReadCurrents();
+		ReadVoltages();
+		ReadHumidity();
 
-		// Add the reading to the total:
-		total = total + readings[ind];
-		
-		// Advance to the next position in the array:
-		ind = ind + 1;
+		NDataManager::m_capeData.VOUT = m_boardVoltage;
 
-		// If we're at the end of the array...
-		if( ind >= numReadings )
-		{
-			// ...wrap around to the beginning:
-			ind = 0;
-		}
+		// #315: deprecated: this is the same thing as BRDI:
+		NDataManager::m_capeData.IOUT = m_boardCurrent;
 
-		// Calculate the average:
-		average = total / numReadings;
+		// Total current draw from batteries:
+		NDataManager::m_capeData.BTTI = m_boardCurrent;
+		NDataManager::m_capeData.FMEM = 1; //util::FreeMemory(); TODO: Implement FreeMemory for SAMD21
+		NDataManager::m_capeData.UTIM = millis();
 	}
 
 	if( m_1hzTimer.HasElapsed( 1000 ) )
 	{
-		Serial.print( F( "BRDT:" ) );
-		Serial.print( ReadBoardTemperature() );
-		Serial.print( ';' );
-		Serial.print( F( "ESC1I:" ) );
-		Serial.print( ReadCurrent_ESC1() );
-		Serial.print( ';' );
-		Serial.print( F( "ESC2I:" ) );
-		Serial.print( ReadCurrent_ESC2() );
-		Serial.print( ';' );
-		Serial.print( F( "ESC3I:" ) );
-		Serial.print( ReadCurrent_ESC3() );
-		Serial.print( ';' );
-		Serial.print( F( "BRDI:" ) );
-		Serial.print( ReadTotalCurrent() );
-		Serial.print( ';' );
-		Serial.print( F( "BT1I:" ) );
-		Serial.print( ReadCurrent_BattTube1() );
-		Serial.print( ';' );
-		Serial.print( F( "BT2I:" ) );
-		Serial.print( ReadCurrent_BattTube2() );
-		Serial.print( ';' );
-		Serial.print( F( "BRDV:" ) );
-		Serial.print( ReadVoltage_BattBus() );
-		Serial.println( ';' );
-	
+		Serial.print( "TEMP0:" ); Serial.print( m_temp0 ); Serial.println( ';' );
+		Serial.print( "TEMP1:" ); Serial.print( m_temp1 ); Serial.println( ';' );
+		Serial.print( "TEMP2:" ); Serial.print( m_temp2 ); Serial.println( ';' );
+		Serial.print( "TEMP3:" ); Serial.print( m_temp3 ); Serial.println( ';' );
+		Serial.print( "TEMP4:" ); Serial.print( m_temp4 ); Serial.println( ';' );
+		Serial.print( "BRDT:" ); Serial.print( m_temp5 ); Serial.println( ';' );
+		Serial.print( "ESC0I:" ); Serial.print( m_esc0Current ); Serial.println( ';' );
+		Serial.print( "ESC1I:" ); Serial.print( m_esc1Current ); Serial.println( ';' );
+		Serial.print( "ESC2I:" ); Serial.print( m_esc2Current ); Serial.println( ';' );
+		Serial.print( "BRDI:" ); Serial.print( m_boardCurrent ); Serial.println( ';' );
+		Serial.print( "BRDV:" ); Serial.print( m_boardVoltage ); Serial.println( ';' );
+		Serial.print( "HUMI:" ); Serial.print( m_humidity ); Serial.println( ';' );
+
 		Serial.println( "ControllerBoard:1;" );
-	}
-
-	// Update Cape Data voltages and currents
-	if( m_10hzTimer.HasElapsed( 100 ) )
-	{
-		NDataManager::m_capeData.VOUT = ReadVoltage_BattBus();
-
-		// #315: deprecated: this is the same thing as BRDI:
-		NDataManager::m_capeData.IOUT = ReadTotalCurrent();
-
-		// Total current draw from batteries:
-		NDataManager::m_capeData.BTTI = ReadTotalCurrent();
-		NDataManager::m_capeData.FMEM = 1; //util::FreeMemory();
-		NDataManager::m_capeData.UTIM = millis();
 	}
 }
 
