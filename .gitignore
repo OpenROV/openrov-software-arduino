@@ -1,4 +1,5 @@
 # Compiled binary files
 build/*
 bin/*
+.vscode/
 !bin/afro/afro_nfet.hex
