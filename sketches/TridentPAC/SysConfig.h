@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Wire.h>
+#include <CI2C.h>
 
 // TODO: The MCU ARCH and Board Type should eventually be passed in solely from the build script.
 
@@ -27,7 +27,7 @@
 #define SERIAL_INTERFACE3		&Serial3
 #define SERIAL_INTERFACE4		&Serial4
 
-#define WIRE_INTERFACE_0		&Wire
+#define WIRE_INTERFACE_0		&I2C0
 	
 // Thrusters configurations
 #define THRUSTER_CONFIG_NONE 		(0)
