@@ -3,3 +3,4 @@ build/*
 bin/*
 .vscode/
 !bin/afro/afro_nfet.hex
+!bin/pac5220/esc.bin
