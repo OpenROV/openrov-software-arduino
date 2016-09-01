@@ -10,11 +10,11 @@
 #include "fix16.h"
 #include <math.h>
 
-#define ESC_MESSAGE_SIZE            9
+#define ESC_MESSAGE_SIZE            8
 
 #define START_BYTE                  0x89
-#define CMD_MOTOR_CONTROL_WRITE     0x08
-#define CMD_PARAMETER_WRITE         0x06
+#define CMD_MOTOR_CONTROL_WRITE     0x01
+#define CMD_PARAMETER_WRITE         0x00
 
 #define PARAM_REVERSE               0x63
 #define PARAM_CL_SETPOINT           0x0E
@@ -72,13 +72,6 @@ namespace
     float m_olTarget        = 0.0f;
     fix16_t m_olTarget_f    = 0;
     
-    float portPos = 0.0f;
-    float portNeg = 0.0f;
-    float vertPos = 0.0f;
-    float vertNeg = 0.0f;
-    float starPos = 0.0f;
-    float starNeg = 0.0f;
-    
     EMotorDirection m_motorDir      = EMotorDirection::NORMAL;
     EMotorDirection m_motorDirPrev  = EMotorDirection::NORMAL;
 
@@ -92,7 +85,7 @@ namespace
         uint8_t checksum = 0;
         int i;
 
-        for (i = 0; i < 8; i++)
+        for (i = 0; i < ESC_MESSAGE_SIZE - 1; i++)
             checksum += *bufferIn++;
 
         return checksum;
@@ -103,14 +96,12 @@ namespace
         m_txBuffer[ 0 ] = startByte;
         m_txBuffer[ 1 ] = commandCode;
         m_txBuffer[ 2 ] = parameterCode;
-        m_txBuffer[ 3 ] = 0;
-        
-        m_txBuffer[ 4 ] = ( ( data >> 24 ) & 0xFF );
-        m_txBuffer[ 5 ] = ( ( data >> 16 ) & 0xFF );
-        m_txBuffer[ 6 ] = ( ( data >> 8 )  & 0xFF );
-        m_txBuffer[ 7 ] = ( data & 0xFF );
+        m_txBuffer[ 3 ] = ( ( data >> 24 ) & 0xFF );
+        m_txBuffer[ 4 ] = ( ( data >> 16 ) & 0xFF );
+        m_txBuffer[ 5 ] = ( ( data >> 8 )  & 0xFF );
+        m_txBuffer[ 6 ] = ( data & 0xFF );
 
-        m_txBuffer[ 8 ] = Checksum( (uint8_t*)&m_txBuffer );
+        m_txBuffer[ 7 ] = Checksum( (uint8_t*)&m_txBuffer );
 
         SerialMotor0.write( (char*)m_txBuffer, ESC_MESSAGE_SIZE );
         
@@ -242,10 +233,10 @@ namespace
         else
         {
             // Scale and floor/ceiling the targets appropriately
-            m_clTarget = util::mapff( m_throttle, 0.0f, 1.0f, CLOSE_LOOP_MIN, CLOSE_LOOP_MAX );
+            m_clTarget = util::mapf( m_throttle, 0.0f, 1.0f, CLOSE_LOOP_MIN, CLOSE_LOOP_MAX );
             m_clTarget = ( m_clTarget < CLOSE_LOOP_FLOOR ) ? CLOSE_LOOP_FLOOR : m_clTarget;
 
-            m_olTarget = util::mapff( m_throttle, 0.0f, 1.0f, OPEN_LOOP_MIN, OPEN_LOOP_MAX );
+            m_olTarget = util::mapf( m_throttle, 0.0f, 1.0f, OPEN_LOOP_MIN, OPEN_LOOP_MAX );
             m_olTarget = ( m_olTarget > OPEN_LOOP_CEILING ) ? OPEN_LOOP_CEILING : m_olTarget;
         }
         
@@ -372,142 +363,34 @@ namespace
 
     void ProcessMessage()
     {
-        fix16_t rxData;
-
-        // Put data from uart_rx_buffer into word for processing (in case read)
-        rxData = ( m_rxBuffer[4] << 24 );
-        rxData |= ( m_rxBuffer[5] << 16 );
-        rxData |= ( m_rxBuffer[6] << 8 );
-        rxData |= m_rxBuffer[7];
-
-        // Validate checksum
-        if( Checksum( (uint8_t*)&m_rxBuffer) != m_rxBuffer[8] )
-        {
-            // Checksum error
-        }
-        else
-        {
-            uint8_t commandCode = m_rxBuffer[1] - 0x80;
-
-            SerialDebug.print( "Message from ESC: " );
-            SerialDebug.println( commandCode );
-
-            // Switch on command code
-            switch( commandCode )				
-            {
-                case 0:
-                    break;
-                default:
-                    break;
-            }
-        }
     }
 
     void HandleComms()
     {
-         // Read data from the ESC
+        // TODO:
+        // Read data from the ESC
         while( SerialMotor0.available() )
         {            
             char data = SerialMotor0.read();
 
-            if( m_bufferIndex == 0 )                                    /* For the first byte received, the start byte must be 0xEE */
-            {
-                if( data != 0xEE )
-                {
-                    // Just skip bytes until we read the starting byte
-                    continue;
-                }
-            }
-
-            // Store byte and move to next index
-            m_rxBuffer[ m_bufferIndex++ ] = data;
-
-            // Check for complete message
-            if( m_bufferIndex == ESC_MESSAGE_SIZE )
-            {
-                ProcessMessage();                                
-                m_bufferIndex = 0;                                      
-            }
+            ProcessMessage();
         }
     }
 }
 
 void CTestESC::Initialize()
-{
-    NVehicleManager::m_capabilityBitmask |= ( 1 << LIGHTS_CAPABLE );
-    NVehicleManager::m_capabilityBitmask |= ( 1 << DEPTH_CAPABLE );
-    NVehicleManager::m_capabilityBitmask |= ( 1 << COMPASS_CAPABLE );
-    NVehicleManager::m_capabilityBitmask |= ( 1 << ORIENTATION_CAPABLE );
-    
+{    
     SerialDebug.println( "Starting esc" );
     m_controlTimer.Reset();
 }
 
 void CTestESC::Update( CCommand& command )
-{
-    //The output from the motors is unique to the thruster configuration
-    if( m_controlTimer.HasElapsed( 1000 ) )
-    {
-        Serial.print( F( "mtarg:" ) );
-        Serial.print( "1.0" );
-        Serial.print( ',' );
-        Serial.print( "1.0" );
-        Serial.print( ',' );
-        Serial.print( "1.0" );
-        Serial.println( ';' );
-        
-        
-        Serial.print( F( "mtrmod:" ) );
-        Serial.print( portPos );
-        Serial.print( "," );
-        Serial.print( vertPos );
-        Serial.print( "," );
-        Serial.print( starPos );
-        Serial.print( "," );
-        Serial.print( portNeg );
-        Serial.print( "," );
-        Serial.print( vertNeg );
-        Serial.print( "," );
-        Serial.print( starNeg );
-        Serial.println( ";" );
-    }
-    
+{    
     HandleComms();    
 
     // Update throttle
     if( NCommManager::m_isCommandAvailable )
     {
-        if( command.Equals( "mtrmod1" ) )
-        {
-            portPos = command.m_arguments[1] / 100;
-            vertPos = command.m_arguments[2] / 100;
-            starPos = command.m_arguments[3] / 100;
-        }
-
-        if( command.Equals( "mtrmod2" ) )
-        {
-            portNeg = command.m_arguments[1] / 100;
-            vertNeg = command.m_arguments[2] / 100;
-            starNeg = command.m_arguments[3] / 100;
-        }
-        
-        if( command.Equals( "rmtrmod" ) )
-        {
-            Serial.print( F( "mtrmod:" ) );
-            Serial.print( portPos );
-            Serial.print( "," );
-            Serial.print( vertPos );
-            Serial.print( "," );
-            Serial.print( starPos );
-            Serial.print( "," );
-            Serial.print( portNeg );
-            Serial.print( "," );
-            Serial.print( vertNeg );
-            Serial.print( "," );
-            Serial.print( starNeg );
-            Serial.println( ";" );
-        }
-        
         if( command.Equals( "thro" ) )
         {
             SerialDebug.println( "throttle" );
