@@ -31,7 +31,7 @@ namespace NSysManager
 	
 	void InitializeSerial()
 	{
-		Serial.begin( 115200 );
+		Serial.begin( 1500000 );
 		SerialDebug.begin( 115200 );
 		SerialMotor0.begin( 115200 );
 		SerialMotor1.begin( 115200 );
