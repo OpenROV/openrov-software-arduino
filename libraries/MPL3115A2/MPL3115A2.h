@@ -16,13 +16,104 @@
 //Forward declaration of I2C interface
 class CI2C;
 
-class MPL3115A2
+namespace mpl3115a2
 {
-    public:
-        MPL3115A2( CI2C *i2cInterfaceIn, int32_t sensorIdIn = -1, uint8_t addressIn )
-    private:
-        CI2C *m_pI2C;
+    // Unshifted 7-bit I2C address for sensor
+    static constexpr uint8_t MPL3115A2_ADDRESS = 0x60;
 
+    class MPL3115A2
+    {
+
+        public:
+
+            MPL3115A2( CI2C *i2cInterfaceIn, int32_t sensorIdIn = -1, uint8_t addressIn = MPL3115A2_ADDRESS )
+
+            //Public member functions
+            int32_t Initialize();
+            
+        
+        private:
+            
+            enum class MPL3115A2_REGISTER : uint8_t
+            {
+                STATUS                      = 0x00,
+                
+                PRESSURE_OUT_MSB            = 0x01,
+                PRESSURE_OUT_CSB            = 0x02,
+                PRESSURE_OUT_LSB            = 0x03,
+
+                TEMP_OUT_MSB                = 0x04,
+                TEMP_OUT_LSB                = 0x05,
+
+                DR_STATUS                   = 0x06,
+
+                PRESSURE_OUT_DELTA_MSB      = 0x07,
+                PRESSURE_OUT_DELTA_CSB      = 0x08,
+                PRESSURE_OUT_DELTA_LSB      = 0x09,
+
+                TEMP_OUT_DELTA_MSB          = 0x0A,
+                TEMP_OUT_DELTA_LSB          = 0x0B,
+
+                WHO_AM_I                    = 0x0C,
+
+                FIFO_STATUS                 = 0x0D,
+                FIFO_DATA                   = 0x0E,
+                FIFO_SETUP                  = 0x0F,
+
+                TIME_DELAY                  = 0x10,
+
+                SYSMOD                      = 0x11,
+
+                INT_SOURCE                  = 0x12,
+
+                PT_DATA_CFG                 = 0x13,
+
+                BAR_INPUT_MSB               = 0x14,
+                BAR_INPUT_LSB               = 0x15,
+
+                PRESSURE_TARGET_MSB         = 0x16,
+                PRESSURE_TARGET_LSB         = 0x17,
+                
+                TEMP_TARGET                 = 0x18,
+
+                PRESSURE_WINDOW_MSB         = 0x19,
+                PRESSURE_WINDOW_LSB         = 0x1A,
+
+                TEMP_WINDOW                 = 0x1B,
+
+                MIN_PRESSURE_DATA_OUT_MSB   = 0x1C,
+                MIN_PRESSURE_DATA_OUT_CSB   = 0x1D,
+                MIN_PRESSURE_DATA_OUT_LSB   = 0x1E,
+
+                MIN_TEMP_DATA_OUT_MSB       = 0x1F,
+                MIN_TEMP_DATA_OUT_LSB       = 0x20,
+
+                MAX_PRESSURE_DATA_OUT_MSB   = 0x21,
+                MAX_PRESSURE_DATA_OUT_CSB   = 0x22,
+                MAX_PRESSURE_DATA_OUT_LSB   = 0x23,
+
+                MAX_TEMP_DATA_OUT_MSB       = 0x24,
+                MAX_TEMP_DATA_OUT_LSB       = 0x25,
+
+                CONTROL_REGISTER_1          = 0x26,
+                CONTROL_REGISTER_2          = 0x27,
+                CONTROL_REGISTER_3          = 0x28,
+                CONTROL_REGISTER_4          = 0x29,
+                CONTROL_REGISTER_5          = 0x2A,
+
+                PRESSURE_DATA_OFFSET        = 0x2B,
+                TEMP_DATA_OFFSET            = 0x2C,
+                ALT_DATA_OFFSET             = 0x2D
+            };
+
+            
+
+
+
+
+            CI2C *m_pI2C;
+    }
 }
+
 
 
