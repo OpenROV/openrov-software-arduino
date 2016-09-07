@@ -26,7 +26,27 @@ namespace mpl3115a2
         SUCCESS,
         FAILED,
         UNKNOWN
-    }
+    };
+
+    enum EMode
+    {
+        BAROMETER,
+        ALTIMETER,
+        STANDBY,
+        ACTIVE
+    };
+
+    enum class EOversampleRatio : uint8_t
+    {
+        OSR_1   = 0,
+        ORS_2   = 1,
+        ORS_4   = 2,
+        ORS_8   = 3,
+        ORS_16  = 4,
+        ORS_32  = 5,
+        ORS_64  = 6,
+        ORS_128 = 7
+    };
 
     class MPL3115A2
     {
@@ -36,7 +56,16 @@ namespace mpl3115a2
             MPL3115A2( CI2C *i2cInterfaceIn, int32_t sensorIdIn = -1, uint8_t addressIn = MPL3115A2_ADDRESS )
 
             //Public member functions
+            float ReadAltitude();
+            float ReadPressure();
+            float ReadTemperature();
+
             int32_t Initialize();
+            int32_t SetMode( EMode modeIn );
+            int32_t SetOversampleRatio( EOversampleRatio osrIn );
+            int32_t EnableEventFlags();
+
+
 
             //Public Attributes
             bool m_isInitialized = false;
@@ -46,6 +75,7 @@ namespace mpl3115a2
 
             //Private member functions
             int32_t VerifyChipId();
+            int32_t ToggleOneShot();
 
             int32_t ReadByte( MPL3115A2_REGISTER addressIn, uint8_t& dataOut );
             int32_t ReadNBytes( MPL3115A2_REGISTER addressIn, uint8_t* dataOut, uint8_t byteCountIn );
@@ -55,6 +85,7 @@ namespace mpl3115a2
             uint8_t m_i2cAddress;
             int32_t m_sensorId;
 
+            CI2C *m_pI2C;
             int32_t m_lastRetcode = 0;
 
             
@@ -129,8 +160,6 @@ namespace mpl3115a2
                 TEMP_DATA_OFFSET            = 0x2C,
                 ALT_DATA_OFFSET             = 0x2D
             };
-
-            CI2C *m_pI2C;
     }
 }
 

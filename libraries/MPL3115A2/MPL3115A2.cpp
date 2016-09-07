@@ -27,7 +27,7 @@ MPL3115A2::MPL3115A2( CI2C *i2cInterfaceIn, int32_t sensorIdIn = -1, uint8_t add
 
 }
 
-int32_t MPL3115A2::Initialize() 
+ERetCode MPL3115A2::Initialize() 
 {
     m_isInitialized = false;
 
@@ -40,8 +40,6 @@ int32_t MPL3115A2::Initialize()
 /***************************************************************************
     PRIVATE FUNCTIONS
  ***************************************************************************/
-
-
 
 int32_t MPL3115A2::VerifyChipId()
 {
@@ -63,6 +61,8 @@ int32_t MPL3115A2::VerifyChipId()
 
     return m_lastRetcode;
 }
+
+
 
 
 int32_t MPL3115A2::WriteByte( MPL3115A2_ADDRESS addressIn, uint8_t dataIn )
