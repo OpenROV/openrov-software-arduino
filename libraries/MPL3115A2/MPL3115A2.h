@@ -30,9 +30,13 @@ namespace mpl3115a2
 
             //Public member functions
             int32_t Initialize();
-            
+
         
         private:
+
+            uint8_t m_i2cAddress;
+            int32_t m_sensorId;
+
             
             enum class MPL3115A2_REGISTER : uint8_t
             {
@@ -105,11 +109,6 @@ namespace mpl3115a2
                 TEMP_DATA_OFFSET            = 0x2C,
                 ALT_DATA_OFFSET             = 0x2D
             };
-
-            
-
-
-
 
             CI2C *m_pI2C;
     }
