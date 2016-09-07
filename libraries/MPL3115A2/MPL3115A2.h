@@ -21,6 +21,13 @@ namespace mpl3115a2
     // Unshifted 7-bit I2C address for sensor
     static constexpr uint8_t MPL3115A2_ADDRESS = 0x60;
 
+    enum ERetCode
+    {
+        SUCCESS,
+        FAILED,
+        UNKNOWN
+    }
+
     class MPL3115A2
     {
 
@@ -31,11 +38,24 @@ namespace mpl3115a2
             //Public member functions
             int32_t Initialize();
 
+            //Public Attributes
+            bool m_isInitialized = false;
+
         
         private:
 
+            //Private member functions
+            int32_t VerifyChipId();
+
+            int32_t ReadByte( MPL3115A2_REGISTER addressIn, uint8_t& dataOut );
+            int32_t ReadNBytes( MPL3115A2_REGISTER addressIn, uint8_t* dataOut, uint8_t byteCountIn );
+            int32_t WriteByte( MPL3115A2_REGISTER addressIn, uint8_t dataIn );
+
+            //Private member Attributes
             uint8_t m_i2cAddress;
             int32_t m_sensorId;
+
+            int32_t m_lastRetcode = 0;
 
             
             enum class MPL3115A2_REGISTER : uint8_t

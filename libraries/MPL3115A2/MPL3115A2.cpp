@@ -29,7 +29,48 @@ MPL3115A2::MPL3115A2( CI2C *i2cInterfaceIn, int32_t sensorIdIn = -1, uint8_t add
 
 int32_t MPL3115A2::Initialize() 
 {
-    //Verify 
+    m_isInitialized = false;
+
+    delay( 500 );
+
+    //Verify that the sensor is up and running
+    m_lastRetcode = VerifyChipId();
+}
+
+/***************************************************************************
+    PRIVATE FUNCTIONS
+ ***************************************************************************/
 
 
+
+int32_t MPL3115A2::VerifyChipId()
+{
+    //Read the chip id
+    uint8_t id;
+
+    m_lastRetcode = ReadByte( MPL3115A2_REGISTER::WHO_AM_I, id );
+
+    if( m_lastRetcode != I2C::ERetCode::SUCCESS )
+    {
+        return m_lastRetcode;
+    }
+
+    //Check to see if it matches the proper ID (0xC4)
+    if( id != 0xC4 )
+    {
+        return -1;
+    }
+
+    return m_lastRetcode;
+}
+
+
+int32_t MPL3115A2::WriteByte( MPL3115A2_ADDRESS addressIn, uint8_t dataIn )
+{
+	return (int32_t)m_pI2C->WriteByte( m_i2cAddress, (uint8_t)addressIn, dataIn );
+}
+
+int32_t MPL3115A2::ReadByte( MPL3115A2_ADDRESS addressIn, uint8_t &dataOut )
+{
+	return (int32_t)m_pI2C->ReadByte( m_i2cAddress, (uint8_t)addressIn, &dataOut );
 }
