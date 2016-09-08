@@ -34,32 +34,106 @@ ERetCode MPL3115A2::Initialize()
     delay( 500 );
 
     //Verify that the sensor is up and running
-    m_lastRetcode = VerifyChipId();
+    if( VerifyChipId() != ERetCode::SUCCESS )
+    {
+        //We were unable to verify this sensor
+        return ERetCode::FAILED;
+    }
+
+    m_isInitialized = true;
+    return ERetCode::SUCCESS;    
+}
+
+ERetCode SetMode( EMode modeIn )
+{
+    switch (modeIn)
+    {
+        case EMode::BAROMETER:
+        {
+            return SetModeBarometer();
+        }
+        case EMode::ALTIMETER:
+        {
+            return SetModeAltimter();
+        }
+        case EMode::STANDBY:
+        {
+            return SetModeStandby();
+        }
+        case EMode::ACTIVE:
+        {
+            return SetModeActive();
+        }
+        default:
+        {
+            return ERetCode::FAILED;
+        }
+    }
 }
 
 /***************************************************************************
     PRIVATE FUNCTIONS
  ***************************************************************************/
 
-int32_t MPL3115A2::VerifyChipId()
+ERetCode MPL3115A2::VerifyChipId()
 {
     //Read the chip id
     uint8_t id;
 
-    m_lastRetcode = ReadByte( MPL3115A2_REGISTER::WHO_AM_I, id );
+    auto ret = ReadByte( MPL3115A2_REGISTER::WHO_AM_I, id );
 
-    if( m_lastRetcode != I2C::ERetCode::SUCCESS )
+    if( ret != I2C::ERetCode::SUCCESS )
     {
-        return m_lastRetcode;
+        return ERetCode::FAILED;
     }
 
     //Check to see if it matches the proper ID (0xC4)
     if( id != 0xC4 )
     {
-        return -1;
+        return ERetCode::FAILED;
     }
 
-    return m_lastRetcode;
+    return ERetCode::SUCCESS;
+}
+
+//Clears and then sets the OST bit which causes the sensor to take another readings
+//Needed to sample faster than 1Hz
+ERetCode MPL3115A2::ToggleOneShot()
+{
+    int32_t returnCode;
+
+    //Read the current settings
+    uint8_t tempSetting;
+    returnCode = ReadByte( MPL3115A2_REGISTER::CONTROL_REGISTER_1, tempSetting );
+    if( returnCode != I2C::ERetCode::SUCCESS )
+    {
+        return ERetCode::FAILED;
+    }
+    
+    //Clear the one shot bit
+    tempSetting &= ~(1<<1);
+    returnCode = WriteByte( MPL3115A2::CONTROL_REGISTER_1, tempSetting );
+    if( returnCode != I2C::ERetCode::SUCCESS )
+    {
+        return ERetCode::FAILED;
+    }
+
+    //Reat the current settings, just to be safe :)
+    returnCode = ReadByte( MPL3115A2_REGISTER::CONTROL_REGISTER_1, tempSetting );
+    if( returnCode != I2C::ERetCode::SUCCESS )
+    {
+        return ERetCode::FAILED;
+    }
+
+    //Set the overshot bit
+    tempSetting |= (1<<1);
+    returnCode = WriteByte( MPL3115A2::CONTROL_REGISTER_1, tempSetting );
+    if( returnCode != I2C::ERetCode::SUCCESS )
+    {
+        return ERetCode::FAILED;
+    }
+
+    return ERetCode::SUCCESS;    
 }
 
 

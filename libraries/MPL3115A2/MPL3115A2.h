@@ -21,6 +21,8 @@ namespace mpl3115a2
     // Unshifted 7-bit I2C address for sensor
     static constexpr uint8_t MPL3115A2_ADDRESS = 0x60;
 
+    //TODO
+    //We should really have a system wide firmware ret code framework
     enum ERetCode
     {
         SUCCESS,
@@ -60,22 +62,26 @@ namespace mpl3115a2
             float ReadPressure();
             float ReadTemperature();
 
-            int32_t Initialize();
-            int32_t SetMode( EMode modeIn );
-            int32_t SetOversampleRatio( EOversampleRatio osrIn );
-            int32_t EnableEventFlags();
-
-
+            ERetCode Initialize();
+            ERetCode SetMode( EMode modeIn );
+            ERetCode SetOversampleRatio( EOversampleRatio osrIn );
+            ERetCode EnableEventFlags();
 
             //Public Attributes
-            bool m_isInitialized = false;
-
-        
+            bool IsInitialized() const { return m_isInitialized; };
+            
         private:
 
             //Private member functions
-            int32_t VerifyChipId();
-            int32_t ToggleOneShot();
+            ERetCode VerifyChipId();
+            ERetCode ToggleOneShot();
+
+            ERetCode SetModeBarometer();
+            ERetCode SetModeAltimeter();
+            ERetCode SetModeStandby();
+            ERetCode SetModeActive();
+
+
 
             int32_t ReadByte( MPL3115A2_REGISTER addressIn, uint8_t& dataOut );
             int32_t ReadNBytes( MPL3115A2_REGISTER addressIn, uint8_t* dataOut, uint8_t byteCountIn );
@@ -84,10 +90,9 @@ namespace mpl3115a2
             //Private member Attributes
             uint8_t m_i2cAddress;
             int32_t m_sensorId;
+            bool m_isInitialized = false;
 
             CI2C *m_pI2C;
-            int32_t m_lastRetcode = 0;
-
             
             enum class MPL3115A2_REGISTER : uint8_t
             {
