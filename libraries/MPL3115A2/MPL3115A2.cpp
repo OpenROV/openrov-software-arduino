@@ -71,6 +71,19 @@ ERetCode SetMode( EMode modeIn )
     }
 }
 
+ERetCode MPL3115A2::SetOversampleRatio( EOversampleRatio osrIn )
+{
+
+}
+
+//Enables the pressure and temp measurement event flags so that we can
+//test against them. This is recommended in datasheet during setup.
+ERetCode EnableEventFlags()
+{
+    // Enable all three pressure and temp event flags 
+    auto ret = WriteByte( MPL3115A2_REGISTER::PT_DATA_CFG, 0x07)
+}
+
 /***************************************************************************
     PRIVATE FUNCTIONS
  ***************************************************************************/
@@ -102,7 +115,7 @@ ERetCode MPL3115A2::SetModeBarometer()
     
     //Read the current settings
     uint8_t tempSetting;
-    returnCode = ReadByte( MPL3115A2::CONTROL_REGISTER_1, tempSetting );
+    returnCode = ReadByte( MPL3115A2_REGISTER::CONTROL_REGISTER_1, tempSetting );
     if( returnCode != I2C::ERetCode::SUCCESS )
     {
         return ERetCode::FAILED;
@@ -112,7 +125,7 @@ ERetCode MPL3115A2::SetModeBarometer()
     tempSetting &= ~(1<<7);
 
     //And write it to the register
-    returnCode = WriteByte( MPL3115A2::CONTROL_REGISTER_1, tempSetting );
+    returnCode = WriteByte( MPL3115A2_REGISTER::CONTROL_REGISTER_1, tempSetting );
     if( returnCode != I2C::ERetCode::SUCCESS )
     {
         return ERetCode::FAILED;
@@ -127,7 +140,7 @@ ERetCode MPL3115A2::SetModeAltimter()
     
     //Read the current settings
     uint8_t tempSetting;
-    returnCode = ReadByte( MPL3115A2::CONTROL_REGISTER_1, tempSetting );
+    returnCode = ReadByte( MPL3115A2_REGISTER::CONTROL_REGISTER_1, tempSetting );
     if( returnCode != I2C::ERetCode::SUCCESS )
     {
         return ERetCode::FAILED;
@@ -137,7 +150,7 @@ ERetCode MPL3115A2::SetModeAltimter()
     tempSetting |= (1<<7);
 
     //And write it to the register
-    returnCode = WriteByte( MPL3115A2::CONTROL_REGISTER_1, tempSetting );
+    returnCode = WriteByte( MPL3115A2_REGISTER::CONTROL_REGISTER_1, tempSetting );
     if( returnCode != I2C::ERetCode::SUCCESS )
     {
         return ERetCode::FAILED;
@@ -154,7 +167,7 @@ ERetCode MPL3115A2::SetModeStandby()
     
     //Read the current settings
     uint8_t tempSetting;
-    returnCode = ReadByte( MPL3115A2::CONTROL_REGISTER_1, tempSetting );
+    returnCode = ReadByte( MPL3115A2_REGISTER::CONTROL_REGISTER_1, tempSetting );
     if( returnCode != I2C::ERetCode::SUCCESS )
     {
         return ERetCode::FAILED;
@@ -164,7 +177,7 @@ ERetCode MPL3115A2::SetModeStandby()
     tempSetting &= ~(1<<0);
 
     //And write it to the register
-    returnCode = WriteByte( MPL3115A2::CONTROL_REGISTER_1, tempSetting );
+    returnCode = WriteByte( MPL3115A2_REGISTER::CONTROL_REGISTER_1, tempSetting );
     if( returnCode != I2C::ERetCode::SUCCESS )
     {
         return ERetCode::FAILED;
@@ -181,7 +194,7 @@ ERetCode MPL3115A2::SetModeActive()
     
     //Read the current settings
     uint8_t tempSetting;
-    returnCode = ReadByte( MPL3115A2::CONTROL_REGISTER_1, tempSetting );
+    returnCode = ReadByte( MPL3115A2_REGISTER::CONTROL_REGISTER_1, tempSetting );
     if( returnCode != I2C::ERetCode::SUCCESS )
     {
         return ERetCode::FAILED;
@@ -191,7 +204,7 @@ ERetCode MPL3115A2::SetModeActive()
     tempSetting |= (1<<0);
 
     //And write it to the register
-    returnCode = WriteByte( MPL3115A2::CONTROL_REGISTER_1, tempSetting );
+    returnCode = WriteByte( MPL3115A2_REGISTER::CONTROL_REGISTER_1, tempSetting );
     if( returnCode != I2C::ERetCode::SUCCESS )
     {
         return ERetCode::FAILED;
