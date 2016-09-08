@@ -111,7 +111,83 @@ ERetCode MPL3115A2::SetOversampleRatio( EOversampleRatio osrIn )
 ERetCode EnableEventFlags()
 {
     // Enable all three pressure and temp event flags 
-    auto ret = WriteByte( MPL3115A2_REGISTER::PT_DATA_CFG, 0x07)
+    auto ret = WriteByte( MPL3115A2_REGISTER::PT_DATA_CFG, 0x07);
+    if( ret != I2C::ERetCode::SUCCESS )
+    {
+        return ERetCode::FAILED;
+    }
+    
+    return ERetCode::SUCCESS;
+}
+
+//Reads the current pressure in Pa
+//Unit must be set in barometric pressure mode
+ERetCode ReadPressure( float& pressureOut )
+{
+    int32_t returnCode;
+
+    //Check PDR bit, if it's not set then toggle OST
+    uint8_t pdr;
+    returnCode = ReadByte( MPL3115A2_REGISTER::STATUS, pdr );
+    if( returnCode != I2C::ERetCode::SUCCESS )
+    {
+        return ERetCode::FAILED;
+    }
+    if( pdr & (1<<2) == 0 )
+    {
+        ToggleOneShot();
+    }
+
+    //Wait for PDR bit, indicates we have new pressure data
+    auto counter = 0;
+    while( pdr & (1<<2) == 0 )
+    {
+        returnCode = ReadByte( MPL3115A2_REGISTER::STATUS, pdr );
+        if( returnCode != I2C::ERetCode::SUCCESS )
+        {
+            return ERetCode::FAILED;
+        }
+
+        if( ++counter > 600 )
+        {
+            return ERetCode::FAILED;
+            delay(1);
+        }
+    }
+
+    //Read pressure registers
+    uint8_t buffer[3];
+    memset( buffer, 0, 3);
+
+    returnCode = ReadNBytes( MPL3115A2_REGISTER::PRESSURE_OUT_MSB, buffer, 3 );
+    if( returnCode != I2C::ERetCode::SUCCESS )
+    {
+        return ERetCode::FAILED;
+    }
+
+    //Toggle the OST bit causing the sensor to immediately take another reading
+    ToggleOneShot();
+
+    auto msb = buffer[0];
+    auto csb = buffer[1];
+    auto lsb = buffer[2];
+    
+    // Pressure comes back as a left shifted 20 bit number
+    uint64_t pressure = (uint64_t)msb<<16 | (uint64_t)csb<<8 | (uint64_t)lsb;
+
+    //Pressure is an 18 bit number with 2 bits of decimal. Get rid of decimal portion.
+    pressure >>= 6;
+
+    //Bits 5/4 represent the fractional component
+    lsb &= B00110000;
+
+    //Get it right aligned
+    lsb >>= 4;
+
+    //Turn it into fraction
+    float pressure_decimal = (float)lsb/4.0; 
+
+	pressureOut = (float)pressure + pressure_decimal;
 }
 
 
@@ -293,4 +369,8 @@ int32_t MPL3115A2::WriteByte( MPL3115A2_ADDRESS addressIn, uint8_t dataIn )
 int32_t MPL3115A2::ReadByte( MPL3115A2_ADDRESS addressIn, uint8_t &dataOut )
 {
 	return (int32_t)m_pI2C->ReadByte( m_i2cAddress, (uint8_t)addressIn, &dataOut );
+}
+int32_t MPL3115A2::ReadNBytes( MPL3115A2_REGISTER addressIn, uint8_t* dataOut, uint8_t byteCountIn )
+{
+    return (int32_t)m_pI2C->ReadBytes( m_i2cAddress, (uint8_t)addressIn, dataOut, byteCountIn );
 }

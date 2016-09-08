@@ -58,9 +58,7 @@ namespace mpl3115a2
             MPL3115A2( CI2C *i2cInterfaceIn, int32_t sensorIdIn = -1, uint8_t addressIn = MPL3115A2_ADDRESS )
 
             //Public member functions
-            float ReadAltitude();
-            float ReadPressure();
-            float ReadTemperature();
+            ERetCode ReadPressure( float& pressureOut );
 
             ERetCode Initialize();
             ERetCode SetMode( EMode modeIn );
