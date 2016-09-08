@@ -96,6 +96,110 @@ ERetCode MPL3115A2::VerifyChipId()
     return ERetCode::SUCCESS;
 }
 
+ERetCode MPL3115A2::SetModeBarometer()
+{
+    int32_t returnCode;
+    
+    //Read the current settings
+    uint8_t tempSetting;
+    returnCode = ReadByte( MPL3115A2::CONTROL_REGISTER_1, tempSetting );
+    if( returnCode != I2C::ERetCode::SUCCESS )
+    {
+        return ERetCode::FAILED;
+    }
+
+    //Clear the altimeter bit
+    tempSetting &= ~(1<<7);
+
+    //And write it to the register
+    returnCode = WriteByte( MPL3115A2::CONTROL_REGISTER_1, tempSetting );
+    if( returnCode != I2C::ERetCode::SUCCESS )
+    {
+        return ERetCode::FAILED;
+    }
+
+    return ERetCode::SUCCESS;
+}
+
+ERetCode MPL3115A2::SetModeAltimter()
+{
+    int32_t returnCode;
+    
+    //Read the current settings
+    uint8_t tempSetting;
+    returnCode = ReadByte( MPL3115A2::CONTROL_REGISTER_1, tempSetting );
+    if( returnCode != I2C::ERetCode::SUCCESS )
+    {
+        return ERetCode::FAILED;
+    }
+
+    //Set the altimeter bit
+    tempSetting |= (1<<7);
+
+    //And write it to the register
+    returnCode = WriteByte( MPL3115A2::CONTROL_REGISTER_1, tempSetting );
+    if( returnCode != I2C::ERetCode::SUCCESS )
+    {
+        return ERetCode::FAILED;
+    }
+
+    return ERetCode::SUCCESS;
+}
+
+//Puts the sensor in standby mode
+//This is needed so that we can modify the major control registers
+ERetCode MPL3115A2::SetModeStandby()
+{
+    int32_t returnCode;
+    
+    //Read the current settings
+    uint8_t tempSetting;
+    returnCode = ReadByte( MPL3115A2::CONTROL_REGISTER_1, tempSetting );
+    if( returnCode != I2C::ERetCode::SUCCESS )
+    {
+        return ERetCode::FAILED;
+    }
+
+    //Clear SBYB bit for Standby mode
+    tempSetting &= ~(1<<0);
+
+    //And write it to the register
+    returnCode = WriteByte( MPL3115A2::CONTROL_REGISTER_1, tempSetting );
+    if( returnCode != I2C::ERetCode::SUCCESS )
+    {
+        return ERetCode::FAILED;
+    }
+
+    return ERetCode::SUCCESS; 
+}
+
+//Puts the sensor in active mode
+//This is needed so that we can modify the major control registers
+ERetCode MPL3115A2::SetModeActive()
+{
+    int32_t returnCode;
+    
+    //Read the current settings
+    uint8_t tempSetting;
+    returnCode = ReadByte( MPL3115A2::CONTROL_REGISTER_1, tempSetting );
+    if( returnCode != I2C::ERetCode::SUCCESS )
+    {
+        return ERetCode::FAILED;
+    }
+
+    //Set SBYB bit for Active mode
+    tempSetting |= (1<<0);
+
+    //And write it to the register
+    returnCode = WriteByte( MPL3115A2::CONTROL_REGISTER_1, tempSetting );
+    if( returnCode != I2C::ERetCode::SUCCESS )
+    {
+        return ERetCode::FAILED;
+    }
+
+    return ERetCode::SUCCESS;
+}
+
 //Clears and then sets the OST bit which causes the sensor to take another readings
 //Needed to sample faster than 1Hz
 ERetCode MPL3115A2::ToggleOneShot()
@@ -135,9 +239,6 @@ ERetCode MPL3115A2::ToggleOneShot()
 
     return ERetCode::SUCCESS;    
 }
-
-
-
 
 int32_t MPL3115A2::WriteByte( MPL3115A2_ADDRESS addressIn, uint8_t dataIn )
 {

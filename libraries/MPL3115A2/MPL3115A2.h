@@ -81,8 +81,6 @@ namespace mpl3115a2
             ERetCode SetModeStandby();
             ERetCode SetModeActive();
 
-
-
             int32_t ReadByte( MPL3115A2_REGISTER addressIn, uint8_t& dataOut );
             int32_t ReadNBytes( MPL3115A2_REGISTER addressIn, uint8_t* dataOut, uint8_t byteCountIn );
             int32_t WriteByte( MPL3115A2_REGISTER addressIn, uint8_t dataIn );
