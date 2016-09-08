@@ -71,9 +71,39 @@ ERetCode SetMode( EMode modeIn )
     }
 }
 
+//Call with a rate from 0 to 7. See page 33 for table of ratios.
+//Sets the over sample rate. Datasheet calls for 128 but you can set it 
+//from 1 to 128 samples. The higher the oversample rate the greater
+//the time between data samples.
 ERetCode MPL3115A2::SetOversampleRatio( EOversampleRatio osrIn )
 {
+    auto sampleRate = osrIn;
 
+    //Align it for the control register
+    sampleRate <<= 3;
+
+    //Read the current settings
+    uint8_t tempSetting;
+    returnCode = ReadByte( MPL3115A2_REGISTER::CONTROL_REGISTER_1, tempSetting );
+    if( returnCode != I2C::ERetCode::SUCCESS )
+    {
+        return ERetCode::FAILED;
+    }
+
+    //Clear out old Oversample bits
+    tempSetting &= B11000111;
+
+    //Mask new sample rate
+    tempSetting |= sampleRate;
+
+    //And write it to the register
+    returnCode = WriteByte( MPL3115A2_REGISTER::CONTROL_REGISTER_1, tempSetting );
+    if( returnCode != I2C::ERetCode::SUCCESS )
+    {
+        return ERetCode::FAILED;
+    }
+    
+    return ERetCode::SUCCESS;
 }
 
 //Enables the pressure and temp measurement event flags so that we can
@@ -83,6 +113,8 @@ ERetCode EnableEventFlags()
     // Enable all three pressure and temp event flags 
     auto ret = WriteByte( MPL3115A2_REGISTER::PT_DATA_CFG, 0x07)
 }
+
+
 
 /***************************************************************************
     PRIVATE FUNCTIONS
