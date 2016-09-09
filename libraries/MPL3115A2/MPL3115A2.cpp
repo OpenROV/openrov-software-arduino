@@ -234,14 +234,20 @@ ERetCode MPL3115A2::ReadTemperature( float& tempOut )
     uint8_t buffer[2];
     memset( buffer, 0, 2);
 
-    returnCode = ReadNBytes( MPL3115A2_REGISTER::TEMP_OUT_MSB, buffer, 3 );
+    returnCode = ReadNBytes( MPL3115A2_REGISTER::TEMP_OUT_MSB, buffer, 2 );
     if( returnCode != I2C::ERetCode::SUCCESS )
     {
-        return ERetCode::FAILED_PRESSURE_READ;
+        return ERetCode::FAILED_TEMP_READ;
     }
 
+    auto msb = buffer[0];
+    auto lsb = buffer[1];
 
+    float tempLSB = (lsb>>4)/16.0;
 
+    tempOut = static_cast<float>( msb + tempLSB );
+
+    return EMode::SUCCESS;
 }
 
 
