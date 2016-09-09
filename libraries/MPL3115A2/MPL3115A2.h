@@ -55,7 +55,7 @@ namespace mpl3115a2
 
         public:
 
-            MPL3115A2( CI2C *i2cInterfaceIn, int32_t sensorIdIn = -1, uint8_t addressIn = MPL3115A2_ADDRESS )
+            MPL3115A2( CI2C *i2cInterfaceIn, int32_t sensorIdIn = -1, uint8_t addressIn = MPL3115A2_ADDRESS );
 
             //Public member functions
             ERetCode ReadPressure( float& pressureOut );
