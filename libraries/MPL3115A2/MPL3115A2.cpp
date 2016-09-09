@@ -140,15 +140,20 @@ ERetCode MPL3115A2::ReadPressure( float& pressureOut )
     }
 
     //Wait for PDR bit, indicates we have new pressure data
-    uint8_t sta = 0;
-    while( ! ( sta & 0x04 ) )
+    auto counter = 0;
+    while( ( pdr & (1<<2) ) == 0 )
     {
-        returnCode = ReadByte( MPL3115A2_REGISTER::STATUS, sta );
+        returnCode = ReadByte( MPL3115A2_REGISTER::STATUS, pdr );
         if( returnCode != I2C::ERetCode::SUCCESS )
         {
             return ERetCode::FAILED_PRESSURE_READ;
         }
-        delay(10);
+
+        if( ++counter > 600 )
+        {
+            return ERetCode::TIMED_OUT;
+            delay(1);
+        }
     }
 
     //Read pressure registers
