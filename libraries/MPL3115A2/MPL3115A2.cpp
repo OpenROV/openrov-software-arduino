@@ -206,6 +206,8 @@ ERetCode MPL3115A2::ReadPressure( float& pressureOut )
 
 ERetCode MPL3115A2::ReadTemperature( float& tempOut )
 {
+    int32_t returnCode;
+
     //Toggle the OST bit causing the sensor to immediately take another reading
     auto oneshotRet = ToggleOneShot();
     if( oneshotRet != ERetCode::SUCCESS )
@@ -214,6 +216,7 @@ ERetCode MPL3115A2::ReadTemperature( float& tempOut )
     }
 
     //Wait for PDR bit, indicates we have new temp data
+    uint8_t pdr;
     auto counter = 0;
     while( ( pdr & (1<<1) ) == 0 )
     {
@@ -247,7 +250,7 @@ ERetCode MPL3115A2::ReadTemperature( float& tempOut )
 
     tempOut = static_cast<float>( msb + tempLSB );
 
-    return EMode::SUCCESS;
+    return ERetCode::SUCCESS;
 }
 
 
