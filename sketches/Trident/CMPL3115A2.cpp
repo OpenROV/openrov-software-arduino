@@ -10,9 +10,6 @@ namespace
 {
     CTimer mpl3115a2_report_timer;
     CTimer mpl3115a2_sample_timer;
-
-
-    bool initalized = false;
 }
 
 
@@ -57,7 +54,7 @@ void CMPL3115A2::InitializeSensor()
         m_mpl.SetMode( mpl3115a2::EMode::BAROMETER );
 
         //Set the over sample rate_div
-        m_mpl.SetOversampleRatio( mpl3115a2::EOversampleRatio::ORS_128 );
+        m_mpl.SetOversampleRatio( mpl3115a2::EOversampleRatio::OSR_128 );
 
         //Enable event flags
         m_mpl.EnableEventFlags();
