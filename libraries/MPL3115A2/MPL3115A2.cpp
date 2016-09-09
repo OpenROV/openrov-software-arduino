@@ -54,7 +54,7 @@ ERetCode MPL3115A2::SetMode( EMode modeIn )
         }
         case EMode::ALTIMETER:
         {
-            return SetModeAltimter();
+            return SetModeAltimeter();
         }
         case EMode::STANDBY:
         {
@@ -78,7 +78,7 @@ ERetCode MPL3115A2::SetMode( EMode modeIn )
 ERetCode MPL3115A2::SetOversampleRatio( EOversampleRatio osrIn )
 {
     int32_t returnCode;
-    auto sampleRate = osrIn;
+    auto sampleRate = static_cast<int>( osrIn );
 
     //Align it for the control register
     sampleRate <<= 3;
@@ -134,14 +134,14 @@ ERetCode MPL3115A2::ReadPressure( float& pressureOut )
     {
         return ERetCode::FAILED;
     }
-    if( pdr & (1<<2) == 0 )
+    if( ( pdr & (1<<2) ) == 0 )
     {
         ToggleOneShot();
     }
 
     //Wait for PDR bit, indicates we have new pressure data
     auto counter = 0;
-    while( pdr & (1<<2) == 0 )
+    while( ( pdr & (1<<2) ) == 0 )
     {
         returnCode = ReadByte( MPL3115A2_REGISTER::STATUS, pdr );
         if( returnCode != I2C::ERetCode::SUCCESS )
@@ -189,6 +189,8 @@ ERetCode MPL3115A2::ReadPressure( float& pressureOut )
     float pressure_decimal = (float)lsb/4.0; 
 
 	pressureOut = (float)pressure + pressure_decimal;
+
+    return ERetCode::SUCCESS;
 }
 
 
@@ -243,7 +245,7 @@ ERetCode MPL3115A2::SetModeBarometer()
     return ERetCode::SUCCESS;
 }
 
-ERetCode MPL3115A2::SetModeAltimter()
+ERetCode MPL3115A2::SetModeAltimeter()
 {
     int32_t returnCode;
     
@@ -338,7 +340,7 @@ ERetCode MPL3115A2::ToggleOneShot()
     
     //Clear the one shot bit
     tempSetting &= ~(1<<1);
-    returnCode = WriteByte( MPL3115A2::CONTROL_REGISTER_1, tempSetting );
+    returnCode = WriteByte( MPL3115A2_REGISTER::CONTROL_REGISTER_1, tempSetting );
     if( returnCode != I2C::ERetCode::SUCCESS )
     {
         return ERetCode::FAILED;
@@ -353,7 +355,7 @@ ERetCode MPL3115A2::ToggleOneShot()
 
     //Set the overshot bit
     tempSetting |= (1<<1);
-    returnCode = WriteByte( MPL3115A2::CONTROL_REGISTER_1, tempSetting );
+    returnCode = WriteByte( MPL3115A2_REGISTER::CONTROL_REGISTER_1, tempSetting );
     if( returnCode != I2C::ERetCode::SUCCESS )
     {
         return ERetCode::FAILED;
