@@ -19,10 +19,10 @@
 using namespace mpl3115a2;
 
 
-MPL3115A2::MPL3115A2( CI2C *i2cInterfaceIn, int32_t sensorIdIn )
+MPL3115A2::MPL3115A2( CI2C *i2cInterfaceIn )
     : m_i2cAddress( mpl3115a2::MPL3115A2_ADDRESS )
     , m_pI2C( i2cInterfaceIn )
-    , m_sensorId( sensorIdIn )
+    , m_sensorId( 420 )
 {
 
 }
