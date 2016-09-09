@@ -361,12 +361,12 @@ ERetCode MPL3115A2::ToggleOneShot()
     return ERetCode::SUCCESS;    
 }
 
-int32_t MPL3115A2::WriteByte( MPL3115A2_ADDRESS addressIn, uint8_t dataIn )
+int32_t MPL3115A2::WriteByte( MPL3115A2_REGISTER addressIn, uint8_t dataIn )
 {
 	return (int32_t)m_pI2C->WriteByte( m_i2cAddress, (uint8_t)addressIn, dataIn );
 }
 
-int32_t MPL3115A2::ReadByte( MPL3115A2_ADDRESS addressIn, uint8_t &dataOut )
+int32_t MPL3115A2::ReadByte( MPL3115A2_REGISTER addressIn, uint8_t &dataOut )
 {
 	return (int32_t)m_pI2C->ReadByte( m_i2cAddress, (uint8_t)addressIn, &dataOut );
 }

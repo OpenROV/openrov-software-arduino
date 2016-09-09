@@ -70,26 +70,6 @@ namespace mpl3115a2
             
         private:
 
-            //Private member functions
-            ERetCode VerifyChipId();
-            ERetCode ToggleOneShot();
-
-            ERetCode SetModeBarometer();
-            ERetCode SetModeAltimeter();
-            ERetCode SetModeStandby();
-            ERetCode SetModeActive();
-
-            int32_t ReadByte( MPL3115A2_REGISTER addressIn, uint8_t& dataOut );
-            int32_t ReadNBytes( MPL3115A2_REGISTER addressIn, uint8_t* dataOut, uint8_t byteCountIn );
-            int32_t WriteByte( MPL3115A2_REGISTER addressIn, uint8_t dataIn );
-
-            //Private member Attributes
-            uint8_t m_i2cAddress;
-            int32_t m_sensorId;
-            bool m_isInitialized = false;
-
-            CI2C *m_pI2C;
-            
             enum class MPL3115A2_REGISTER : uint8_t
             {
                 STATUS                      = 0x00,
@@ -161,6 +141,28 @@ namespace mpl3115a2
                 TEMP_DATA_OFFSET            = 0x2C,
                 ALT_DATA_OFFSET             = 0x2D
             };
+
+            //Private member functions
+            ERetCode VerifyChipId();
+            ERetCode ToggleOneShot();
+
+            ERetCode SetModeBarometer();
+            ERetCode SetModeAltimeter();
+            ERetCode SetModeStandby();
+            ERetCode SetModeActive();
+
+            int32_t ReadByte( MPL3115A2_REGISTER addressIn, uint8_t& dataOut );
+            int32_t ReadNBytes( MPL3115A2_REGISTER addressIn, uint8_t* dataOut, uint8_t byteCountIn );
+            int32_t WriteByte( MPL3115A2_REGISTER addressIn, uint8_t dataIn );
+
+            //Private member Attributes
+            uint8_t m_i2cAddress;
+            int32_t m_sensorId;
+            bool m_isInitialized = false;
+
+            CI2C *m_pI2C;
+            
+
     }
 }
 
