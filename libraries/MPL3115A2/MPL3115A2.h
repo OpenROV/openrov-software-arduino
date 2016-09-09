@@ -164,7 +164,7 @@ namespace mpl3115a2
             
 
     }
-}
+};
 
 
 
