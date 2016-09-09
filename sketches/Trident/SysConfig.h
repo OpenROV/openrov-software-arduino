@@ -100,3 +100,6 @@
 
 // MS5837 Depth Sensor
 #define HAS_MS5837_30BA				(1)
+
+// MPL3115A2 Alt/Pressure Sensor
+#define HAS_MPL3115A2				(1)
