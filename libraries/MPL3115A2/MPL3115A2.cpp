@@ -125,11 +125,13 @@ ERetCode MPL3115A2::EnableEventFlags()
 //Unit must be set in barometric pressure mode
 ERetCode MPL3115A2::ReadPressure( float& pressureOut )
 {
+    Serial.println( "In read pressure loop" );
     int32_t returnCode;
 
     //Check PDR bit, if it's not set then toggle OST
     uint8_t pdr;
     returnCode = ReadByte( MPL3115A2_REGISTER::STATUS, pdr );
+    
     if( returnCode != I2C::ERetCode::SUCCESS )
     {
         return ERetCode::FAILED_PRESSURE_READ;
