@@ -19,7 +19,7 @@ CMPL3115A2::CMPL3115A2( CI2C *i2cInterfaceIn )
 
 }
 
-void MPL3115A2::Initialize()
+void CMPL3115A2::Initialize()
 {
     Serial.println( "MPL3115A2.Status:INIT;" );
 
@@ -29,7 +29,7 @@ void MPL3115A2::Initialize()
     Serial.println( "MPL3115A2.Status:POST_INIT; ");
 }
 
-void MPL3115A2::Update( CCommand &commandIn )
+void CMPL3115A2::Update( CCommand &commandIn )
 {
     if( mpl3115a2_sample_timer.HasElapsed( 10 ) )
     {
