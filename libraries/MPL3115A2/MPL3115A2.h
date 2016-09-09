@@ -27,6 +27,9 @@ namespace mpl3115a2
     {
         SUCCESS,
         FAILED,
+        FAILED_ONESHOT,
+        FAILED_PRESSURE_READ,
+        TIMED_OUT,
         UNKNOWN
     };
 

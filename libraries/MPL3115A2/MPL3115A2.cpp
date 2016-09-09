@@ -132,7 +132,7 @@ ERetCode MPL3115A2::ReadPressure( float& pressureOut )
     returnCode = ReadByte( MPL3115A2_REGISTER::STATUS, pdr );
     if( returnCode != I2C::ERetCode::SUCCESS )
     {
-        return ERetCode::FAILED;
+        return ERetCode::FAILED_PRESSURE_READ;
     }
     if( ( pdr & (1<<2) ) == 0 )
     {
@@ -146,12 +146,12 @@ ERetCode MPL3115A2::ReadPressure( float& pressureOut )
         returnCode = ReadByte( MPL3115A2_REGISTER::STATUS, pdr );
         if( returnCode != I2C::ERetCode::SUCCESS )
         {
-            return ERetCode::FAILED;
+            return ERetCode::FAILED_PRESSURE_READ;
         }
 
         if( ++counter > 600 )
         {
-            return ERetCode::FAILED;
+            return ERetCode::TIMED_OUT;
             delay(1);
         }
     }
@@ -163,7 +163,7 @@ ERetCode MPL3115A2::ReadPressure( float& pressureOut )
     returnCode = ReadNBytes( MPL3115A2_REGISTER::PRESSURE_OUT_MSB, buffer, 3 );
     if( returnCode != I2C::ERetCode::SUCCESS )
     {
-        return ERetCode::FAILED;
+        return ERetCode::FAILED_PRESSURE_READ;
     }
 
     //Toggle the OST bit causing the sensor to immediately take another reading
@@ -335,7 +335,7 @@ ERetCode MPL3115A2::ToggleOneShot()
     returnCode = ReadByte( MPL3115A2_REGISTER::CONTROL_REGISTER_1, tempSetting );
     if( returnCode != I2C::ERetCode::SUCCESS )
     {
-        return ERetCode::FAILED;
+        return ERetCode::FAILED_ONESHOT;
     }
     
     //Clear the one shot bit
@@ -343,14 +343,14 @@ ERetCode MPL3115A2::ToggleOneShot()
     returnCode = WriteByte( MPL3115A2_REGISTER::CONTROL_REGISTER_1, tempSetting );
     if( returnCode != I2C::ERetCode::SUCCESS )
     {
-        return ERetCode::FAILED;
+        return ERetCode::FAILED_ONESHOT;
     }
 
     //Reat the current settings, just to be safe :)
     returnCode = ReadByte( MPL3115A2_REGISTER::CONTROL_REGISTER_1, tempSetting );
     if( returnCode != I2C::ERetCode::SUCCESS )
     {
-        return ERetCode::FAILED;
+        return ERetCode::FAILED_ONESHOT;
     }
 
     //Set the overshot bit
@@ -358,7 +358,7 @@ ERetCode MPL3115A2::ToggleOneShot()
     returnCode = WriteByte( MPL3115A2_REGISTER::CONTROL_REGISTER_1, tempSetting );
     if( returnCode != I2C::ERetCode::SUCCESS )
     {
-        return ERetCode::FAILED;
+        return ERetCode::FAILED_ONESHOT;
     }
 
     return ERetCode::SUCCESS;    
