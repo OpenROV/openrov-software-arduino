@@ -125,8 +125,10 @@ ERetCode MPL3115A2::EnableEventFlags()
 //Unit must be set in barometric pressure mode
 ERetCode MPL3115A2::ReadPressure( float& pressureOut )
 {
-    Serial.println( "In read pressure loop" );
     int32_t returnCode;
+
+    //Drop into pressure mode
+    SetMode( EMode::BAROMETER );
 
     //Check PDR bit, if it's not set then toggle OST
     uint8_t pdr;
@@ -137,7 +139,11 @@ ERetCode MPL3115A2::ReadPressure( float& pressureOut )
     }
     if( ( pdr & (1<<2) ) == 0 )
     {
-        ToggleOneShot();
+        auto oneshotRet = ToggleOneShot();
+        if( oneshotRet != ERetCode::SUCCESS )
+        {
+            return oneshotRet;
+        }
     }
 
     //Wait for PDR bit, indicates we have new pressure data
@@ -150,7 +156,7 @@ ERetCode MPL3115A2::ReadPressure( float& pressureOut )
             return ERetCode::FAILED_PRESSURE_READ;
         }
 
-        if( ++counter > 1000 )
+        if( ++counter > 600 )
         {
             return ERetCode::TIMED_OUT;
         }
@@ -168,7 +174,11 @@ ERetCode MPL3115A2::ReadPressure( float& pressureOut )
     }
 
     //Toggle the OST bit causing the sensor to immediately take another reading
-    ToggleOneShot();
+    auto oneshotRet = ToggleOneShot();
+    if( oneshotRet != ERetCode::SUCCESS )
+    {
+        return oneshotRet;
+    }
 
     auto msb = buffer[0];
     auto csb = buffer[1];
@@ -187,13 +197,52 @@ ERetCode MPL3115A2::ReadPressure( float& pressureOut )
     lsb >>= 4;
 
     //Turn it into fraction
-    float pressure_decimal = (float)lsb/4.0; 
+    float pressure_decimal = static_cast<float>(lsb)/4.0; 
 
-	pressureOut = (float)pressure + pressure_decimal;
+	pressureOut = static_cast<float>(pressure) + pressure_decimal;
 
     return ERetCode::SUCCESS;
 }
 
+ERetCode MPL3115A2::ReadTemperature( float& tempOut )
+{
+    //Toggle the OST bit causing the sensor to immediately take another reading
+    auto oneshotRet = ToggleOneShot();
+    if( oneshotRet != ERetCode::SUCCESS )
+    {
+        return oneshotRet;
+    }
+
+    //Wait for PDR bit, indicates we have new temp data
+    auto counter = 0;
+    while( ( pdr & (1<<1) ) == 0 )
+    {
+        returnCode = ReadByte( MPL3115A2_REGISTER::STATUS, pdr );
+        if( returnCode != I2C::ERetCode::SUCCESS )
+        {
+            return ERetCode::FAILED_TEMP_READ;
+        }
+
+        if( ++counter > 600 )
+        {
+            return ERetCode::TIMED_OUT;
+        }
+        delay(1);
+    }
+
+    //Read temp registers
+    uint8_t buffer[2];
+    memset( buffer, 0, 2);
+
+    returnCode = ReadNBytes( MPL3115A2_REGISTER::TEMP_OUT_MSB, buffer, 3 );
+    if( returnCode != I2C::ERetCode::SUCCESS )
+    {
+        return ERetCode::FAILED_PRESSURE_READ;
+    }
+
+
+
+}
 
 
 /***************************************************************************
@@ -224,7 +273,10 @@ ERetCode MPL3115A2::VerifyChipId()
 ERetCode MPL3115A2::SetModeBarometer()
 {
     int32_t returnCode;
-    
+
+     //Must be in standby mode to change most register settings
+    SetMode( EMode::STANDBY );
+
     //Read the current settings
     uint8_t tempSetting;
     returnCode = ReadByte( MPL3115A2_REGISTER::CONTROL_REGISTER_1, tempSetting );
@@ -244,6 +296,9 @@ ERetCode MPL3115A2::SetModeBarometer()
     }
 
     m_mode = tempSetting;
+    
+    //Go back to active mode to read values 
+    SetMode( EMode::ACTIVE );
 
     return ERetCode::SUCCESS;
 }
@@ -251,6 +306,9 @@ ERetCode MPL3115A2::SetModeBarometer()
 ERetCode MPL3115A2::SetModeAltimeter()
 {
     int32_t returnCode;
+
+    //Must be in standby mode to change most register settings
+    SetMode( EMode::STANDBY );
     
     //Read the current settings
     uint8_t tempSetting;
@@ -269,6 +327,9 @@ ERetCode MPL3115A2::SetModeAltimeter()
     {
         return ERetCode::FAILED;
     }
+
+    //Go back to active mode to read values 
+    SetMode( EMode::ACTIVE );
 
     return ERetCode::SUCCESS;
 }
@@ -331,9 +392,6 @@ ERetCode MPL3115A2::SetModeActive()
 //Needed to sample faster than 1Hz
 ERetCode MPL3115A2::ToggleOneShot()
 {
-    Serial.println( "Toggling one shot." );
-    Serial.print( "Mode: " );
-    Serial.println( m_mode );
     int32_t returnCode;
 
     //Read the current settings
