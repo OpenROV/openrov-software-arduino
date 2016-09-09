@@ -163,6 +163,8 @@ namespace mpl3115a2
             CI2C *m_pI2C;
             int32_t m_sensorId;
 
+            uint8_t m_mode;
+
             bool m_isInitialized = false;
     };
 }

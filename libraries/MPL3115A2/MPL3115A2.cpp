@@ -131,7 +131,6 @@ ERetCode MPL3115A2::ReadPressure( float& pressureOut )
     //Check PDR bit, if it's not set then toggle OST
     uint8_t pdr;
     returnCode = ReadByte( MPL3115A2_REGISTER::STATUS, pdr );
-    
     if( returnCode != I2C::ERetCode::SUCCESS )
     {
         return ERetCode::FAILED_PRESSURE_READ;
@@ -244,6 +243,8 @@ ERetCode MPL3115A2::SetModeBarometer()
         return ERetCode::FAILED;
     }
 
+    m_mode = tempSetting;
+
     return ERetCode::SUCCESS;
 }
 
@@ -330,6 +331,9 @@ ERetCode MPL3115A2::SetModeActive()
 //Needed to sample faster than 1Hz
 ERetCode MPL3115A2::ToggleOneShot()
 {
+    Serial.println( "Toggling one shot." );
+    Serial.print( "Mode: " );
+    Serial.println( m_mode );
     int32_t returnCode;
 
     //Read the current settings
