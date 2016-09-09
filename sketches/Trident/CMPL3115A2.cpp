@@ -52,13 +52,24 @@ void CMPL3115A2::InitializeSensor()
     else
     {
         Serial.println( "MPL3115A2_INIT_STATUS:SUCCESS;" );
+
+        //Set the mode
+        m_mpl.SetMode( mpl3115a2::EMode::BAROMETER );
+
+        //Set the over sample rate_div
+        m_mpl.SetOversampleRatio( mpl3115a2::EOversampleRatio::ORS_128 );
+
+        //Enable event flags
+        m_mpl.EnableEventFlags();
+
+
     }
 }
 
 void CMPL3115A2::Update( CCommand &commandIn )
 {
-    //100 Hz
-    if( mpl3115a2_sample_timer.HasElapsed( 10 ) )
+    //1 Hz
+    if( mpl3115a2_sample_timer.HasElapsed( 1000 ) )
     {
         if( !m_mpl.IsInitialized() )
         {
@@ -73,6 +84,12 @@ void CMPL3115A2::Update( CCommand &commandIn )
         else
         {
             Serial.println( "MPL3115A2.Status:RUNNING;" );
+            float pressure;
+            auto ret = m_mpl.ReadPressure(pressure);
+
+            Serial.print( "MPL3115A2.Value.Pressure:" );
+            Serial.print( pressure );
+            Serial.println( ";" );
         }
     }
     
