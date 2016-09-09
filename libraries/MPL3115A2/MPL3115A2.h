@@ -38,7 +38,7 @@ namespace mpl3115a2
         ACTIVE
     };
 
-    enum class EOversampleRatio : uint8_t
+    enum EOversampleRatio : uint8_t
     {
         OSR_1   = 0,
         ORS_2   = 1,
@@ -157,14 +157,16 @@ namespace mpl3115a2
 
             //Private member Attributes
             uint8_t m_i2cAddress;
+            CI2C *m_pI2C;
             int32_t m_sensorId;
+
             bool m_isInitialized = false;
 
-            CI2C *m_pI2C;
+            
             
 
-    }
-};
+    };
+}
 
 
 

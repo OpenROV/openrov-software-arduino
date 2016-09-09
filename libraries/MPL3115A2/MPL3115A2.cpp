@@ -20,9 +20,9 @@ using namespace mpl3115a2;
 
 
 MPL3115A2::MPL3115A2( CI2C *i2cInterfaceIn, int32_t sensorIdIn = -1, uint8_t addressIn = MPL3115A2_ADDRESS )
-    : m_pI2C( i2cInterfaceIn )
+    : m_i2cAddress( addressIn )
+    , m_pI2C( i2cInterfaceIn )
     , m_sensorId( sensorIdIn )
-    , m_i2cAddress( addressIn )
 {
 
 }
@@ -44,7 +44,7 @@ ERetCode MPL3115A2::Initialize()
     return ERetCode::SUCCESS;    
 }
 
-ERetCode SetMode( EMode modeIn )
+ERetCode MPL3115A2::SetMode( EMode modeIn )
 {
     switch (modeIn)
     {
@@ -77,6 +77,7 @@ ERetCode SetMode( EMode modeIn )
 //the time between data samples.
 ERetCode MPL3115A2::SetOversampleRatio( EOversampleRatio osrIn )
 {
+    int32_t returnCode;
     auto sampleRate = osrIn;
 
     //Align it for the control register
@@ -108,7 +109,7 @@ ERetCode MPL3115A2::SetOversampleRatio( EOversampleRatio osrIn )
 
 //Enables the pressure and temp measurement event flags so that we can
 //test against them. This is recommended in datasheet during setup.
-ERetCode EnableEventFlags()
+ERetCode MPL3115A2::EnableEventFlags()
 {
     // Enable all three pressure and temp event flags 
     auto ret = WriteByte( MPL3115A2_REGISTER::PT_DATA_CFG, 0x07);
@@ -122,7 +123,7 @@ ERetCode EnableEventFlags()
 
 //Reads the current pressure in Pa
 //Unit must be set in barometric pressure mode
-ERetCode ReadPressure( float& pressureOut )
+ERetCode MPL3115A2::ReadPressure( float& pressureOut )
 {
     int32_t returnCode;
 
