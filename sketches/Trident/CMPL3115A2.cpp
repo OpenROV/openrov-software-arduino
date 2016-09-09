@@ -25,6 +25,11 @@ void CMPL3115A2::Initialize()
 
     //init process
     mpl3115a2_sample_timer.Reset();
+    auto ret = m_mpl.Initialize();
+    if( ret != mpl3115a2::ERetCode::SUCCESS )
+    {
+        Serial.println( "MPL3115A2.Status:INIT_FAILED" );
+    }
 
     Serial.println( "MPL3115A2.Status:POST_INIT; ");
 }
