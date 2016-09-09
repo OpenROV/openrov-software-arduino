@@ -207,6 +207,9 @@ ERetCode MPL3115A2::ReadPressure( float& pressureOut )
 ERetCode MPL3115A2::ReadTemperature( float& tempOut )
 {
     int32_t returnCode;
+    
+    //Drop into alt mode for temp
+    SetMode( EMode::ALTIMETER );
 
     //Toggle the OST bit causing the sensor to immediately take another reading
     auto oneshotRet = ToggleOneShot();
