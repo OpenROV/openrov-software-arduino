@@ -14,7 +14,7 @@ namespace
 
 
 CMPL3115A2::CMPL3115A2( CI2C *i2cInterfaceIn )
-    : m_mpl( i2cInterfaceIn, 420 )
+    : m_mpl( i2cInterfaceIn )
 {
 
 }
