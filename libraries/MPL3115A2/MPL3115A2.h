@@ -164,10 +164,6 @@ namespace mpl3115a2
             int32_t m_sensorId;
 
             bool m_isInitialized = false;
-
-            
-            
-
     };
 }
 
