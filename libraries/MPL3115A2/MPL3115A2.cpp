@@ -139,7 +139,7 @@ ERetCode MPL3115A2::ReadPressure( float& pressureOut )
     {
         return ERetCode::FAILED_PRESSURE_READ;
     }
-    Serial.println(pdr, HEX);
+    
     // while( ( pdr & (1<<2) ) == 0 )
     // {
     //     Serial.println( counter );
@@ -201,6 +201,7 @@ ERetCode MPL3115A2::VerifyChipId()
     uint8_t id;
 
     auto ret = ReadByte( MPL3115A2_REGISTER::WHO_AM_I, id );
+    Serial.println(id, HEX);
 
     if( ret != I2C::ERetCode::SUCCESS )
     {
