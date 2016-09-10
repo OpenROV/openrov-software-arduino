@@ -66,6 +66,10 @@ void CMPL3115A2::Update( CCommand &commandIn )
     //1 Hz
     if( mpl3115a2_sample_timer.HasElapsed( 1000 ) )
     {
+        float pressure;
+
+        auto ret = m_mpl.ReadPressure(pressure);
+        Serial.println(pressure);
         
     }
     

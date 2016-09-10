@@ -130,7 +130,7 @@ ERetCode MPL3115A2::ReadPressure( float& pressureOut )
     auto ret = ReadByte( MPL3115A2_REGISTER::STATUS, status );
     Serial.println( status, HEX );
 
-    return ret;
+    return ERetCode::SUCCESS;
 }
 
 
@@ -271,8 +271,6 @@ ERetCode MPL3115A2::SetModeActive()
 ERetCode MPL3115A2::ToggleOneShot()
 {
     Serial.println( "Toggling one shot." );
-    Serial.print( "Mode: " );
-    Serial.println( m_mode );
     int32_t returnCode;
 
     //Read the current settings
