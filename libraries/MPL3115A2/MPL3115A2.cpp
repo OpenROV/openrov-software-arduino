@@ -179,7 +179,7 @@ ERetCode MPL3115A2::SetModeBarometer()
     Serial.println(setting, HEX);
 
     //And write it to the register
-    returnCode = WriteByte( MPL3115A2_REGISTER::CONTROL_REGISTER_1, Setting );
+    returnCode = WriteByte( MPL3115A2_REGISTER::CONTROL_REGISTER_1, setting );
     if( returnCode != I2C::ERetCode::SUCCESS )
     {
         return ERetCode::FAILED;
