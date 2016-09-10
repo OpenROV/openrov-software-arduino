@@ -208,7 +208,7 @@ ERetCode MPL3115A2::ReadTemperature( float& tempOut )
 {
     int32_t returnCode;
     
-    //Drop into alt mode for temp
+    //Drop into alt mode
     SetMode( EMode::ALTIMETER );
 
     //Toggle the OST bit causing the sensor to immediately take another reading
@@ -286,9 +286,6 @@ ERetCode MPL3115A2::SetModeBarometer()
 {
     int32_t returnCode;
 
-     //Must be in standby mode to change most register settings
-    SetMode( EMode::STANDBY );
-
     //Read the current settings
     uint8_t tempSetting;
     returnCode = ReadByte( MPL3115A2_REGISTER::CONTROL_REGISTER_1, tempSetting );
@@ -308,9 +305,6 @@ ERetCode MPL3115A2::SetModeBarometer()
     }
 
     m_mode = tempSetting;
-    
-    //Go back to active mode to read values 
-    SetMode( EMode::ACTIVE );
 
     return ERetCode::SUCCESS;
 }
