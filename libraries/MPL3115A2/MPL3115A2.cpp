@@ -129,6 +129,7 @@ ERetCode MPL3115A2::ReadPressure( float& pressureOut )
     uint8_t status;
     auto ret = ReadByte( MPL3115A2_REGISTER::STATUS, status );
     Serial.println( status, HEX );
+    
 
     return ERetCode::SUCCESS;
 }
@@ -174,8 +175,8 @@ ERetCode MPL3115A2::SetModeBarometer()
     }
 
     //Clear the altimeter bit
-    tempSetting &= ~(1<<7);
-    Serial.println(tempSetting, HEX);
+    setting &= ~(1<<7);
+    Serial.println(setting, HEX);
 
     //And write it to the register
     returnCode = WriteByte( MPL3115A2_REGISTER::CONTROL_REGISTER_1, tempSetting );

@@ -70,7 +70,7 @@ void CMPL3115A2::Update( CCommand &commandIn )
 
         auto ret = m_mpl.ReadPressure(pressure);
         Serial.println(pressure);
-        
+        Serial.println(ret);
     }
     
 }
