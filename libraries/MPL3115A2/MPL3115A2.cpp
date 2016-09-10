@@ -126,6 +126,7 @@ ERetCode MPL3115A2::EnableEventFlags()
 ERetCode MPL3115A2::ReadPressure( float& pressureOut )
 {
     Serial.println( "In read pressure loop" );
+    SetMode(EMode::BAROMETER);
     ToggleOneShot();
 
     int32_t returnCode;
