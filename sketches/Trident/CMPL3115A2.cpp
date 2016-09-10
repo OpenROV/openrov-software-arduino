@@ -98,24 +98,6 @@ void CMPL3115A2::Update( CCommand &commandIn )
             Serial.print( pressure );
             Serial.println( ";" );
 
-            // //Temperature read
-            // float temp;
-            // auto tempRet = m_mpl.ReadTemperature(temp);
-
-            // if( tempRet != mpl3115a2::ERetCode::SUCCESS )
-            // {
-            //     Serial.println( "MPL3115A2.Status:FAILED_READ;" );
-            //     Serial.print( "REASON: ");
-            //     Serial.print( tempRet );
-            //     Serial.println( ";" );
-            // }
-
-            // Serial.print( "MPL3115A2.Value.Temp: " );
-            // Serial.print( temp );
-            // Serial.println( ";" );
-
-
-
         }
     }
     

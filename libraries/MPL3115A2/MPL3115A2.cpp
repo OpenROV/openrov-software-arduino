@@ -126,20 +126,11 @@ ERetCode MPL3115A2::EnableEventFlags()
 ERetCode MPL3115A2::ReadPressure( float& pressureOut )
 {
     Serial.println( "In read pressure loop" );
+    ToggleOneShot();
+
     int32_t returnCode;
-
-    //Check PDR bit, if it's not set then toggle OST
     uint8_t pdr;
-    returnCode = ReadByte( MPL3115A2_REGISTER::STATUS, pdr );
-    if( returnCode != I2C::ERetCode::SUCCESS )
-    {
-        return ERetCode::FAILED_PRESSURE_READ;
-    }
-    if( ( pdr & (1<<2) ) == 0 )
-    {
-        ToggleOneShot();
-    }
-
+    
     //Wait for PDR bit, indicates we have new pressure data
     auto counter = 0;
     while( ( pdr & (1<<2) ) == 0 )
@@ -150,9 +141,8 @@ ERetCode MPL3115A2::ReadPressure( float& pressureOut )
             return ERetCode::FAILED_PRESSURE_READ;
         }
 
-        if( ++counter > 100 )
         {
-            Serial.println(counter);
+        if( ++counter > 100 )
             return ERetCode::TIMED_OUT;
         }
         delay(1);
