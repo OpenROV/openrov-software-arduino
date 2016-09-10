@@ -160,7 +160,7 @@ ERetCode MPL3115A2::ReadPressure( float& pressureOut )
         {
             return ERetCode::TIMED_OUT;
         }
-        delay(1);
+        delay(5);
     }
 
     //Read pressure registers
