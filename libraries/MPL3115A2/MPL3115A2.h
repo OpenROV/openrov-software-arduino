@@ -19,7 +19,7 @@ class CI2C;
 namespace mpl3115a2
 {
     // Unshifted 7-bit I2C address for sensor
-    static constexpr uint8_t MPL3115A2_ADDRESS = 0x60;
+    const uint8_t MPL3115A2_ADDRESS = 0x60;
 
     //TODO
     //We should really have a system wide firmware ret code framework
@@ -29,6 +29,7 @@ namespace mpl3115a2
         FAILED,
         FAILED_ONESHOT,
         FAILED_PRESSURE_READ,
+        FAILED_TEMP_READ,
         TIMED_OUT,
         UNKNOWN
     };
@@ -37,20 +38,21 @@ namespace mpl3115a2
     {
         BAROMETER,
         ALTIMETER,
+        TEMPERATURE,
         STANDBY,
         ACTIVE
     };
 
-    enum EOversampleRatio : uint8_t
+    enum class EOversampleRatio : uint8_t
     {
         OSR_1   = 0,
-        ORS_2   = 1,
-        ORS_4   = 2,
-        ORS_8   = 3,
-        ORS_16  = 4,
-        ORS_32  = 5,
-        ORS_64  = 6,
-        ORS_128 = 7
+        OSR_2   = 1,
+        OSR_4   = 2,
+        OSR_8   = 3,
+        OSR_16  = 4,
+        OSR_32  = 5,
+        OSR_64  = 6,
+        OSR_128 = 7
     };
 
     class MPL3115A2
@@ -61,15 +63,16 @@ namespace mpl3115a2
             MPL3115A2( CI2C *i2cInterfaceIn );
 
             //Public member functions
-            ERetCode ReadPressure( float& pressureOut );
-
             ERetCode Initialize();
+            bool IsInitialized() const { return m_isInitialized; };
+
+            ERetCode ReadPressure( float& pressureOut );
+            ERetCode ReadTemperature( float& tempOut );
+            ERetCode ReadPressureAndTemp( float& pressureOut, float& tempOut );
+            
             ERetCode SetMode( EMode modeIn );
             ERetCode SetOversampleRatio( EOversampleRatio osrIn );
             ERetCode EnableEventFlags();
-
-            //Public Attributes
-            bool IsInitialized() const { return m_isInitialized; };
             
         private:
 
@@ -149,11 +152,11 @@ namespace mpl3115a2
             ERetCode VerifyChipId();
             ERetCode ToggleOneShot();
 
-            ERetCode SetModeBarometer();
-            ERetCode SetModeAltimeter();
-            ERetCode SetModeStandby();
             ERetCode SetModeActive();
-
+            ERetCode SetModeAltimeter();
+            ERetCode SetModeBarometer();
+            ERetCode SetModeStandby();
+            
             int32_t ReadByte( MPL3115A2_REGISTER addressIn, uint8_t& dataOut );
             int32_t ReadNBytes( MPL3115A2_REGISTER addressIn, uint8_t* dataOut, uint8_t byteCountIn );
             int32_t WriteByte( MPL3115A2_REGISTER addressIn, uint8_t dataIn );

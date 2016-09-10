@@ -10,9 +10,6 @@ namespace
 {
     CTimer mpl3115a2_report_timer;
     CTimer mpl3115a2_sample_timer;
-
-
-    bool initalized = false;
 }
 
 
@@ -57,7 +54,7 @@ void CMPL3115A2::InitializeSensor()
         m_mpl.SetMode( mpl3115a2::EMode::BAROMETER );
 
         //Set the over sample rate_div
-        m_mpl.SetOversampleRatio( mpl3115a2::EOversampleRatio::ORS_128 );
+        m_mpl.SetOversampleRatio( mpl3115a2::EOversampleRatio::OSR_128 );
 
         //Enable event flags
         m_mpl.EnableEventFlags();
@@ -84,20 +81,41 @@ void CMPL3115A2::Update( CCommand &commandIn )
         else
         {
             Serial.println( "MPL3115A2.Status:RUNNING;" );
+            
+            //Pressure read
             float pressure;
-            auto ret = m_mpl.ReadPressure(pressure);
+            auto pressureRet = m_mpl.ReadPressure(pressure);
 
-            if( ret != mpl3115a2::ERetCode::SUCCESS )
+            if( pressureRet != mpl3115a2::ERetCode::SUCCESS )
             {
                 Serial.println( "MPL3115A2.Status:FAILED_READ;" );
                 Serial.print( "REASON: ");
-                Serial.print( ret );
+                Serial.print( pressureRet );
                 Serial.println( ";" );
             }
 
             Serial.print( "MPL3115A2.Value.Pressure: " );
             Serial.print( pressure );
             Serial.println( ";" );
+
+            // //Temperature read
+            // float temp;
+            // auto tempRet = m_mpl.ReadTemperature(temp);
+
+            // if( tempRet != mpl3115a2::ERetCode::SUCCESS )
+            // {
+            //     Serial.println( "MPL3115A2.Status:FAILED_READ;" );
+            //     Serial.print( "REASON: ");
+            //     Serial.print( tempRet );
+            //     Serial.println( ";" );
+            // }
+
+            // Serial.print( "MPL3115A2.Value.Temp: " );
+            // Serial.print( temp );
+            // Serial.println( ";" );
+
+
+
         }
     }
     
