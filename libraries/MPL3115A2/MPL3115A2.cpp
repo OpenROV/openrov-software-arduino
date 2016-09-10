@@ -144,7 +144,7 @@ ERetCode MPL3115A2::ReadPressure( float& pressureOut )
     auto counter = 0;
     while( ( pdr & (1<<2) ) == 0 )
     {
-        Serial.println(pdr);
+        Serial.println(pdr, hex);
         returnCode = ReadByte( MPL3115A2_REGISTER::STATUS, pdr );
         if( returnCode != I2C::ERetCode::SUCCESS )
         {
