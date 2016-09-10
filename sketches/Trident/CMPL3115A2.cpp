@@ -58,8 +58,6 @@ void CMPL3115A2::InitializeSensor()
 
         //Enable event flags
         m_mpl.EnableEventFlags();
-
-
     }
 }
 
@@ -68,37 +66,7 @@ void CMPL3115A2::Update( CCommand &commandIn )
     //1 Hz
     if( mpl3115a2_sample_timer.HasElapsed( 1000 ) )
     {
-        if( !m_mpl.IsInitialized() )
-        {
-            //Attempt to init every 5 seconds
-            if( mpl3115a2_report_timer.HasElapsed( 5000 ) )
-            {
-                Serial.println( "MPL3115A2.Status:TRYING;" );
-                InitializeSensor();
-            }
-            return;
-        }
-        else
-        {
-            Serial.println( "MPL3115A2.Status:RUNNING;" );
-            
-            //Pressure read
-            float pressure;
-            auto pressureRet = m_mpl.ReadPressure(pressure);
-
-            if( pressureRet != mpl3115a2::ERetCode::SUCCESS )
-            {
-                Serial.println( "MPL3115A2.Status:FAILED_READ;" );
-                Serial.print( "REASON: ");
-                Serial.print( pressureRet );
-                Serial.println( ";" );
-            }
-
-            Serial.print( "MPL3115A2.Value.Pressure: " );
-            Serial.print( pressure );
-            Serial.println( ";" );
-
-        }
+        
     }
     
 }
