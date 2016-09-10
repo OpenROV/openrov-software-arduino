@@ -9,6 +9,7 @@ namespace NModuleManager
 {
 	// Initialize variables
 	int	m_moduleCount = 0 ;
+	uint32_t m_uuid = 0;
 	CModule *m_pModules[ MAX_MODULES ];
 
 	// Method definitions
@@ -22,6 +23,10 @@ namespace NModuleManager
 
 		for( int i = 0; i < m_moduleCount; ++i )
 		{
+			// Give modules an initial UUID
+			m_pModules[ i ]->SetUUID( m_uuid++ );
+
+			// TODO: REMOVE
 			m_pModules[ i ]->Initialize();
 
 			Serial.print( "log:Module Init=" );
@@ -31,6 +36,7 @@ namespace NModuleManager
 
 		Serial.println( "Systems.ModuleManager.Status:READY;" );
 	}
+		Serial.print( m_moduleCount );
 
 	void RegisterModule( CModule *moduleIn )
 	{
@@ -51,6 +57,10 @@ namespace NModuleManager
 	{
 		unsigned long start = 0;
 		unsigned long stop	= 0;
+
+		// Handle registrations
+
+
 
 		// Loop through each module and call its update functon
 		for( int i = 0; i < m_moduleCount; ++i )
