@@ -10,7 +10,6 @@ public:
 	{	
 		UNREGISTERED,	// Module has not been acked by Cockpit yet
 		REGISTERED,		// Module has been acked and registered with Cockpit
-		DISABLING,		// Module is currently in the process of disabling
 		DISABLED		// Module has removed itself from the registration process
 	}
 
@@ -22,8 +21,9 @@ public:
 	}
 
 	// Attributes
-	const uint32_t		m_pid;
+	constexpr uint32_t	m_pid = __COUNTER__		// Permanently assign unique PID at compile using GCC macro trick
 	bool 				m_hasUUID;
+	bool				m_disabling;
 	uint32_t			m_uuid;
 	const char*			m_behaviors;
 	const char*			m_traits;
@@ -34,7 +34,6 @@ public:
 	CModule( const char* behaviorsIn, const char* traitsIn );
 
 	void HandleRegistration();
-	void HandleInitialization();
 	void HandleUpdate();
 
 	void SetUUID( uint32_t uuidIn );											// Called by NModuleManager to assign a new UUID
@@ -47,5 +46,5 @@ public:
 
 	// Pure virtuals - These methods must be instantiated in the module's implementation
 	virtual void Initialize() = 0;						
-	virtual void Update( CCommand &commandIn ) = 0;
+	virtual void Update() = 0;
 };

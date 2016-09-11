@@ -5,12 +5,12 @@
 #include "NModuleManager.h"
 
 CModule( const char* behaviorsIn, const char* traitsIn )
-	: m_pid( __COUNTER__ )	// Permanently assign unique PID at compile using GCC macro trick
-	, m_hasUUID( false )
+	: m_hasUUID( false )
+	, m_disabling( false )
 	, m_uuid( 0 )
 	, m_behaviors( behaviorsIn )
 	, m_traits( traitsIn )
-	, m_regStatus( ERegistrationStatus::UNASSIGNED )
+	, m_regStatus( ERegistrationStatus::UNREGISTERED )
 	, m_modStatus( EModuleStatus::UNINITIALIZED )
 {
 	// Register a pointer to this module in the Module Manager
@@ -19,28 +19,47 @@ CModule( const char* behaviorsIn, const char* traitsIn )
 
 void HandleRegistration()
 {
-	// If Unregistered
-		// Check for ack
-		// If ack for me
-			// Move to registered
-		// Else
-			// Send registration request
-	// Else
-		// Do nothing
-}
-
-void HandleInitialization()
-{
-	// If Uninitialized
-		// Call Initialize
-		// If Initialize() == true
-			// Move to ACTIVE
+	if( m_regStatus == ERegistrationStatus::UNREGISTERED )
+	{
+		if( NCommManager::m_isCommandAvailable )
+		{
+			// Check for ack message that matches this module's UUID
+			if( NCommManager::m_currentCommand.Equals( "ack" ) && NCommManager::m_currentCommand.m_arguments[1] == m_uuid )
+			{
+				if( m_disabling )
+				{
+					m_regStatus == ERegistrationStatus::DISABLED;
+				}
+				else
+				{
+					m_regStatus = ERegistrationStatus::REGISTERED;
+				}
+			}
+			else
+			{
+				// Send registration request
+				// Serial.println( "reg:" + m_pid + m_uuid + m_behaviors + m_traits );
+			}
+		}
+	}
 }
 
 void HandleUpdate()
 {
-	// If ACTIVE
-		// Call Update()
+	if( m_modStatus == EModuleStatus::UNINITIALIZED )
+	{
+		// Call initialize function until module is initialized
+		if( Initialize() == true )
+		{
+			// Move to active mode
+			m_modStatus = EModuleStatus::ACTIVE;
+		}
+	}	
+	else if( m_modStatus == EModuleStatus::ACTIVE )
+	{
+		// Once in active state, call module's update function
+		Update();
+	}
 }
 
 void SetUUID( uint32_t uuidIn )
@@ -71,11 +90,15 @@ void UpdateRegistration( const char* behaviorsIn, const char* traitsIn )
 	// Invalidate its UUID
 	m_hasUUID = false;
 
-	// Set the new 
+	// Set the new behaviors and traits
+	m_behaviors = behaviorsIn;
+	m_traits 	= traitsIn;
 }	
 
 void DisableRegistration()
 {
-	m_regStatus = ERegistrationStatus::DISABLED;
 	UpdateRegistration( "disabled", "" );
+
+	// After the registration update is acked, the registration status will be moved to DISABLED
+	m_disabling = true;
 }											
