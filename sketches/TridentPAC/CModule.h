@@ -1,7 +1,6 @@
 #pragma once
 
-#include "CCommand.h"
-#include <Arduino.h>
+#include <stdint.h>
 
 class CModule
 {
@@ -33,13 +32,16 @@ public:
 
 	CModule( const char* behaviorsIn, const char* traitsIn );
 
+	inline bool IsUnregistered() const { return ( m_regStatus == ERegistrationStatus::UNREGISTERED ); }
 	void HandleRegistration();
 	void HandleUpdate();
 
+	inline bool HasUUID() const { return m_hasUUID; };
 	void SetUUID( uint32_t uuidIn );											// Called by NModuleManager to assign a new UUID
 
 	void ResetModule();															// Allows a supervisor to soft reset the module back to: 			m_modStatus = UNINITIALIZED
 	void DisableModule();														// Allows us to tell cockpit the module is no longer available: 	m_modStatus = DISABLED
+	inline bool IsDisabled() const { return ( m_modStatus == EModuleStatus::DISABLED ); };
 
 	void UpdateRegistration( const char* behaviorsIn, const char* traitsIn );	// Allows the module to change modalities and inform cockpit: 		m_hasUUID = false, m_regStatus = UNREGISTERED
 	void DisableRegistration();													// Allows module to remove itself from the registration process: 	m_regStatus = DISABLED

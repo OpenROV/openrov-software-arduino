@@ -1,44 +1,35 @@
 // Includes
+#include <Arduino.h>
 #include "NModuleManager.h"
-#include "NSysManager.h"
+#include "CModule.h"
+#include "CTimer.h"
 
 // This file instantiates any required core modules
 #include "SysModules.h"
 
+namespace
+{
+	// Private Attributes
+	constexpr uint32_t MAX_MODULES = 15;
+	constexpr uint32_t REGISTRATION_DELAY_MS = 30;
+
+	uint32_t m_uuidCounter 	= 0;
+	uint32_t m_moduleCount 	= 0;
+
+	CTimer m_regTimer;
+
+	CModule *m_pModules[ MAX_MODULES ];
+}
+
+// Public
 namespace NModuleManager
 {
-	// Initialize variables
-	int	m_moduleCount = 0 ;
-	uint32_t m_uuid = 0;
-	CModule *m_pModules[ MAX_MODULES ];
-
-	// Method definitions
 	void Initialize()
 	{
-		Serial.println( "Systems.ModuleManager.Status:INIT;" );
-
-		Serial.print( "log:Module Count=" );
-		Serial.print( m_moduleCount );
-		Serial.println( ";" );
-
-		for( int i = 0; i < m_moduleCount; ++i )
-		{
-			// Give modules an initial UUID
-			m_pModules[ i ]->SetUUID( m_uuid++ );
-
-			// TODO: REMOVE
-			m_pModules[ i ]->Initialize();
-
-			Serial.print( "log:Module Init=" );
-			Serial.print( m_pModules[ i ]->m_name );
-			Serial.println( ";" );
-		}
-
-		Serial.println( "Systems.ModuleManager.Status:READY;" );
+		m_regTimer.Reset();
 	}
-		Serial.print( m_moduleCount );
 
-	void RegisterModule( CModule *moduleIn )
+	void InstallModule( CModule *moduleIn )
 	{
 		// Check to see if we have room left to register a module
 		if( m_moduleCount >= MAX_MODULES )
@@ -53,25 +44,29 @@ namespace NModuleManager
 		++m_moduleCount;
 	}
 
-	void HandleModuleUpdates( CCommand &commandIn )
+	void HandleModuleUpdates()
 	{
-		unsigned long start = 0;
-		unsigned long stop	= 0;
-
-		// Handle registrations
-
-
-
-		// Loop through each module and call its update functon
-		for( int i = 0; i < m_moduleCount; ++i )
+		for( uint32_t i = 0; i < m_moduleCount; ++i )
 		{
-			// Time and execute the update functions for this module
-			start = millis();
-			m_pModules[ i ]->Update( commandIn );
-			stop = millis();
+			// Check to see if the module has been issued a UUID
+			if( m_pModules[ i ]->HasUUID() == false )
+			{
+				// Assign new one, bump the counter
+				m_pModules[ i ]->SetUUID( m_uuidCounter++ );
+			}
 
-			// Set the delta for the module's execution time so we can send this out as debug info
-			m_pModules[i]->m_executionTime = stop - start;
+			// Throttle registrations to avoid overuse of comm channel bandwidth
+			if( m_regTimer.HasElapsed( REGISTRATION_DELAY_MS ) )
+			{
+				if( m_pModules[ i ]->IsUnregistered() )
+				{
+					// Let the module handle registration logic
+					m_pModules[ i ]->HandleRegistration();
+					m_regIssued = true;
+				}
+			}
+
+			m_pModules[ i ]->HandleUpdate();
 		}
 	}
 }

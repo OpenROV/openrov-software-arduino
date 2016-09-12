@@ -1,21 +1,12 @@
 #pragma once
 
-#include "CModule.h"
-#include "CCommand.h"
-
-// Defines
-#define MAX_MODULES 15
-
-// TODO: CCommand sucks, going to be replaced by a packet format (Mavlink) with intentional message registration and distribution
+// Forward declarations
+class CModule;
 
 namespace NModuleManager
 {
-	// Attributes
-	extern int		m_moduleCount;
-	extern CModule *m_pModules[ MAX_MODULES ];
-
-	// Methods
+	// Public Methods
 	extern void Initialize();
-	extern void RegisterModule( CModule *moduleIn );
-	extern void HandleModuleUpdates( CCommand &commandIn );
+	extern void InstallModule( CModule *moduleIn );
+	extern void HandleModuleUpdates();
 }

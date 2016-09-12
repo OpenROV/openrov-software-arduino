@@ -1,8 +1,8 @@
 // Includes
 #include <Arduino.h>
-
 #include "CModule.h"
 #include "NModuleManager.h"
+#include "NCommManager.h"
 
 CModule( const char* behaviorsIn, const char* traitsIn )
 	: m_hasUUID( false )
@@ -13,38 +13,35 @@ CModule( const char* behaviorsIn, const char* traitsIn )
 	, m_regStatus( ERegistrationStatus::UNREGISTERED )
 	, m_modStatus( EModuleStatus::UNINITIALIZED )
 {
-	// Register a pointer to this module in the Module Manager
-	NModuleManager::RegisterModule( this );
+	// Install a pointer to this module in the Module Manager
+	NModuleManager::InstallModule( this );
 }
 
 void HandleRegistration()
 {
-	if( m_regStatus == ERegistrationStatus::UNREGISTERED )
+	if( NCommManager::m_isCommandAvailable )
 	{
-		if( NCommManager::m_isCommandAvailable )
+		// Check for ack message that matches this module's UUID
+		if( NCommManager::m_currentCommand.Equals( "ack" ) && NCommManager::m_currentCommand.m_arguments[1] == m_uuid )
 		{
-			// Check for ack message that matches this module's UUID
-			if( NCommManager::m_currentCommand.Equals( "ack" ) && NCommManager::m_currentCommand.m_arguments[1] == m_uuid )
+			if( m_disabling )
 			{
-				if( m_disabling )
-				{
-					m_regStatus = ERegistrationStatus::DISABLED;
-				}
-				else
-				{
-					m_regStatus = ERegistrationStatus::REGISTERED;
-				}
+				m_regStatus = ERegistrationStatus::DISABLED;
 			}
 			else
 			{
-				// Send registration request
-				Serial.print( "reg:" );
-				Serial.print( m_pid );			Serial.print( "|" );
-				Serial.print( m_uuid );			Serial.print( "|" );
-				Serial.print( m_behaviors );	Serial.print( "|" );
-				Serial.print( m_traits );		Serial.println( ";" );
+				m_regStatus = ERegistrationStatus::REGISTERED;
 			}
 		}
+	}
+	else
+	{
+		// Send registration request
+		Serial.print( "reg:" );
+		Serial.print( m_pid );			Serial.print( "|" );
+		Serial.print( m_uuid );			Serial.print( "|" );
+		Serial.print( m_behaviors );	Serial.print( "|" );
+		Serial.print( m_traits );		Serial.println( ";" );
 	}
 }
 
