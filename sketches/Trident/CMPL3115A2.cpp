@@ -10,6 +10,8 @@ namespace
 {
     CTimer mpl3115a2_report_timer;
     CTimer mpl3115a2_sample_timer;
+
+    bool isInitialized = false;
 }
 
 
@@ -27,13 +29,6 @@ void CMPL3115A2::Initialize()
     //init process
     mpl3115a2_sample_timer.Reset();
     mpl3115a2_report_timer.Reset();
-
-
-    auto ret = m_mpl.Initialize();
-    if( ret != mpl3115a2::ERetCode::SUCCESS )
-    {
-        Serial.println( "MPL3115A2.Status:INIT_FAILED" );
-    }
 
     Serial.println( "MPL3115A2.Status:POST_INIT; ");
 }
@@ -58,21 +53,31 @@ void CMPL3115A2::InitializeSensor()
 
         //Enable event flags
         m_mpl.EnableEventFlags();
+        
+        isInitialized = true;
     }
 }
 
 void CMPL3115A2::Update( CCommand &commandIn )
 {
-    //1 Hz
+    //
     if( mpl3115a2_sample_timer.HasElapsed( 2000 ) )
     {
+        if( !isInitialized )
+        {
+            if( mpl3115a2_report_timer.HasElapsed( 1000 ) )
+            {
+                Serial.println( "MPL3115A2.Status:TRYING;" );
+                InitializeSensor();
+            }
+            return;
+        }
         float pressure;
 
         auto ret = m_mpl.ReadPressure(pressure);
         Serial.println(pressure);
         Serial.println(ret);
     }
-    
 }
 
 #endif
