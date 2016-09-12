@@ -124,14 +124,23 @@ ERetCode MPL3115A2::EnableEventFlags()
 //Unit must be set in barometric pressure mode
 ERetCode MPL3115A2::ReadPressure( float& pressureOut )
 {
+    int32_t retCode;
     Serial.println("In pressure loop");
-    
-   SetMode(EMode::BAROMETER);
 
+    //Check the PDR bit to see if we need to toggle oneshot
     uint8_t status;
-    auto ret = ReadByte( MPL3115A2_REGISTER::STATUS, status );
-    Serial.println( status, HEX );
+
+    retCode = ReadByte( MPL3115A2_REGISTER::STATUS, status );
+    if( retCode != I2C::ERetCode::SUCCESS )
+    {
+        return ERetCode::FAILED;
+    }
     
+    if( ( status & (1<<2) )  == 0 )
+    {
+        Serial.println( "HAVE TO TOGGLE ONESHOT" );
+        ToggleOneShot();
+    }
 
     return ERetCode::SUCCESS;
 }
@@ -178,7 +187,6 @@ ERetCode MPL3115A2::SetModeBarometer()
 
     //Clear the altimeter bit
     setting &= ~(1<<7);
-    Serial.println(setting, HEX);
 
     //And write it to the register
     returnCode = WriteByte( MPL3115A2_REGISTER::CONTROL_REGISTER_1, setting );

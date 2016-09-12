@@ -64,7 +64,7 @@ void CMPL3115A2::InitializeSensor()
 void CMPL3115A2::Update( CCommand &commandIn )
 {
     //1 Hz
-    if( mpl3115a2_sample_timer.HasElapsed( 1000 ) )
+    if( mpl3115a2_sample_timer.HasElapsed( 2000 ) )
     {
         float pressure;
 
