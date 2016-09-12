@@ -17,7 +17,7 @@ CControllerBoard m_controllerBoard;
 
 #if(HAS_STD_LIGHTS)
 #include "CLights.h"
-CLights m_lights;
+CLights m_lights( "light", "internal" );
 #endif
 
 #if(THRUSTER_CONFIGURATION != THRUSTER_CONFIG_NONE )
