@@ -135,87 +135,9 @@ ERetCode MPL3115A2::ReadPressure( float& pressureOut )
     {
         return ERetCode::FAILED;
     }
-    
-    if( ( status & (1<<2) )  == 0 )
-    {
-        //Serial.println( "HAVE TO TOGGLE ONESHOT" );
-        ToggleOneShot();
-    }
 
-    //Wait for PDR bit 
-    int counter = 0;
-    retCode = ReadByte( MPL3115A2_REGISTER::STATUS, status );
-    if( retCode != I2C::ERetCode::SUCCESS )
-    {
-        return ERetCode::FAILED;
-    }
-    while( ( status & (1<<2) )  == 0 )
-    {
-        //Check that bit again, duh
-        retCode = ReadByte( MPL3115A2_REGISTER::STATUS, status );
-        if( retCode != I2C::ERetCode::SUCCESS )
-        {
-            return ERetCode::FAILED;
-        }
+    Serial.println(status, HEX);
 
-        if( ++counter > 600 )
-        {
-            return ERetCode::TIMED_OUT;
-        }
-    }
-
-    return ERetCode::SUCCESS;
-}
-
-
-
-/***************************************************************************
-    PRIVATE FUNCTIONS
- ***************************************************************************/
-
-ERetCode MPL3115A2::VerifyChipId()
-{
-    //Read the chip id
-    uint8_t id;
-
-    auto ret = ReadByte( MPL3115A2_REGISTER::WHO_AM_I, id );
-
-    if( ret != I2C::ERetCode::SUCCESS )
-    {
-        return ERetCode::FAILED;
-    }
-
-    //Check to see if it matches the proper ID (0xC4)
-    if( id != 0xC4 )
-    {
-        return ERetCode::FAILED;
-    }
-
-    return ERetCode::SUCCESS;
-}
-
-ERetCode MPL3115A2::SetModeBarometer()
-{
-    int32_t returnCode;
-    
-    //Read the current settings
-    uint8_t setting;
-
-    returnCode = ReadByte( MPL3115A2_REGISTER::CONTROL_REGISTER_1, setting );
-    if( returnCode != I2C::ERetCode::SUCCESS )
-    {
-        return ERetCode::FAILED;
-    }
-
-    //Clear the altimeter bit
-    setting &= ~(1<<7);
-
-    //And write it to the register
-    returnCode = WriteByte( MPL3115A2_REGISTER::CONTROL_REGISTER_1, setting );
-    if( returnCode != I2C::ERetCode::SUCCESS )
-    {
-        return ERetCode::FAILED;
-    }
 
     return ERetCode::SUCCESS;
 }
