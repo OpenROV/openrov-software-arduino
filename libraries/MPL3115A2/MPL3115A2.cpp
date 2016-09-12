@@ -151,7 +151,14 @@ ERetCode MPL3115A2::ReadPressure( float& pressureOut )
     }
     while( ( status & (1<<2) )  == 0 )
     {
-        if( counter > 600 )
+        //Check that bit again, duh
+        retCode = ReadByte( MPL3115A2_REGISTER::STATUS, status );
+        if( retCode != I2C::ERetCode::SUCCESS )
+        {
+            return ERetCode::FAILED;
+        }
+
+        if( ++counter > 600 )
         {
             return ERetCode::TIMED_OUT;
         }
