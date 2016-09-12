@@ -22,6 +22,7 @@ void HandleRegistration()
 	if( NCommManager::m_isCommandAvailable )
 	{
 		// Check for ack message that matches this module's UUID
+		// TODO: Work out new CCommand with built in support for filtering on UUID checking
 		if( NCommManager::m_currentCommand.Equals( "ack" ) && NCommManager::m_currentCommand.m_arguments[1] == m_uuid )
 		{
 			if( m_disabling )

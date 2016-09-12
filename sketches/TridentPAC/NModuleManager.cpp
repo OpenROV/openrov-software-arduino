@@ -66,6 +66,7 @@ namespace NModuleManager
 				}
 			}
 
+			// Call the module's implemented Initialize() and Update() methods
 			m_pModules[ i ]->HandleUpdate();
 		}
 	}
