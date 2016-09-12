@@ -28,7 +28,7 @@ void HandleRegistration()
 			{
 				if( m_disabling )
 				{
-					m_regStatus == ERegistrationStatus::DISABLED;
+					m_regStatus = ERegistrationStatus::DISABLED;
 				}
 				else
 				{
@@ -38,7 +38,11 @@ void HandleRegistration()
 			else
 			{
 				// Send registration request
-				// Serial.println( "reg:" + m_pid + m_uuid + m_behaviors + m_traits );
+				Serial.print( "reg:" );
+				Serial.print( m_pid );			Serial.print( "|" );
+				Serial.print( m_uuid );			Serial.print( "|" );
+				Serial.print( m_behaviors );	Serial.print( "|" );
+				Serial.print( m_traits );		Serial.println( ";" );
 			}
 		}
 	}

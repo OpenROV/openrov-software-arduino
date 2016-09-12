@@ -45,6 +45,6 @@ public:
 	void DisableRegistration();													// Allows module to remove itself from the registration process: 	m_regStatus = DISABLED
 
 	// Pure virtuals - These methods must be instantiated in the module's implementation
-	virtual void Initialize() = 0;						
+	virtual bool Initialize() = 0;						
 	virtual void Update() = 0;
 };
