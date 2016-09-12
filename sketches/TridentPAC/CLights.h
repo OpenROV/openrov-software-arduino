@@ -6,7 +6,7 @@
 class CLights : public CModule
 {
 public:
-    void Initialize();
-    void Update( CCommand& commandIn );
+    bool Initialize();
+    void Update();
 };
 

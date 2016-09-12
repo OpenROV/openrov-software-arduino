@@ -24,12 +24,14 @@ namespace
 	}
 }
 
-void CLights::Initialize()
+bool CLights::Initialize()
 {
 	NVehicleManager::m_capabilityBitmask |= ( 1 << LIGHTS_CAPABLE );
 
 	light.Reset();
 	light.Write( 0 );
+
+	return true;
 }
 
 void CLights::Update()
