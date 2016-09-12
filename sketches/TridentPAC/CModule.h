@@ -21,6 +21,7 @@ public:
 
 	// Attributes
 	constexpr uint32_t	m_pid = __COUNTER__		// Permanently assign unique PID at compile using GCC macro trick
+	
 	bool 				m_hasUUID;
 	bool				m_disabling;
 	uint32_t			m_uuid;
@@ -41,7 +42,6 @@ public:
 
 	void ResetModule();															// Allows a supervisor to soft reset the module back to: 			m_modStatus = UNINITIALIZED
 	void DisableModule();														// Allows us to tell cockpit the module is no longer available: 	m_modStatus = DISABLED
-	inline bool IsDisabled() const { return ( m_modStatus == EModuleStatus::DISABLED ); };
 
 	void UpdateRegistration( const char* behaviorsIn, const char* traitsIn );	// Allows the module to change modalities and inform cockpit: 		m_hasUUID = false, m_regStatus = UNREGISTERED
 	void DisableRegistration();													// Allows module to remove itself from the registration process: 	m_regStatus = DISABLED
