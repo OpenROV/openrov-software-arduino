@@ -125,7 +125,7 @@ ERetCode MPL3115A2::EnableEventFlags()
 ERetCode MPL3115A2::ReadPressure( float& pressureOut )
 {
     int32_t retCode;
-    Serial.println("In pressure loop");
+    //Serial.println("In pressure loop");
 
     //Check the PDR bit to see if we need to toggle oneshot
     uint8_t status;
@@ -138,8 +138,23 @@ ERetCode MPL3115A2::ReadPressure( float& pressureOut )
     
     if( ( status & (1<<2) )  == 0 )
     {
-        Serial.println( "HAVE TO TOGGLE ONESHOT" );
+        //Serial.println( "HAVE TO TOGGLE ONESHOT" );
         ToggleOneShot();
+    }
+
+    //Wait for PDR bit 
+    int counter = 0;
+    retCode = ReadByte( MPL3115A2_REGISTER::STATUS, status );
+    if( retCode != I2C::ERetCode::SUCCESS )
+    {
+        return ERetCode::FAILED;
+    }
+    while( ( status & (1<<2) )  == 0 )
+    {
+        if( counter > 600 )
+        {
+            return ERetCode::TIMED_OUT;
+        }
     }
 
     return ERetCode::SUCCESS;
