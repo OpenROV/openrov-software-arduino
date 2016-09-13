@@ -125,9 +125,8 @@ ERetCode MPL3115A2::EnableEventFlags()
 ERetCode MPL3115A2::ReadPressure( float& pressureOut )
 {
     int32_t retCode;
-    //Serial.println("In pressure loop");
 
-    //Check the PDR bit to see if we need to toggle oneshot
+    //Check the PDR (pressure data ready) bit to see if we need to toggle oneshot
     uint8_t status;
 
     retCode = ReadByte( MPL3115A2_REGISTER::STATUS, status );
@@ -142,7 +141,7 @@ ERetCode MPL3115A2::ReadPressure( float& pressureOut )
     }
 
     //Wait for PDR bit, indicates we have new pressure data
-    int counter = 0;
+    uint16_t counter = 0;
     uint8_t pdr;
     while( ( pdr & (1<<2) ) == 0 )
     {
@@ -152,18 +151,17 @@ ERetCode MPL3115A2::ReadPressure( float& pressureOut )
             return ERetCode::FAILED;
         }
 
-        //Timeout after 600 ms
+        //Timeout
         if( ++counter > 600 )
         {
             return ERetCode::TIMED_OUT;
         }
     }
 
-    //Read the pressue registers
-    uint8_t buffer[3];
-    memset( buffer, 0, 3 );
+    //Read the pressure registers
+    uint8_t buffer[3] = {};
 
-    retCode = ReadNByte( MPL3115A2_REGISTER::PRESSURE_OUT_MSB, 3, buffer );
+    retCode = ReadNBytes( MPL3115A2_REGISTER::PRESSURE_OUT_MSB, 3, buffer );
     if( retCode != I2C::ERetCode::SUCCESS )
     {
         return ERetCode::FAILED;
@@ -176,22 +174,22 @@ ERetCode MPL3115A2::ReadPressure( float& pressureOut )
     //Take another reading
     ToggleOneShot();
 
-    //Pressue comes back as a left shifted 20 bit-number
-    long totalPressue = (long)msb<<16 | (long)csb<<8 | (long)lsb;
+    //Pressure comes back as a left shifted 20 bit-number
+    uint32_t totalPressure = (uint32_t)(msb<<16) | (uint32_t)(csb<<8) | (uint32_t)lsb;
 
     //Pressure is an 18 bit number with 2 bits of decimal. Get rid of decimal portion.
-    totalPressue >>= 6;
+    totalPressure >>= 6;
 
     //Bits 5/4 represent the fractional component
-    lsb &= B00110000;
+    lsb &= 0x30; //B00110000
     
     //Get it right aligned
     lsb >>= 4;
 
     //Turn it into a fraction
-    float decimalPressure = (float)lsb/4.0;
+    float decimalPressure = (float)lsb/4.0f;
 
-    pressureOut = (float)totalPressue + decimalPressure;
+    pressureOut = (float)totalPressure + decimalPressure;
 
     return ERetCode::SUCCESS;
 }

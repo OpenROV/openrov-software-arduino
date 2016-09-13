@@ -76,6 +76,9 @@ namespace mpl3115a2
             
         private:
 
+        //TODO
+        //Add bit fields
+
             enum class MPL3115A2_REGISTER : uint8_t
             {
                 STATUS                      = 0x00,
