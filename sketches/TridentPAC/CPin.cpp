@@ -1,25 +1,17 @@
 #include "CPin.h"
 
-CPin::CPin( int pin_number, bool digital_truth, bool in_out )
+CPin::CPin( uint8_t pinNumberIn, EPinType pinTypeIn, EPinDirection pinDirectionIn )
+    : m_pinNumber( pinNumberIn )
+    , m_pinType( pinTypeIn )
+    , pinDirection( pinDirectionIn )
 {
-    m_pinNumber = pin_number;
-    m_isDigital = digital_truth;
-    m_isInput   = in_out;
-}
+    static_assert( pinTypeIn < EPinType::PINTYPE_COUNT );
+    static_assert( pinDirIn < EPinDirection::PINDIR_COUNT );
 
-CPin::CPin( int pin_number, bool digital_truth )
-{
-    m_name      = module_name;
-    m_pinNumber = pin_number;
-    m_isDigital = digital_truth;
-    m_isInput   = kInput;  // default to input
-}
-
-void CPin::Reset()
-{
-    if( m_isDigital )
+    // Set up digital pin directions
+    if( m_pinType == EPinType::DIGITAL )
     {
-        if( m_isInput )
+        if( m_pinDirection == EPinDirection::INPUT )
         {
             pinMode( m_pinNumber, INPUT );
         }
@@ -30,45 +22,71 @@ void CPin::Reset()
     }
 }
 
-int CPin::Read()
+uint32_t CPin::Read()
 {
-    if( m_isInput )
+    if( m_pinDirection == EPinDirection::INPUT )
     {
-        if( m_isDigital )
+        switch( m_pinType )
         {
-            m_value = digitalRead( m_pinNumber );
-        }
-        else
-        {
-            m_value = analogRead( m_pinNumber );
-        }
+            case EPinType::DIGITAL:
+            {
+                return digitalRead( m_pinNumber );
+            }
 
-        return m_value;
+            case EPinType::ANALOG:
+            {
+                return analogRead( m_pinNumber );
+            }
+            
+            default:
+            {
+                return 0;
+            }
+        }
     }
-
-    return -1;
+    else
+    {
+        return 0;
+    }
 }
 
-void CPin::Write( int val )
+void CPin::Write( int valueIn )
 {
-    if( !m_isInput )
+    if( m_pinDirection == EPinDirection::OUTPUT )
     {
-        if( m_isDigital )
+        switch( m_pinType )
         {
-            if( val == 0 )
+            case EPinType::DIGITAL:
             {
-                digitalWrite( m_pinNumber, LOW );
+                if( valueIn == 0 )
+                {
+                    digitalWrite( m_pinNumber, LOW );
+                }
+                else
+                {
+                    digitalWrite( m_pinNumber, HIGH );
+                }
+
+                return;
             }
-            else
+
+            case EPinType::ANALOG:
             {
-                digitalWrite( m_pinNumber, HIGH );
+                analogWrite( m_pinNumber, valueIn );
+                return;
             }
-        }
-        else
-        {
-            analogWrite( m_pinNumber, val );
+            
+            default:
+            {
+                return;
+            }
         }
     }
+}
 
-    m_value = val;
+void CPin::SetDirection( EPinDirection dirIn )
+{
+    static_assert( pinDirIn < EPinDirection::PINDIR_COUNT );
+
+    m_pinDirection = dirIn;
 }

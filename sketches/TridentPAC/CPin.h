@@ -3,26 +3,34 @@
 // Includes
 #include <Arduino.h>
 
+// TODO: Eventually make GPIO handled with templates so the different pin types can be sorted out at compile time
 class CPin
 {
-private:
-    int	m_pinNumber;
-    int	m_value;
-
-    bool m_isDigital;
-    bool m_isInput;
-
 public:
-    static const bool kAnalog	= false;
-    static const bool kDigital	= true;
-    static const bool kOutput	= false;
-    static const bool kInput	= true;
+    enum class EPinType
+    {
+        DIGITAL,
+        ANALOG,
+        PINTYPE_COUNT
+    };
 
-    CPin( int pin_number, bool digital_truth, bool in_out );
-    CPin( int pin_number, bool digital_truth );
+    enum class EPinDirection
+    {
+        INPUT,
+        OUTPUT,
+        PINDIR_COUNT
+    };
 
-    int Read();
-    void Write( int val );
+    CPin( uint8_t pinNumberIn, EPinType pinTypeIn, EPinDirection pinDirectionIn = EPinDirection::INPUT );
 
-    void Reset();
+    int32_t Read();
+    void Write( uint32_t valueIn );
+
+    void SetDirection( EPinDirection dirIn );
+
+private:
+    const uint8_t       m_pinNumber;
+    const EPinType      m_pinType;
+    
+    EPinDirection       m_pinDirection;
 };
