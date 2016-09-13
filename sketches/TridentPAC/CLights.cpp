@@ -17,11 +17,18 @@ namespace
 	uint32_t m_power = 0;
 
 	// Methods
-	uint8_t ConvertPowerToAnalog() const 
+	inline uint8_t ConvertPowerToAnalog() const 
 	{ 
 		// TODO: This is really non-optimal computationally on a non-FPU mcu
 		return (int)( 255.0f * (float)m_power / 1000000.0f ); 
 	}
+}
+
+CLights::CLights( uint32_t pwmPinIn, const char *behaviorsIn, const char* traitsIn )
+	: CModule( behaviorsIn, traitsIn )
+	, m_pwmPin( pwmPinIn )
+{
+	
 }
 
 bool CLights::Initialize()
@@ -71,6 +78,9 @@ void CLights::Update()
 			Serial.print( m_power ); 	Serial.println( ";" );
 		}
 	}
+
+	// TODO: Telemtry Timer Loop?
+	// State change forced send
 }
 
 #endif
