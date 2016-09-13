@@ -161,7 +161,7 @@ ERetCode MPL3115A2::ReadPressure( float& pressureOut )
     //Read the pressure registers
     uint8_t buffer[3] = {};
 
-    retCode = ReadNBytes( MPL3115A2_REGISTER::PRESSURE_OUT_MSB, 3, buffer );
+    retCode = ReadNBytes( MPL3115A2_REGISTER::PRESSURE_OUT_MSB, buffer, 3 );
     if( retCode != I2C::ERetCode::SUCCESS )
     {
         return ERetCode::FAILED;
