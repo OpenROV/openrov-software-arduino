@@ -1,14 +1,13 @@
 #include "CPin.h"
 
-CPin::CPin( String module_name, int pin_number, bool digital_truth, bool in_out )
+CPin::CPin( int pin_number, bool digital_truth, bool in_out )
 {
-    m_name      = module_name;
     m_pinNumber = pin_number;
     m_isDigital = digital_truth;
     m_isInput   = in_out;
 }
 
-CPin::CPin( String module_name, int pin_number, bool digital_truth )
+CPin::CPin( int pin_number, bool digital_truth )
 {
     m_name      = module_name;
     m_pinNumber = pin_number;
@@ -29,15 +28,6 @@ void CPin::Reset()
             pinMode( m_pinNumber, OUTPUT );
         }
     }
-}
-
-void CPin::Send( int val )
-{
-    char output[MAX_PIN_OUTPUT_STRING_LENGTH];
-    String temp = m_name + kSeparator + ( String )val + kDelimeter;
-    temp.toCharArray( output, MAX_PIN_OUTPUT_STRING_LENGTH - 1 );
-
-    Serial.write( output );
 }
 
 int CPin::Read()
@@ -81,12 +71,4 @@ void CPin::Write( int val )
     }
 
     m_value = val;
-}
-
-String CPin::ToString()
-{
-    String dig = ( m_isDigital ) ? "1" : "0";
-    String inp = ( m_isInput ) ? "1" : "0";
-    String temp = inp + "__" + dig + "__" + ( String )m_value;
-    return temp;
 }
