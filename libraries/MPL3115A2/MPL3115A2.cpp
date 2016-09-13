@@ -159,6 +159,40 @@ ERetCode MPL3115A2::ReadPressure( float& pressureOut )
         }
     }
 
+    //Read the pressue registers
+    uint8_t buffer[3];
+    memset( buffer, 0, 3 );
+
+    retCode = ReadNByte( MPL3115A2_REGISTER::PRESSURE_OUT_MSB, 3, buffer );
+    if( retCode != I2C::ERetCode::SUCCESS )
+    {
+        return ERetCode::FAILED;
+    }
+
+    auto msb = buffer[0];
+    auto csb = buffer[1];
+    auto lsb = buffer[2];
+
+    //Take another reading
+    ToggleOneShot();
+
+    //Pressue comes back as a left shifted 20 bit-number
+    long totalPressue = (long)msb<<16 | (long)csb<<8 | (long)lsb;
+
+    //Pressure is an 18 bit number with 2 bits of decimal. Get rid of decimal portion.
+    totalPressue >>= 6;
+
+    //Bits 5/4 represent the fractional component
+    lsb &= B00110000;
+    
+    //Get it right aligned
+    lsb >>= 4;
+
+    //Turn it into a fraction
+    float decimalPressure = (float)lsb/4.0;
+
+    pressureOut = (float)totalPressue + decimalPressure;
+
     return ERetCode::SUCCESS;
 }
 
