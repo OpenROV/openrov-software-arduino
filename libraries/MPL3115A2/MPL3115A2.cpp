@@ -130,12 +130,34 @@ ERetCode MPL3115A2::ReadPressure( float& pressureOut )
     //Check the PDR bit to see if we need to toggle oneshot
     uint8_t status;
 
-    retCode = ReadByte( MPL3115A2_REGISTER::CONTROL_REGISTER_1, status );
+    retCode = ReadByte( MPL3115A2_REGISTER::STATUS, status );
     if( retCode != I2C::ERetCode::SUCCESS )
     {
         return ERetCode::FAILED;
     }
-    Serial.println(status, HEX);
+    
+    if( ( status & ( 1<<2 ) ) == 0 )
+    {
+        ToggleOneShot();
+    }
+
+    //Wait for PDR bit, indicates we have new pressure data
+    int counter = 0;
+    uint8_t pdr;
+    while( ( pdr & (1<<2) ) == 0 )
+    {
+        retCode = ReadByte( MPL3115A2_REGISTER::STATUS, pdr );
+        if( retCode != I2C::ERetCode::SUCCESS )
+        {
+            return ERetCode::FAILED;
+        }
+
+        //Timeout after 600 ms
+        if( ++counter > 600 )
+        {
+            return ERetCode::TIMED_OUT;
+        }
+    }
 
     return ERetCode::SUCCESS;
 }
