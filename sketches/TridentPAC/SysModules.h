@@ -17,7 +17,8 @@ CControllerBoard m_controllerBoard;
 
 #if(HAS_STD_LIGHTS)
 #include "CLights.h"
-CLights m_lights( "light", "internal" );
+// TODO: Use established pinmap
+CLights m_lights( PIN_PWM_0, "light", "internal" );
 #endif
 
 #if(THRUSTER_CONFIGURATION != THRUSTER_CONFIG_NONE )

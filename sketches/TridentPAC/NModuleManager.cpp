@@ -62,7 +62,6 @@ namespace NModuleManager
 				{
 					// Let the module handle registration logic
 					m_pModules[ i ]->HandleRegistration();
-					m_regIssued = true;
 				}
 			}
 

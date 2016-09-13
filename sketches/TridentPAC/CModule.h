@@ -20,6 +20,7 @@ public:
 	}
 
 	// Attributes
+	// TODO: PermID?
 	constexpr uint32_t	m_pid = __COUNTER__		// Permanently assign unique PID at compile using GCC macro trick
 	
 	bool 				m_hasUUID;
