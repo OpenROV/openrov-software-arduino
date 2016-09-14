@@ -103,3 +103,7 @@
 
 // MPL3115A2 Alt/Pressure Sensor
 #define HAS_MPL3115A2				(1)
+
+// PCA9539 GPIO Expander
+#define HAS_PCA9539				(1)
+

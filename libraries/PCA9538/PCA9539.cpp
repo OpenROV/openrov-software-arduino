@@ -18,6 +18,10 @@ PCA9539::PCA9539( CI2C* i2cInterfaceIn )
     
 }
 
+ERetCode PCA9539::Initialize()
+{
+    Serial.println( "PCA9539.status: INIT" );
+}
 
 
 
