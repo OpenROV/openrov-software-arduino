@@ -31,13 +31,23 @@ namespace pca9539
             bool IsInitialized() const { return m_isInitialized; };
 
         private:
+
+            enum class PCA9539_REGISTER : uint8_t
+            {
+                INPUT_PORT = 0x00,
+                OUTPUT_PORT = 0x01,
+                POLARITY_INVERSION = 0x02,
+                CONFIG = 0x03
+            };
+
+
             //Private member functions
 
 
             
-            int32_t ReadByte( uint8_t addressIn, uint8_t& dataOut );
-            int32_t ReadNBytes( uint8_t addressIn, uint8_t* dataOut, uint8_t byteCountIn );
-            int32_t WriteByte( uint8_t addressIn, uint8_t dataIn );
+            int32_t ReadByte( PCA9539_REGISTER addressIn, uint8_t& dataOut );
+            int32_t ReadNBytes( PCA9539_REGISTER addressIn, uint8_t* dataOut, uint8_t byteCountIn );
+            int32_t WriteByte( PCA9539_REGISTER addressIn, uint8_t dataIn );
 
 
             //Private member attributes

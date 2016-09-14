@@ -24,7 +24,7 @@ ERetCode PCA9539::Initialize()
     
     uint8_t value;
 
-    auto ret = ReadByte( 0x00, value );
+    auto ret = ReadByte( PCA9539_REGISTER::OUTPUT_PORT, value );
     if( ret != I2C::ERetCode::SUCCESS )
     {
         return ERetCode::FAILED;
@@ -41,16 +41,16 @@ ERetCode PCA9539::Initialize()
 /***************************************************************************
     PRIVATE FUNCTIONS
  ***************************************************************************/
-int32_t PCA9539::WriteByte( uint8_t addressIn, uint8_t dataIn )
+int32_t PCA9539::WriteByte( PCA9539_REGISTER addressIn, uint8_t dataIn )
 {
 	return (int32_t)m_pI2C->WriteByte( m_i2cAddress, (uint8_t)addressIn, dataIn );
 }
 
-int32_t PCA9539::ReadByte( uint8_t addressIn, uint8_t &dataOut )
+int32_t PCA9539::ReadByte( PCA9539_REGISTER addressIn, uint8_t &dataOut )
 {
 	return (int32_t)m_pI2C->ReadByte( m_i2cAddress, (uint8_t)addressIn, &dataOut );
 }
-int32_t PCA9539::ReadNBytes( uint8_t addressIn, uint8_t* dataOut, uint8_t byteCountIn )
+int32_t PCA9539::ReadNBytes( PCA9539_REGISTER addressIn, uint8_t* dataOut, uint8_t byteCountIn )
 {
     return (int32_t)m_pI2C->ReadBytes( m_i2cAddress, (uint8_t)addressIn, dataOut, byteCountIn );
 }
