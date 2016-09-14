@@ -35,9 +35,9 @@ namespace pca9539
 
 
             
-            int32_t ReadByte( MPL3115A2_REGISTER addressIn, uint8_t& dataOut );
-            int32_t ReadNBytes( MPL3115A2_REGISTER addressIn, uint8_t* dataOut, uint8_t byteCountIn );
-            int32_t WriteByte( MPL3115A2_REGISTER addressIn, uint8_t dataIn );
+            int32_t ReadByte( uint8_t addressIn, uint8_t& dataOut );
+            int32_t ReadNBytes( uint8_t addressIn, uint8_t* dataOut, uint8_t byteCountIn );
+            int32_t WriteByte( uint8_t addressIn, uint8_t dataIn );
 
 
             //Private member attributes
@@ -46,5 +46,5 @@ namespace pca9539
 
             bool m_isInitialized = false;
 
-    }
+    };
 }
