@@ -257,6 +257,107 @@ ERetCode MPL3115A2::ReadAltitude( float& altitudeOut )
     return ERetCode::SUCCESS;
 }
 
+ERetCode ReadPressureAndTemp( float& pressureOut, float& tempOut )
+{
+    int32_t retCode;
+
+    //Check the PDR (pressure data ready) bit to see if we need to toggle oneshot
+    uint8_t status;
+
+    retCode = ReadByte( MPL3115A2_REGISTER::STATUS, status );
+    if( retCode != I2C::ERetCode::SUCCESS )
+    {
+        return ERetCode::FAILED;
+    }
+    
+    if( ( status & ( 1<<2 ) ) == 0 )
+    {
+        auto ret = ToggleOneShot();
+        if( retCode != ERetCode::SUCCESS )
+        {
+            return ERetCode::FAILED_ONESHOT;
+        }
+    }
+
+    //Wait for PDR bit, indicates we have new pressure data
+    uint16_t counter = 0;
+    uint8_t pdr;
+    while( ( pdr & (1<<2) ) == 0 )
+    {
+        retCode = ReadByte( MPL3115A2_REGISTER::STATUS, pdr );
+        if( retCode != I2C::ERetCode::SUCCESS )
+        {
+            return ERetCode::FAILED;
+        }
+
+        //Timeout
+        if( ++counter > 600 )
+        {
+            return ERetCode::TIMED_OUT;
+        }
+    }
+
+    //Read the pressure registers
+    uint8_t pressureBuffer[3] = {};
+
+    retCode = ReadNBytes( MPL3115A2_REGISTER::PRESSURE_OUT_MSB, pressureBuffer, 3 );
+    if( retCode != I2C::ERetCode::SUCCESS )
+    {
+        return ERetCode::FAILED;
+    }
+
+    //Read the Temp registers
+    uint8_t tempBuffer[2] = {};
+    retCode = ReadNBytes( MPL3115A2_REGISTER::TEMP_OUT_MSB, tempBuffer, 2 );
+    if( retCode != I2C::ERetCode::SUCCESS )
+    {
+        return ERetCode::FAILED;
+    }
+
+    //Take another reading
+    auto ret = ToggleOneShot();
+    if( retCode != ERetCode::SUCCESS )
+    {
+        return ERetCode::FAILED_ONESHOT;
+    }
+
+    //Pressure conversion
+    auto pressureMSB = pressureBuffer[0];
+    auto pressureCSB = pressureBuffer[1];
+    auto pressureLSB = pressureBuffer[2];
+
+    //Pressure comes back as a left shifted 20 bit-number
+    uint32_t totalPressure = (uint32_t)(pressureMSB<<16) | (uint32_t)(pressureCSB<<8) | (uint32_t)pressureLSB;
+
+    //Pressure is an 18 bit number with 2 bits of decimal. Get rid of decimal portion.
+    totalPressure >>= 6;
+
+    //Bits 5/4 represent the fractional component
+    pressureLSB &= 0x30; //B00110000
+    
+    //Get it right aligned
+    pressureLSB >>= 4;
+
+    //Turn it into a fraction
+    float decimalPressure = (float)pressureLSB/4.0f;
+
+    pressureOut = (float)totalPressure + decimalPressure;
+
+
+    //Temp conversion
+    auto tempMSB = tempBuffer[0];
+    auto tempLSB = tempBuffer[1];
+
+    // Get temperature, the 12-bit temperature measurement in °C is comprised of a signed integer component and a fractional component.
+    // The signed 8-bit integer component is located in OUT_T_MSB. 
+    // The fractional component is located in bits 7-4 of OUT_T_LSB.
+    // Bits 3-0 of OUT_T_LSB are not used.
+
+    tempOut = (float)((signed char) tempMSB) + (float)(tempLSB >> 4) * 0.0625;
+
+    return ERetCode::SUCCESS;
+}
+
 
 /***************************************************************************
     PRIVATE FUNCTIONS

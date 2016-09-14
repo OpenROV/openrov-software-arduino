@@ -68,7 +68,6 @@ namespace mpl3115a2
 
             ERetCode ReadPressure( float& pressureOut );
             ERetCode ReadAltitude( float& altitudeOut );
-            ERetCode ReadTemperature( float& tempOut );
             ERetCode ReadPressureAndTemp( float& pressureOut, float& tempOut );
             
             ERetCode SetMode( EMode modeIn );
