@@ -204,7 +204,7 @@ ERetCode MPL3115A2::ReadPressure( float& pressureOut )
 
 //Reads the current altitude in meters
 //Unit must be set in altitude mode
-ERetCode ReadAltitude( float& altitudeOut )
+ERetCode MPL3115A2::ReadAltitude( float& altitudeOut )
 {
     int32_t retCode;
 
