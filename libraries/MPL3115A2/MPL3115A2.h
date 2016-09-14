@@ -67,6 +67,7 @@ namespace mpl3115a2
             bool IsInitialized() const { return m_isInitialized; };
 
             ERetCode ReadPressure( float& pressureOut );
+            ERetCode ReadAltitude( float& altitudeOut );
             ERetCode ReadTemperature( float& tempOut );
             ERetCode ReadPressureAndTemp( float& pressureOut, float& tempOut );
             

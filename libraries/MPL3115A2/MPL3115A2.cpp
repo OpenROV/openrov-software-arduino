@@ -120,7 +120,7 @@ ERetCode MPL3115A2::EnableEventFlags()
     return ERetCode::SUCCESS;
 }
 
-//Reads the current pressure in Pa
+//Reads the current pressure in kPa
 //Unit must be set in barometric pressure mode
 ERetCode MPL3115A2::ReadPressure( float& pressureOut )
 {
@@ -137,7 +137,11 @@ ERetCode MPL3115A2::ReadPressure( float& pressureOut )
     
     if( ( status & ( 1<<2 ) ) == 0 )
     {
-        ToggleOneShot();
+        retCode = ToggleOneShot();
+        if( retCode != ERetCode::SUCCESS )
+        {
+            return retCode;
+        }
     }
 
     //Wait for PDR bit, indicates we have new pressure data
@@ -172,7 +176,11 @@ ERetCode MPL3115A2::ReadPressure( float& pressureOut )
     auto lsb = buffer[2];
 
     //Take another reading
-    ToggleOneShot();
+    retCode = ToggleOneShot();
+    if( retCode != ERetCode::SUCCESS )
+    {
+        return retCode;
+    }
 
     //Pressure comes back as a left shifted 20 bit-number
     uint32_t totalPressure = (uint32_t)(msb<<16) | (uint32_t)(csb<<8) | (uint32_t)lsb;
@@ -194,6 +202,60 @@ ERetCode MPL3115A2::ReadPressure( float& pressureOut )
     return ERetCode::SUCCESS;
 }
 
+//Reads the current altitude in meters
+//Unit must be set in altitude mode
+ERetCode ReadAltitude( float& altitudeOut )
+{
+    int32_t retCode;
+
+    //Toggle the Overshot bit which causes the sensor to take another reading
+    retCode = ToggleOneShot();
+    if( retCode != ERetCode::SUCCESS )
+    {
+        return retCode;
+    }
+
+    //Wait for PDR bit, indicates we have new altitude data
+    uint16_t counter = 0;
+    uint8_t pdr;
+    while( ( pdr & (1<<1) ) == 0 )
+    {
+        retCode = ReadByte( MPL3115A2_REGISTER::STATUS, pdr );
+        if( retCode != I2C::ERetCode::SUCCESS )
+        {
+            return ERetCode::FAILED;
+        }
+
+        //Timeout
+        if( ++counter > 600 )
+        {
+            return ERetCode::TIMED_OUT;
+        }
+    }
+
+    //Read the altitde registers
+    uint8_t buffer[3] = {};
+
+    retCode = ReadNBytes( MPL3115A2_REGISTER::PRESSURE_OUT_MSB, buffer, 3 );
+    if( retCode != I2C::ERetCode::SUCCESS )
+    {
+        return ERetCode::FAILED;
+    }
+
+    auto msb = buffer[0];
+    auto csb = buffer[1];
+    auto lsb = buffer[2];
+
+    // The least significant bytes l_altitude and l_temp are 4-bit,
+	// fractional values, so you must cast the calulation in (float),
+	// shift the value over 4 spots to the right and divide by 16 (since 
+	// there are 16 values in 4-bits). 
+	float tempCSB = (lsb>>4)/16.0;
+
+	altitudeOut = (float)( (msb << 8) | csb) + tempCSB;
+
+    return ERetCode::SUCCESS;
+}
 
 
 /***************************************************************************

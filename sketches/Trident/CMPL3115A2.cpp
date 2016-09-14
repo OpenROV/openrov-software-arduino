@@ -46,7 +46,7 @@ void CMPL3115A2::InitializeSensor()
         Serial.println( "MPL3115A2_INIT_STATUS:SUCCESS;" );
 
         //Set the mode
-        m_mpl.SetMode( mpl3115a2::EMode::BAROMETER );
+        m_mpl.SetMode( mpl3115a2::EMode::ALTIMETER );
 
         //Set the over sample rate_div
         m_mpl.SetOversampleRatio( mpl3115a2::EOversampleRatio::OSR_128 );
@@ -75,7 +75,7 @@ void CMPL3115A2::Update( CCommand &commandIn )
 
         //Attempt to read the pressue
         float pressure;
-        auto ret = m_mpl.ReadPressure(pressure);
+        auto ret = m_mpl.ReadAltitude(pressure);
         if( ret != mpl3115a2::ERetCode::SUCCESS )
         {
             Serial.print( "MPL3115A2.Status:ERROR: " );
