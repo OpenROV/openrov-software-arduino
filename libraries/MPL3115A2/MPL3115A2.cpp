@@ -137,7 +137,7 @@ ERetCode MPL3115A2::ReadPressure( float& pressureOut )
     
     if( ( status & ( 1<<2 ) ) == 0 )
     {
-        retCode = ToggleOneShot();
+        retCode = static_cast<int32_t>( ToggleOneShot() );
         if( retCode != ERetCode::SUCCESS )
         {
             return retCode;
@@ -209,7 +209,7 @@ ERetCode MPL3115A2::ReadAltitude( float& altitudeOut )
     int32_t retCode;
 
     //Toggle the Overshot bit which causes the sensor to take another reading
-    retCode = ToggleOneShot();
+    retCode = static_cast<int32_t>( ToggleOneShot() );
     if( retCode != ERetCode::SUCCESS )
     {
         return retCode;
@@ -392,7 +392,6 @@ ERetCode MPL3115A2::SetModeActive()
 //Needed to sample faster than 1Hz
 ERetCode MPL3115A2::ToggleOneShot()
 {
-    Serial.println( "Toggling one shot." );
     int32_t returnCode;
 
     //Read the current settings
