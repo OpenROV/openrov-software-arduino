@@ -21,6 +21,17 @@ PCA9539::PCA9539( CI2C* i2cInterfaceIn )
 ERetCode PCA9539::Initialize()
 {
     Serial.println( "PCA9539.status: INIT" );
+    
+    uint8_t value;
+
+    auto ret = ReadByte( 0x00, value );
+    if( ret != I2C::ERetCode::SUCCESS )
+    {
+        return ERetCode::FAILED;
+    }
+    Serial.println( value, HEX );
+
+    return ERetCode::SUCCESS;
 }
 
 
