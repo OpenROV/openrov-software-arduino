@@ -23,7 +23,7 @@ namespace mpl3115a2
 
     //TODO
     //We should really have a system wide firmware ret code framework
-    enum ERetCode
+    enum ERetCode : int32_t
     {
         SUCCESS,
         FAILED,

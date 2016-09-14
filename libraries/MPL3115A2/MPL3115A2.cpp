@@ -124,7 +124,7 @@ ERetCode MPL3115A2::EnableEventFlags()
 //Unit must be set in barometric pressure mode
 ERetCode MPL3115A2::ReadPressure( float& pressureOut )
 {
-    ERetCode retCode;
+    int32_t retCode;
 
     //Check the PDR (pressure data ready) bit to see if we need to toggle oneshot
     uint8_t status;
@@ -137,10 +137,10 @@ ERetCode MPL3115A2::ReadPressure( float& pressureOut )
     
     if( ( status & ( 1<<2 ) ) == 0 )
     {
-        retCode = ToggleOneShot();
+        auto ret = ToggleOneShot();
         if( retCode != ERetCode::SUCCESS )
         {
-            return retCode;
+            return ERetCode::FAILED_ONESHOT;
         }
     }
 
@@ -176,10 +176,10 @@ ERetCode MPL3115A2::ReadPressure( float& pressureOut )
     auto lsb = buffer[2];
 
     //Take another reading
-    retCode = ToggleOneShot();
+    auto ret = ToggleOneShot();
     if( retCode != ERetCode::SUCCESS )
     {
-        return retCode;
+        return ERetCode::FAILED_ONESHOT;
     }
 
     //Pressure comes back as a left shifted 20 bit-number
@@ -206,13 +206,13 @@ ERetCode MPL3115A2::ReadPressure( float& pressureOut )
 //Unit must be set in altitude mode
 ERetCode MPL3115A2::ReadAltitude( float& altitudeOut )
 {
-    ERetCode retCode;
+    int32_t retCode;
 
     //Toggle the Overshot bit which causes the sensor to take another reading
-    retCode = ToggleOneShot();
+    auto ret = ToggleOneShot();
     if( retCode != ERetCode::SUCCESS )
     {
-        return retCode;
+        return ERetCode::FAILED_ONESHOT;
     }
 
     //Wait for PDR bit, indicates we have new altitude data
