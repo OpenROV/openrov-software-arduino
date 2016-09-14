@@ -31,6 +31,7 @@ void CPCA9539::Update( CCommand &commandIn )
     if( pca9539_sample_timer.HasElapsed( 1000 ) )
     {
         Serial.println( "PCA9539.Status:LOOP;" );
+        m_pca.Initialize();
     }
 }
 
