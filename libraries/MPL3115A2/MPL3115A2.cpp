@@ -257,7 +257,7 @@ ERetCode MPL3115A2::ReadAltitude( float& altitudeOut )
     return ERetCode::SUCCESS;
 }
 
-ERetCode ReadPressureAndTemp( float& pressureOut, float& tempOut )
+ERetCode MPL3115A2::ReadPressureAndTemp( float& pressureOut, float& tempOut )
 {
     int32_t retCode;
 
