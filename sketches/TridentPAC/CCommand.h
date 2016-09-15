@@ -20,7 +20,6 @@ class CCommand
 	// Attributes
 public:
 	static int m_arguments[ COMMAND_MAX_ARGUMENTS ];
-
 	static char m_text[ COMMAND_DATA_BUFFER_SIZE + 1 ];
 
 	// Methods
@@ -28,8 +27,15 @@ public:
 	boolean GetCommandString();
 	boolean Equals( const char *commandStringIn );
 
+	// Boolean functions that modules can use to filter messages destined for them
+	bool IsForMe( uint32_t uuidIn );
+	bool IsForBehavior( const char* behaviorIn );
+	bool IsCommand( const char* commandNameIn );
+
 	static void PushCommand( char *textIn, int argumentsIn[ COMMAND_MAX_ARGUMENTS ] );
 	static void Reset();
+
+
 
 private:
 	void Parse();
