@@ -52,6 +52,7 @@ ERetCode PCA9539::Initialize()
 
 
     m_gpioState |= (1 << 5);
+    Serial.println( m_gpioState, HEX);
 
     //Write it
     ret = WriteByte( PCA9539_REGISTER::OUTPUT_PORT, m_gpioState);
