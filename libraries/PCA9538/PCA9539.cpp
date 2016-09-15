@@ -22,11 +22,12 @@ ERetCode PCA9539::Initialize()
 {
     Serial.println( "PCA9539.status: INIT" );
     
-    uint8_t value;
+    uint8_t value = 0x01;
 
-    auto ret = ReadByte( PCA9539_REGISTER::CONFIG, value );
+    auto ret = WriteByte( PCA9539_REGISTER::CONFIG, value );
     if( ret != I2C::ERetCode::SUCCESS )
     {
+        Serial.println("FAILED");
         return ERetCode::FAILED;
     }
     Serial.println( value, HEX );
