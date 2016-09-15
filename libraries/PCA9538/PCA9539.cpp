@@ -54,7 +54,7 @@ ERetCode PCA9539::Initialize()
     m_gpioState |= (1 << 5);
 
     //Write it
-    ret = WriteByte( PCA9539_REGISTER::OUTPUT, m_gpioState);
+    ret = WriteByte( PCA9539_REGISTER::OUTPUT_PORT, m_gpioState);
     if( ret != I2C::ERetCode::SUCCESS )
     {
         return ERetCode::FAILED;
