@@ -54,6 +54,11 @@ namespace pca9539
             uint8_t m_i2cAddress;
             CI2C* m_pI2C;
 
+            uint8_t m_gpioDirection;
+            uint8_t m_gpioState;
+
+            
+
             bool m_isInitialized = false;
 
     };

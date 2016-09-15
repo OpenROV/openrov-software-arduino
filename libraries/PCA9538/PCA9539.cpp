@@ -14,6 +14,8 @@ using namespace pca9539;
 PCA9539::PCA9539( CI2C* i2cInterfaceIn )
     : m_i2cAddress( pca9539::PCA9539_ADDRESS )
     , m_pI2C( i2cInterfaceIn )
+    , m_gpioDirection( 0xFF ) //All inputs
+    , m_gpioState( 0x00 ) //All low
 {
     
 }
@@ -21,16 +23,32 @@ PCA9539::PCA9539( CI2C* i2cInterfaceIn )
 ERetCode PCA9539::Initialize()
 {
     Serial.println( "PCA9539.status: INIT" );
-    
-    uint8_t value = 0x01;
 
-    auto ret = WriteByte( PCA9539_REGISTER::CONFIG, value );
+    m_gpioDirection = 0x00; //All outputs
+
+    uint8_t value;
+    //Read it
+    auto ret = ReadByte( PCA9539_REGISTER::CONFIG, value );
     if( ret != I2C::ERetCode::SUCCESS )
     {
-        Serial.println("FAILED");
         return ERetCode::FAILED;
     }
-    Serial.println( value, HEX );
+    Serial.println(value, HEX);
+
+    //Write it
+    ret = WriteByte( PCA9539_REGISTER::CONFIG, m_gpioDirection);
+    if( ret != I2C::ERetCode::SUCCESS )
+    {
+        return ERetCode::FAILED;
+    }
+
+    //Read it
+    ret = ReadByte( PCA9539_REGISTER::CONFIG, value );
+    if( ret != I2C::ERetCode::SUCCESS )
+    {
+        return ERetCode::FAILED;
+    }
+    Serial.println(value, HEX);
 
     return ERetCode::SUCCESS;
 }
