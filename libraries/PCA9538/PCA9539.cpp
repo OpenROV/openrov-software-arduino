@@ -24,7 +24,7 @@ ERetCode PCA9539::Initialize()
     
     uint8_t value;
 
-    auto ret = ReadByte( PCA9539_REGISTER::OUTPUT_PORT, value );
+    auto ret = ReadByte( PCA9539_REGISTER::CONFIG, value );
     if( ret != I2C::ERetCode::SUCCESS )
     {
         return ERetCode::FAILED;
