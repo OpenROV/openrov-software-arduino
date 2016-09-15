@@ -1,3 +1,5 @@
+  GNU nano 2.2.6                                File: libraries/PCA9538/PCA9539.cpp                                                                        
+
 /* 
  PCA9539 GPIO Expander Library
  By: OpenROV
@@ -51,20 +53,32 @@ ERetCode PCA9539::Initialize()
     Serial.println(value, HEX);
 
 
-    m_gpioState |= (1 << 5);
-    Serial.println( m_gpioState, HEX);
+    for( int i = 0; i < 15; ++i )
+    {
+        Serial.println( m_gpioState, HEX);
+        m_gpioState |= (1 << i);
+        //Write it
+        ret = WriteByte( PCA9539_REGISTER::OUTPUT_PORT, m_gpioState);
+        if( ret != I2C::ERetCode::SUCCESS )
+        {
+                return ERetCode::FAILED;
+        }
+        delay(100);
+    }
 
+    m_gpioState = 0x00;
     //Write it
     ret = WriteByte( PCA9539_REGISTER::OUTPUT_PORT, m_gpioState);
     if( ret != I2C::ERetCode::SUCCESS )
     {
-        return ERetCode::FAILED;
+            return ERetCode::FAILED;
     }
 
 
 
     return ERetCode::SUCCESS;
 }
+
 // value == HIGH ? _gpioState |= (1 << pin) : _gpioState &= ~(1 << pin);
 
 // if(HIGH)
