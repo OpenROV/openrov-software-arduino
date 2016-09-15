@@ -50,9 +50,30 @@ ERetCode PCA9539::Initialize()
     }
     Serial.println(value, HEX);
 
+
+    m_gpioState |= (1 << 5);
+
+    //Write it
+    ret = WriteByte( PCA9539_REGISTER::OUTPUT, m_gpioState);
+    if( ret != I2C::ERetCode::SUCCESS )
+    {
+        return ERetCode::FAILED;
+    }
+
+
+
     return ERetCode::SUCCESS;
 }
+value == HIGH ? _gpioState |= (1 << pin) : _gpioState &= ~(1 << pin);
 
+if(HIGH)
+{
+    value = _gpioState |= (1 << pin);
+}
+else
+{
+    _gpioState &= ~(1 << pin)
+}
 
 
 
