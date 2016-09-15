@@ -2,40 +2,30 @@
 #if(HAS_STD_LIGHTS)
 
 // Includes
-#include <Arduino.h>
 #include "CLights.h"
-#include "CPin.h"
 #include "NCommManager.h"
-#include "NVehicleManager.h"
 #include "PinDefinitions.h"
 
-// Private
+// Private helpers
 namespace
 {
-	// Attributes
-	CPin light( "light", PIN_STANDARD_LIGHTS, CPin::kAnalog, CPin::kOutput );
-	uint32_t m_power = 0;
-
 	// Methods
-	inline uint8_t ConvertPowerToAnalog() const 
+	inline uint8_t ConvertPowerToAnalog( uint32_t powerIn )
 	{ 
 		// TODO: This is really non-optimal computationally on a non-FPU mcu
-		return (int)( 255.0f * (float)m_power / 1000000.0f ); 
+		return (uint8_t)( 255.0f * (float)powerIn / 1000000.0f ); 
 	}
 }
 
 CLights::CLights( uint32_t pwmPinIn, const char *behaviorsIn, const char* traitsIn )
 	: CModule( behaviorsIn, traitsIn )
-	, m_pwmPin( pwmPinIn )
+	, m_pwmPin( pwmPinIn, EPinType::ANALOG, EPinDirection::OUTPUT )
 {
-	
 }
 
 bool CLights::Initialize()
 {
-	NVehicleManager::m_capabilityBitmask |= ( 1 << LIGHTS_CAPABLE );
-
-	light.Reset();
+	// Make sure the light is off
 	light.Write( 0 );
 
 	return true;
