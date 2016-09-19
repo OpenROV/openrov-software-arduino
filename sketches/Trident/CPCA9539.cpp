@@ -51,6 +51,7 @@ void CPCA9539::SOS()
     //S
     if( isS )
     {
+        Serial.println( "In S loop" );
         if( pca9539_high_timer.HasElapsed(300) )
         {
             if(isHigh)
@@ -79,6 +80,7 @@ void CPCA9539::SOS()
     }
     else
     {
+        Serial.println( "In O loop" );
         if( pca9539_high_timer.HasElapsed(800) )
         {
             if(isHigh)
