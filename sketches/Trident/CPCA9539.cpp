@@ -67,7 +67,7 @@ void CPCA9539::SOS()
         }
         if( sosCounter == 3 )
         {
-            isS = false
+            isS = false;
             sosCounter = 0;
         }
     }
@@ -91,7 +91,7 @@ void CPCA9539::SOS()
         }
         if( sosCounter == 3 )
         {
-            isS = true
+            isS = true;
             sosCounter = 0;
         }
     }
