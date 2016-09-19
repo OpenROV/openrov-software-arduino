@@ -6,16 +6,12 @@
 #include "CTimer.h"
 #include "NDataManager.h"
 
-class BoolTimer : public CTimer
-{
-    uint32_t GetElapsed() const { return ( Now() - m_startTimeMs ); };
-}
-
-
 namespace
 {
     CTimer pcaSampleTimer;
-    BoolTimer bitTimer;
+
+    uint32_t elapsed;
+    uint32_t start;
 }
 
 CPCA9539::CPCA9539( CI2C *i2cInterfaceIn )
@@ -30,7 +26,7 @@ void CPCA9539::Initialize()
 
     //Timer resets
     pcaSampleTimer.Reset();
-    bitTimer.Reset();
+    start = Now();
     
     //Expander init
     m_pca.Initialize();
@@ -43,7 +39,7 @@ void CPCA9539::Update( CCommand &commandIn )
 {
     if( pcaSampleTimer.HasElapsed( 1000 ) )
     {
-        auto elapsed = BoolTimer.GetElapsed();
+        auto elapsed = Now() - start;
         Serial.println( elapsed );
     }
 }
