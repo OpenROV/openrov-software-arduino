@@ -96,61 +96,44 @@ ERetCode PCA9539::PinMode( uint8_t pin, bool mode )
     {
         return ERetCode::FAILED_PIN_MODE;
     }
+
     return ERetCode::SUCCESS;
-
-
 }
     
 
-    uint8_t value;
-    //Read it
-    auto ret = ReadByte( PCA9539_REGISTER::CONFIG, value );
-    if( ret != I2C::ERetCode::SUCCESS )
+ERetCode PCA9539::DigitalWrite( uint8_t pin, bool value )
+{
+    //Pins 0..7 are r/w capable pins
+    if( pin > 8 )
     {
-        return ERetCode::FAILED;
-    }
-    Serial.println(value, HEX);
-
-    //Write it
-    ret = WriteByte( PCA9539_REGISTER::CONFIG, m_gpioDirection);
-    if( ret != I2C::ERetCode::SUCCESS )
-    {
-        return ERetCode::FAILED;
+        return ERetCode::FAILED_DIGITAL_WRITE;
     }
 
-    //Read it
-    ret = ReadByte( PCA9539_REGISTER::CONFIG, value );
-    if( ret != I2C::ERetCode::SUCCESS )
+    if( value == HIGH )
     {
-        return ERetCode::FAILED;
+        //Set the bit to high. (set the bit)
+        m_gpioState |= ( 1 << pin );
     }
-    Serial.println(value, HEX);
-
-
-    for( int i = 0; i < 15; ++i )
+    else if( value == LOW )
     {
-        Serial.println( m_gpioState, HEX);
-        m_gpioState |= (1 << i);
-        //Write it
-        ret = WriteByte( PCA9539_REGISTER::OUTPUT_PORT, m_gpioState);
-        if( ret != I2C::ERetCode::SUCCESS )
-        {
-                return ERetCode::FAILED;
-        }
-        delay(100);
+        //Set the bit to high. (clear the bit)
+        m_gpioState &= ~( 1 << pin );
+    }
+    else
+    {
+        //Don't know what this is
+        return ERetCode::FAILED_DIGITAL_WRITE;
     }
 
-    m_gpioState = 0x00;
     //Write it
     ret = WriteByte( PCA9539_REGISTER::OUTPUT_PORT, m_gpioState);
     if( ret != I2C::ERetCode::SUCCESS )
     {
-            return ERetCode::FAILED;
+        return ERetCode::FAILED_DIGITAL_WRITE;
     }
 
+    return ERetCode::SUCCESS;
 
-
-    
 }
 
 // value == HIGH ? _gpioState |= (1 << pin) : _gpioState &= ~(1 << pin);

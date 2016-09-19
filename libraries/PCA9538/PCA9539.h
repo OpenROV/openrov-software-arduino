@@ -20,6 +20,7 @@ namespace pca9539
         SUCCESS,
         FAILED,
         FAILED_PIN_MODE,
+        FAILED_DIGITAL_WRITE,
         TIMED_OUT,
         UNKNOWN
     };
@@ -29,8 +30,13 @@ namespace pca9539
         public:
             PCA9539( CI2C* i2cInterfaceIn );
 
+            ERetCode DigitalWrite( uint8_t pin, bool value );
+            
             ERetCode Initialize();
             bool IsInitialized() const { return m_isInitialized; };
+
+            ERetCode PinMode( uint16_t mode );
+            ERetCode PinMode( uint8_t pin, bool mode );
 
         private:
 
@@ -43,13 +49,7 @@ namespace pca9539
             };
 
 
-            //Private member functions
-
-            ERetCode PinMode( uint16_t mode );
-            ERetCode PinMode( uint8_t pin, bool mode );
-
-
-            
+            //Private member functions            
             int32_t ReadByte( PCA9539_REGISTER addressIn, uint8_t& dataOut );
             int32_t ReadNBytes( PCA9539_REGISTER addressIn, uint8_t* dataOut, uint8_t byteCountIn );
             int32_t WriteByte( PCA9539_REGISTER addressIn, uint8_t dataIn );
@@ -61,8 +61,6 @@ namespace pca9539
 
             uint8_t m_gpioDirection;
             uint8_t m_gpioState;
-
-            
 
             bool m_isInitialized = false;
 
