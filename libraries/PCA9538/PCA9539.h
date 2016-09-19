@@ -5,6 +5,7 @@
 */
 
 #pragma once
+#include <Arduino.h>
 
 //Forward declaration of the I2C interface
 class CI2C;
@@ -18,6 +19,7 @@ namespace pca9539
     {
         SUCCESS,
         FAILED,
+        FAILED_PIN_MODE,
         TIMED_OUT,
         UNKNOWN
     };
@@ -34,14 +36,17 @@ namespace pca9539
 
             enum class PCA9539_REGISTER : uint8_t
             {
-                INPUT_PORT = 0x00,
-                OUTPUT_PORT = 0x01,
-                POLARITY_INVERSION = 0x02,
-                CONFIG = 0x03
+                INPUT_PORT = 0x00, //Input port registers
+                OUTPUT_PORT = 0x01, //Output port registers
+                POLARITY_INVERSION = 0x02, //Polarity inversion registers
+                CONFIG = 0x03 //Configuration registers
             };
 
 
             //Private member functions
+
+            ERetCode PinMode( uint16_t mode );
+            ERetCode PinMode( uint8_t pin, bool mode );
 
 
             
