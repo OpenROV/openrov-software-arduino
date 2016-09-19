@@ -16,7 +16,7 @@ namespace
     bool isS = true; //s = true, o = false
     CTimer pca9539_s_timer;
 
-    bool toggle = true;
+    //bool toggle = true;
 
 }
 
@@ -65,7 +65,7 @@ void CPCA9539::SOS()
             }
             ++sosCounter;
         }
-        if( sosCounter = 3 )
+        if( sosCounter == 3 )
         {
             isS = false
             sosCounter = 0;
@@ -89,7 +89,7 @@ void CPCA9539::SOS()
             }
             ++sosCounter;
         }
-        if( sosCounter = 3 )
+        if( sosCounter == 3 )
         {
             isS = true
             sosCounter = 0;
@@ -102,10 +102,7 @@ void CPCA9539::SOS()
 void CPCA9539::KnightRider()
 {
     //Delay in ms between flashes
-    auto delay = 20;
-
-
-
+    // auto delay = 20;
 }
 
 
