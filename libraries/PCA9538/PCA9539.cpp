@@ -56,7 +56,7 @@ ERetCode PCA9539::PinMode( uint16_t mode )
     }
     
     //Write it
-    ret = WriteByte( PCA9539_REGISTER::CONFIG, m_gpioDirection);
+    auto ret = WriteByte( PCA9539_REGISTER::CONFIG, m_gpioDirection);
     if( ret != I2C::ERetCode::SUCCESS )
     {
         return ERetCode::FAILED_PIN_MODE;
@@ -91,7 +91,7 @@ ERetCode PCA9539::PinMode( uint8_t pin, bool mode )
     }
 
     //Write it
-    ret = WriteByte( PCA9539_REGISTER::CONFIG, m_gpioDirection);
+    auto ret = WriteByte( PCA9539_REGISTER::CONFIG, m_gpioDirection);
     if( ret != I2C::ERetCode::SUCCESS )
     {
         return ERetCode::FAILED_PIN_MODE;
@@ -126,7 +126,7 @@ ERetCode PCA9539::DigitalWrite( uint8_t pin, bool value )
     }
 
     //Write it
-    ret = WriteByte( PCA9539_REGISTER::OUTPUT_PORT, m_gpioState);
+    auto ret = WriteByte( PCA9539_REGISTER::OUTPUT_PORT, m_gpioState);
     if( ret != I2C::ERetCode::SUCCESS )
     {
         return ERetCode::FAILED_DIGITAL_WRITE;
