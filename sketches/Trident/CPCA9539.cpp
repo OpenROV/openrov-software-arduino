@@ -38,6 +38,14 @@ void CPCA9539::Initialize()
 
     Serial.println( "CPCA9539.Status:POST_INIT;");
 }
+void CPCA9539::character( int pin, int speed )
+{
+    m_pca.DigitalWrite(pin, HIGH);
+    if( pca9539_sos_timer.HasElapsed( speed) )
+    {
+        m_pca.DigitalWrite(pin, LOW);
+    }
+}
 
 void CPCA9539::Update( CCommand &commandIn )
 {
@@ -58,14 +66,7 @@ void CPCA9539::SOS()
     }
 
 }
-void character( int pin, int speed )
-{
-    m_pca.DigitalWrite(pin, HIGH);
-    if( pca9539_sos_timer.HasElapsed( speed) )
-    {
-        m_pca.DigitalWrite(pin, LOW);
-    }
-}
+
 
 void CPCA9539::KnightRider()
 {
