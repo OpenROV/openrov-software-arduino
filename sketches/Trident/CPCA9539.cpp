@@ -9,6 +9,8 @@
 namespace
 {
     CTimer pca9539_sample_timer;
+    bool toggle = true;
+
 }
 
 CPCA9539::CPCA9539( CI2C *i2cInterfaceIn )
@@ -22,6 +24,8 @@ void CPCA9539::Initialize()
     Serial.println( "CPCA9539.Status:INIT;" );
 
     pca9539_sample_timer.Reset();
+    m_pca.Initialize();
+    m_pca.PinMode( OUTPUT );
 
     Serial.println( "CPCA9539.Status:POST_INIT;");
 }
@@ -31,7 +35,17 @@ void CPCA9539::Update( CCommand &commandIn )
     if( pca9539_sample_timer.HasElapsed( 1000 ) )
     {
         Serial.println( "PCA9539.Status:LOOP;" );
-        m_pca.Initialize();
+        if( toggle )
+        {
+            auto ret = m_pca.DigitalWrite( 0 , HIGH )
+            Serial.println( ret );
+        }
+        else
+        {
+            auto ret = m_pca.DigitalWrite( 0 , LOW )
+            Serial.println( ret );
+        }
+        
     }
 }
 
