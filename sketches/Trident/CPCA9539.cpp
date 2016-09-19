@@ -53,10 +53,16 @@ void CPCA9539::Update( CCommand &commandIn )
                 Serial.println( ret );
             }
 
-            toggle = false;
+            toggle = true;
         }
         
     }
 }
+
+void CPCA9539::KnightRider()
+{
+    //stub
+}
+
 
 #endif
