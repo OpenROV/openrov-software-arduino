@@ -39,7 +39,7 @@ void CPCA9539::Update( CCommand &commandIn )
         {
             for( size_t i = 0; i < 8; ++i )
             {
-                auto ret = m_pca.DigitalWrite( 0 , HIGH );
+                auto ret = m_pca.DigitalWrite( i , HIGH );
                 Serial.println( ret );
             }
 
@@ -49,7 +49,7 @@ void CPCA9539::Update( CCommand &commandIn )
         {
             for( size_t i = 0; i < 8; ++i )
             {
-                auto ret = m_pca.DigitalWrite( 0 , LOW );
+                auto ret = m_pca.DigitalWrite( i , LOW );
                 Serial.println( ret );
             }
 
