@@ -13,8 +13,8 @@ namespace
 
     //Morse code sos stuff
     uint8_t sosCounter = 0;
-    bool isS = true; //s = true, o = false
-    CTimer pca9539_s_timer;
+    bool isHigh = true; //s = true, o = false
+    CTimer pca9539_high_timer;
 
     //bool toggle = true;
 
@@ -47,54 +47,25 @@ void CPCA9539::Update( CCommand &commandIn )
 
 void CPCA9539::SOS()
 {
-    if( isS )
+    if( pca9539_high_timer.HasElapsed(300) )
     {
-        if( pca9539_s_timer.HasElapsed( 300 ) )
+        if(isHigh)
         {
-            //Write them low
             for( size_t i = 0; i < 5; ++i )
             {
-                m_pca.DigitalWrite( i, LOW );
+                m_pca.DigitalWrite(i, HIGH);
             }
         }
         else
         {
             for( size_t i = 0; i < 5; ++i )
             {
-                m_pca.DigitalWrite( i, HIGH );
+                m_pca.DigitalWrite(i, LOW);
             }
-            ++sosCounter;
         }
-        if( sosCounter == 3 )
-        {
-            isS = false;
-            sosCounter = 0;
-        }
+        isHigh = !isHigh;
     }
-    else
-    {
-        if( pca9539_s_timer.HasElapsed( 800 ) )
-        {
-            //Write them low
-            for( size_t i = 0; i < 5; ++i )
-            {
-                m_pca.DigitalWrite( i, LOW );
-            }
-        }
-        else
-        {
-            for( size_t i = 0; i < 5; ++i )
-            {
-                m_pca.DigitalWrite( i, HIGH );
-            }
-            ++sosCounter;
-        }
-        if( sosCounter == 3 )
-        {
-            isS = true;
-            sosCounter = 0;
-        }
-    }
+
 
 }
 
