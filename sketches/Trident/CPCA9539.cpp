@@ -13,7 +13,8 @@ namespace
 
     //Morse code sos stuff
     uint8_t sosCounter = 0;
-    bool isHigh = true; //s = true, o = false
+    bool isHigh = true; 
+    bool isS; //s = true, o = false
     CTimer pca9539_high_timer;
 
     //bool toggle = true;
@@ -47,24 +48,64 @@ void CPCA9539::Update( CCommand &commandIn )
 
 void CPCA9539::SOS()
 {
-    if( pca9539_high_timer.HasElapsed(300) )
+    //S
+    if( isS )
     {
-        if(isHigh)
+        if( pca9539_high_timer.HasElapsed(300) )
         {
-            for( size_t i = 0; i < 5; ++i )
+            if(isHigh)
             {
-                m_pca.DigitalWrite(i, HIGH);
+                for( size_t i = 0; i < 5; ++i )
+                {
+                    m_pca.DigitalWrite(i, HIGH);
+                }
             }
-        }
-        else
-        {
-            for( size_t i = 0; i < 5; ++i )
+            else
             {
-                m_pca.DigitalWrite(i, LOW);
+                for( size_t i = 0; i < 5; ++i )
+                {
+                    m_pca.DigitalWrite(i, LOW);
+                }
             }
+            isHigh = !isHigh;
+            ++sosCounter;
+            if( sosCounter == 3 )
+            {
+                isS = false;
+                sosCounter = 0;
+            }
+
         }
-        isHigh = !isHigh;
     }
+    else
+    {
+        if( pca9539_high_timer.HasElapsed(800) )
+        {
+            if(isHigh)
+            {
+                for( size_t i = 0; i < 5; ++i )
+                {
+                    m_pca.DigitalWrite(i, HIGH);
+                }
+            }
+            else
+            {
+                for( size_t i = 0; i < 5; ++i )
+                {
+                    m_pca.DigitalWrite(i, LOW);
+                }
+            }
+            isHigh = !isHigh;
+            ++sosCounter;
+            if( sosCounter == 3 )
+            {
+                isS = true;
+                sosCounter = 0;
+            }
+
+        }
+    }
+
 
 
 }
