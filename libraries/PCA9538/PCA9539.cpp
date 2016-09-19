@@ -15,7 +15,7 @@ PCA9539::PCA9539( CI2C* i2cInterfaceIn )
     : m_i2cAddress( pca9539::PCA9539_ADDRESS )
     , m_pI2C( i2cInterfaceIn )
     , m_gpioDirection( 0xFF ) //All inputs
-    , m_gpioState( 0x00 ) //All low
+    , m_gpioState( 0xFF ) //All low
 {
     
 }
