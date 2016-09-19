@@ -5,7 +5,6 @@
 */
 
 #pragma once
-#include <Arduino.h>
 
 //Forward declaration of the I2C interface
 class CI2C;

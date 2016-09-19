@@ -1,5 +1,3 @@
-  GNU nano 2.2.6                                File: libraries/PCA9538/PCA9539.cpp                                                                        
-
 /* 
  PCA9539 GPIO Expander Library
  By: OpenROV
