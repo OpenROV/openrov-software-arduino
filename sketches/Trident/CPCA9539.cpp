@@ -37,12 +37,12 @@ void CPCA9539::Update( CCommand &commandIn )
         Serial.println( "PCA9539.Status:LOOP;" );
         if( toggle )
         {
-            auto ret = m_pca.DigitalWrite( 0 , HIGH )
+            auto ret = m_pca.DigitalWrite( 0 , HIGH );
             Serial.println( ret );
         }
         else
         {
-            auto ret = m_pca.DigitalWrite( 0 , LOW )
+            auto ret = m_pca.DigitalWrite( 0 , LOW );
             Serial.println( ret );
         }
         
