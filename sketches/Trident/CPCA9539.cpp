@@ -39,11 +39,15 @@ void CPCA9539::Update( CCommand &commandIn )
         {
             auto ret = m_pca.DigitalWrite( 0 , HIGH );
             Serial.println( ret );
+
+            toggle = false;
         }
         else
         {
             auto ret = m_pca.DigitalWrite( 0 , LOW );
             Serial.println( ret );
+
+            toggle = true;
         }
         
     }
