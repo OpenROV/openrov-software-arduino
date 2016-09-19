@@ -24,6 +24,15 @@ namespace pca9539
         UNKNOWN
     };
 
+    enum EPin : uint8_t
+    {
+        LED_0,
+        LED_1,
+        LED_2,
+        LED_3,
+        LED_4
+    };
+
     class PCA9539
     {
         public:

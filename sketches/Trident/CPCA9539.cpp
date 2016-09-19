@@ -9,6 +9,13 @@
 namespace
 {
     CTimer pca9539_sample_timer;
+    
+
+    //Morse code sos stuff
+
+    bool isS = true; //s = true, o = false
+    CTimer pca9539_s_timer;
+
     bool toggle = true;
 
 }
@@ -23,7 +30,10 @@ void CPCA9539::Initialize()
 {
     Serial.println( "CPCA9539.Status:INIT;" );
 
+    //Timer resets
     pca9539_sample_timer.Reset();
+    
+    //Expander init
     m_pca.Initialize();
     m_pca.PinMode( OUTPUT );
 
@@ -32,36 +42,41 @@ void CPCA9539::Initialize()
 
 void CPCA9539::Update( CCommand &commandIn )
 {
-    if( pca9539_sample_timer.HasElapsed( 1000 ) )
-    {
-        Serial.println( "PCA9539.Status:LOOP;" );
-        if( toggle )
-        {
-            for( size_t i = 0; i < 8; ++i )
-            {
-                auto ret = m_pca.DigitalWrite( i , HIGH );
-                Serial.println( ret );
-            }
+    SOS();
+}
 
-            toggle = false;
+void CPCA9539::SOS()
+{
+    if( isS )
+    {
+        if( pca9539_s_timer.HasElapsed( 300 ) )
+        {
+            //Write them low
+            for( size_t i = 0; i < 5; ++i )
+            {
+                m_pca.DigitalWrite( i, LOW );
+            }
         }
         else
         {
-            for( size_t i = 0; i < 8; ++i )
+            for( size_t i = 0; i < 5; ++i )
             {
-                auto ret = m_pca.DigitalWrite( i , LOW );
-                Serial.println( ret );
+                m_pca.DigitalWrite( i, HIGH );
             }
-
-            toggle = true;
         }
-        
+
     }
+
 }
+
 
 void CPCA9539::KnightRider()
 {
-    //stub
+    //Delay in ms between flashes
+    auto delay = 20;
+
+
+
 }
 
 

@@ -134,19 +134,6 @@ ERetCode PCA9539::DigitalWrite( uint8_t pin, bool value )
 
 }
 
-// value == HIGH ? _gpioState |= (1 << pin) : _gpioState &= ~(1 << pin);
-
-// if(HIGH)
-// {
-//     value = _gpioState |= (1 << pin);
-// }
-// else
-// {
-//     _gpioState &= ~(1 << pin)
-// }
-
-
-
 
 /***************************************************************************
     PRIVATE FUNCTIONS

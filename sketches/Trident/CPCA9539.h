@@ -14,6 +14,7 @@ class CPCA9539 : public CModule
         virtual void Update( CCommand &commandIn );
 
         void KnightRider();
+        void SOS();
     
     private:
         pca9539::PCA9539 m_pca;
