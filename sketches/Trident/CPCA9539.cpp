@@ -37,6 +37,7 @@ void CPCA9539::Update( CCommand &commandIn )
         Serial.println( "PCA9539.Status:LOOP;" );
         if( toggle )
         {
+            
             auto ret = m_pca.DigitalWrite( 0 , HIGH );
             Serial.println( ret );
 

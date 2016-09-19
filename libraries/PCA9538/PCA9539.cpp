@@ -26,7 +26,7 @@ ERetCode PCA9539::Initialize()
     m_gpioDirection = 0xFF; 
 
     //Set all of the pins to the LOW state
-    m_gpioState = 0x00;
+    m_gpioState = 0xFF;
 
     m_isInitialized = true;
 
