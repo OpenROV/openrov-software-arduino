@@ -12,10 +12,8 @@ namespace
     
 
     //Morse code sos stuff
-    uint8_t sosCounter = 0;
-    bool isHigh = true; 
-    bool isS; //s = true, o = false
-    CTimer pca9539_high_timer;
+    CTimer pca9539_sos_timer;
+
 
     //bool toggle = true;
 
@@ -43,75 +41,31 @@ void CPCA9539::Initialize()
 
 void CPCA9539::Update( CCommand &commandIn )
 {
-    SOS();
+    if( pca9539_sample_timer.HasElapsed( 2000 ) )
+    {
+        SOS();
+    }
+    
 }
 
 void CPCA9539::SOS()
 {
-    //S
-    if( isS )
+    
+    for( size_t i = 0; i < 5; ++i )
     {
-        Serial.println( "In S loop" );
-        if( pca9539_high_timer.HasElapsed(300) )
-        {
-            if(isHigh)
-            {
-                for( size_t i = 0; i < 5; ++i )
-                {
-                    m_pca.DigitalWrite(i, HIGH);
-                }
-            }
-            else
-            {
-                for( size_t i = 0; i < 5; ++i )
-                {
-                    m_pca.DigitalWrite(i, LOW);
-                }
-            }
-            isHigh = !isHigh;
-            ++sosCounter;
-            if( sosCounter == 3 )
-            {
-                isS = false;
-                sosCounter = 0;
-            }
 
-        }
+        character(i, 300);
     }
-    else
-    {
-        Serial.println( "In O loop" );
-        if( pca9539_high_timer.HasElapsed(800) )
-        {
-            if(isHigh)
-            {
-                for( size_t i = 0; i < 5; ++i )
-                {
-                    m_pca.DigitalWrite(i, HIGH);
-                }
-            }
-            else
-            {
-                for( size_t i = 0; i < 5; ++i )
-                {
-                    m_pca.DigitalWrite(i, LOW);
-                }
-            }
-            isHigh = !isHigh;
-            ++sosCounter;
-            if( sosCounter == 3 )
-            {
-                isS = true;
-                sosCounter = 0;
-            }
-
-        }
-    }
-
-
 
 }
-
+void character( int pin, int speed )
+{
+    m_pca.DigitalWrite(pin, HIGH);
+    if( pca9539_sos_timer.HasElapsed( speed) )
+    {
+        m_pca.DigitalWrite(pin, LOW);
+    }
+}
 
 void CPCA9539::KnightRider()
 {
