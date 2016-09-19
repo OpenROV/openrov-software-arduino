@@ -6,17 +6,16 @@
 #include "CTimer.h"
 #include "NDataManager.h"
 
+class BoolTimer : public CTimer
+{
+    uint32_t GetElapsed() const { return ( Now() - m_startTimeMs ); };
+}
+
+
 namespace
 {
-    CTimer pca9539_sample_timer;
-    
-
-    //Morse code sos stuff
-    CTimer pca9539_sos_timer;
-
-
-    //bool toggle = true;
-
+    CTimer pcaSampleTimer;
+    BoolTimer bitTimer;
 }
 
 CPCA9539::CPCA9539( CI2C *i2cInterfaceIn )
@@ -30,7 +29,8 @@ void CPCA9539::Initialize()
     Serial.println( "CPCA9539.Status:INIT;" );
 
     //Timer resets
-    pca9539_sample_timer.Reset();
+    pcaSampleTimer.Reset();
+    bitTimer.Reset();
     
     //Expander init
     m_pca.Initialize();
@@ -38,41 +38,14 @@ void CPCA9539::Initialize()
 
     Serial.println( "CPCA9539.Status:POST_INIT;");
 }
-void CPCA9539::character( int pin, int speed )
-{
-    m_pca.DigitalWrite(pin, HIGH);
-    if( pca9539_sos_timer.HasElapsed( speed) )
-    {
-        m_pca.DigitalWrite(pin, LOW);
-    }
-}
 
 void CPCA9539::Update( CCommand &commandIn )
 {
-    if( pca9539_sample_timer.HasElapsed( 2000 ) )
+    if( pcaSampleTimer.HasElapsed( 1000 ) )
     {
-        SOS();
+        auto elapsed = BoolTimer.GetElapsed();
+        Serial.println( elapsed );
     }
-    
 }
-
-void CPCA9539::SOS()
-{
-    
-    for( size_t i = 0; i < 5; ++i )
-    {
-
-        character(i, 300);
-    }
-
-}
-
-
-void CPCA9539::KnightRider()
-{
-    //Delay in ms between flashes
-    // auto delay = 20;
-}
-
 
 #endif
