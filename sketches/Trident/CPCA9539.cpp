@@ -26,7 +26,7 @@ void CPCA9539::Initialize()
 
     //Timer resets
     pcaSampleTimer.Reset();
-    start = Now();
+    start = millis();
     
     //Expander init
     m_pca.Initialize();
@@ -39,7 +39,7 @@ void CPCA9539::Update( CCommand &commandIn )
 {
     if( pcaSampleTimer.HasElapsed( 1000 ) )
     {
-        auto elapsed = Now() - start;
+        auto elapsed = millis() - start;
         Serial.println( elapsed );
     }
 }
