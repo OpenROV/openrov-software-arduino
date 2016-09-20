@@ -18,7 +18,7 @@ class CPCA9539 : public CModule
         void character( int pin, int speed );
     
     private:
-        pca9539::PCA9539 m_pca;
 
+        pca9539::PCA9539 m_pca;
         void InitializeSensor();
 };
