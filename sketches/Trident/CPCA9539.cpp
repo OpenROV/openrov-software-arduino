@@ -47,6 +47,7 @@ void CPCA9539::KnightRider()
 {
     if( firstPass )
     {
+        Serial.println(counter);
         counter = (counter << 1);
         auto ret = m_pca.DigitalWriteDecimal( counter );
         if( ret != ERetCode::SUCCESS )
@@ -61,6 +62,7 @@ void CPCA9539::KnightRider()
     } 
     else
     {
+        Serial.println(counter);
         counter = (counter >> 1);
         auto ret = m_pca.DigitalWriteDecimal( counter );
         if( ret != ERetCode::SUCCESS )

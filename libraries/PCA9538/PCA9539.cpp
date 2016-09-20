@@ -170,15 +170,7 @@ ERetCode PCA9539::DigitalWriteDecimal( uint8_t value )
     {
         return ERetCode::FAILED_DIGITAL_WRITE;
     }
-
-    uint8_t read;
-    ret = ReadByte( PCA9539_REGISTER::OUTPUT_PORT, read )
-    if( ret != I2C::ERetCode::SUCCESS )
-    {
-        return ERetCode::FAILED_DIGITAL_WRITE;
-    }
     
-    Serial.println(read, HEX);
     return ERetCode::SUCCESS;
 }
 
