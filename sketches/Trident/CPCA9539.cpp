@@ -10,11 +10,21 @@ namespace
 {
     CTimer pcaSampleTimer;
 
-    uint8_t counter;
-    uint8_t value;
-    uint8_t bitmask = 0x1F;
+    namespace knight_rider
+    {    
+        //Knight rider stuff
+        
+        //Bit counter
+        uint8_t counter;
+        
+        //Value that stores the mutated counter
+        uint8_t value;
 
-    bool firstPass;
+        //Bit mask for the PCA
+        uint8_t bitmask = 0x1F;
+
+        bool firstPass;
+    }
 }
 
 CPCA9539::CPCA9539( CI2C *i2cInterfaceIn )
@@ -29,7 +39,10 @@ void CPCA9539::Initialize()
 
     //Timer resets
     pcaSampleTimer.Reset();
-    counter = 0;
+
+    //Knight rider stuff
+    knight_rider::counter = 0;
+    knight_rider::firstPass = true;
 
     //Expander init
     m_pca.Initialize();
@@ -40,7 +53,7 @@ void CPCA9539::Initialize()
 
 void CPCA9539::Update( CCommand &commandIn )
 {
-    if( pcaSampleTimer.HasElapsed( 500 ) )
+    if( pcaSampleTimer.HasElapsed( 100 ) )
     {
         KnightRider();       
     }
@@ -48,57 +61,57 @@ void CPCA9539::Update( CCommand &commandIn )
 
 void CPCA9539::KnightRider()
 {
-    if( firstPass )
+    if( knight_rider::firstPass )
     {
-        if( counter = 0 )
+        if( knight_rider::counter = 0 )
         {
-            auto ret = m_pca.DigitalWriteDecimal( 0xFF );
-            if( ret != pca9539::ERetCode::SUCCESS )
-            {
-                Serial.println(ret);
-            }
-
-            counter = 1;
-            return;
+            knight_rider::counter = 2;
         }
-        else
-        {
-            value = ~(counter);
-            value &= bitmask;
 
-            auto ret = m_pca.DigitalWriteDecimal( value );
-            if( ret != pca9539::ERetCode::SUCCESS )
-            {
-                Serial.println(ret);
-            }
+        //For the PCA, 1 is low and 0 is high
+        //So we need to not and then mask the counter to get the desired pattern
+        knight_rider::value = ~(knight_rider::counter);
+        knight_rider::value &= knight_rider::bitmask;
 
-            counter <<= 1;
-
-        }
-        if( counter == 16 )
-        {
-            firstPass = false;
-        }
-    } 
-    else
-    {
-        value = ~(counter);
-        value &= bitmask;
-
-        auto ret = m_pca.DigitalWriteDecimal( value );
+        //Write the desired pattern
+        auto ret = m_pca.DigitalWriteDecimal( knight_rider::value );
         if( ret != pca9539::ERetCode::SUCCESS )
         {
             Serial.println(ret);
         }
 
-        counter >>= 1;
+        //Increase the counter
+        knight_rider::counter <<= 1;
 
-        if( counter == 0 )
+        if( knight_rider::counter == 16 )
         {
-            firstPass = true;
+            //Start the second half of the pattern
+            knight_rider::firstPass = false;
         }
     } 
+    else
+    {
+        //For the PCA, 1 is low and 0 is high
+        //So we need to not and then mask the counter to get the desired pattern
+        knight_rider::value = ~(knight_rider::counter);
+        knight_rider::value &= knight_rider::bitmask;
 
+        //Write the desired pattern
+        auto ret = m_pca.DigitalWriteDecimal( knight_rider::value );
+        if( ret != pca9539::ERetCode::SUCCESS )
+        {
+            Serial.println(ret);
+        }
+
+        //Increase the counter
+        knight_rider::counter >>= 1;
+
+        if( knight_rider::counter == 0 )
+        {
+            //Reset the counter to the first section of the pattern
+            knight_rider::firstPass = true;
+        }
+    } 
 }
 
 
