@@ -50,7 +50,7 @@ void CPCA9539::KnightRider()
         Serial.println(counter);
         counter = (counter << 1);
         auto ret = m_pca.DigitalWriteDecimal( counter );
-        if( ret != ERetCode::SUCCESS )
+        if( ret != pca9539::ERetCode::SUCCESS )
         {
             Serial.println(ret);
         }
@@ -65,7 +65,7 @@ void CPCA9539::KnightRider()
         Serial.println(counter);
         counter = (counter >> 1);
         auto ret = m_pca.DigitalWriteDecimal( counter );
-        if( ret != ERetCode::SUCCESS )
+        if( ret != pca9539::ERetCode::SUCCESS )
         {
             Serial.println(ret);
         }
