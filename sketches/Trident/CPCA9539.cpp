@@ -12,6 +12,7 @@ namespace
 
     uint8_t counter;
     uint8_t value;
+    uint8_t bitmask = 0x1F;
 
     bool firstPass;
 }
