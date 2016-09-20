@@ -29,7 +29,7 @@ void CPCA9539::Initialize()
 
     //Timer resets
     pcaSampleTimer.Reset();
-    counter = 1;
+    counter = 0;
 
     //Expander init
     m_pca.Initialize();
@@ -50,14 +50,31 @@ void CPCA9539::KnightRider()
 {
     if( firstPass )
     {
-        value = ~(counter << 1) & bitmask;
-
-        auto ret = m_pca.DigitalWriteDecimal( value );
-        if( ret != pca9539::ERetCode::SUCCESS )
+        if( counter = 0 )
         {
-            Serial.println(ret);
-        }
+            auto ret = m_pca.DigitalWriteDecimal( 0xFF );
+            if( ret != pca9539::ERetCode::SUCCESS )
+            {
+                Serial.println(ret);
+            }
 
+            counter = 1;
+            return;
+        }
+        else
+        {
+            value = ~(counter);
+            value &= bitmask;
+
+            auto ret = m_pca.DigitalWriteDecimal( value );
+            if( ret != pca9539::ERetCode::SUCCESS )
+            {
+                Serial.println(ret);
+            }
+
+            counter <<= 1;
+
+        }
         if( counter == 16 )
         {
             firstPass = false;
@@ -65,15 +82,18 @@ void CPCA9539::KnightRider()
     } 
     else
     {
-        value = ~(counter >> 1) & bitmask;
+        value = ~(counter);
+        value &= bitmask;
 
-        auto ret = m_pca.DigitalWriteDecimal( counter );
+        auto ret = m_pca.DigitalWriteDecimal( value );
         if( ret != pca9539::ERetCode::SUCCESS )
         {
             Serial.println(ret);
         }
 
-        if( counter == 1 )
+        counter >>= 1;
+
+        if( counter == 0 )
         {
             firstPass = true;
         }
