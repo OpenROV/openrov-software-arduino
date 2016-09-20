@@ -11,6 +11,8 @@ namespace
     CTimer pcaSampleTimer;
 
     uint8_t counter;
+    uint8_t value;
+
     bool firstPass;
 }
 
@@ -47,8 +49,9 @@ void CPCA9539::KnightRider()
 {
     if( firstPass )
     {
-        counter = (counter << 1);
-        auto ret = m_pca.DigitalWriteDecimal( counter );
+        value = ~(counter << 1) & bitmask;
+
+        auto ret = m_pca.DigitalWriteDecimal( value );
         if( ret != pca9539::ERetCode::SUCCESS )
         {
             Serial.println(ret);
@@ -61,7 +64,8 @@ void CPCA9539::KnightRider()
     } 
     else
     {
-        counter = (counter >> 1);
+        value = ~(counter >> 1) & bitmask;
+
         auto ret = m_pca.DigitalWriteDecimal( counter );
         if( ret != pca9539::ERetCode::SUCCESS )
         {
