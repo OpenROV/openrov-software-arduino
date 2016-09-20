@@ -134,6 +134,48 @@ ERetCode PCA9539::DigitalWrite( uint8_t pin, bool value )
 
 }
 
+ERetCode PCA9539::DigitalWriteHex( uint8_t value )
+{
+    //Pins 0..7 are r/w capable pins
+    if( value > 0x1F )
+    {
+        return ERetCode::FAILED_DIGITAL_WRITE;
+    }
+
+    m_gpioState = value;
+
+    //Write it
+    auto ret = WriteByte( PCA9539_REGISTER::OUTPUT_PORT, m_gpioState);
+    if( ret != I2C::ERetCode::SUCCESS )
+    {
+        return ERetCode::FAILED_DIGITAL_WRITE;
+    }
+
+    return ERetCode::SUCCESS;
+}
+
+ERetCode PCA9539::DigitalWriteDecimal( uint8_t value )
+{
+    //Pins 0..7 are r/w capable pins
+    if( value > 31 )
+    {
+        return ERetCode::FAILED_DIGITAL_WRITE;
+    }
+
+    m_gpioState = value;
+
+    //Write it
+    auto ret = WriteByte( PCA9539_REGISTER::OUTPUT_PORT, m_gpioState);
+    if( ret != I2C::ERetCode::SUCCESS )
+    {
+        return ERetCode::FAILED_DIGITAL_WRITE;
+    }
+
+    return ERetCode::SUCCESS;
+}
+
+
+
 
 /***************************************************************************
     PRIVATE FUNCTIONS

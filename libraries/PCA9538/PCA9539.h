@@ -39,6 +39,9 @@ namespace pca9539
             PCA9539( CI2C* i2cInterfaceIn );
 
             ERetCode DigitalWrite( uint8_t pin, bool value );
+            ERetCode DigitalWriteHex( uint8_t value );
+            ERetCode DigitalWriteDecimal( uint8_t value );
+
             
             ERetCode Initialize();
             bool IsInitialized() const { return m_isInitialized; };
