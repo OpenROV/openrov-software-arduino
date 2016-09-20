@@ -43,7 +43,8 @@ void CPCA9539::Update( CCommand &commandIn )
         }
         
         auto ret = m_pca.DigitalWriteDecimal( counter );
-        Serial.println(ret);        
+        Serial.println(ret);
+        ++counter;        
     }
 
 
