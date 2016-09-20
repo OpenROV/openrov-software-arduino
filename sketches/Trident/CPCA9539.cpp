@@ -9,9 +9,7 @@
 namespace
 {
     CTimer pcaSampleTimer;
-
-    uint32_t start;
-    bool toggle;
+    uint8_t counter;
 }
 
 CPCA9539::CPCA9539( CI2C *i2cInterfaceIn )
@@ -26,8 +24,7 @@ void CPCA9539::Initialize()
 
     //Timer resets
     pcaSampleTimer.Reset();
-    start = millis();
-    toggle = true;
+    counter = 0;
 
     //Expander init
     m_pca.Initialize();
@@ -38,23 +35,16 @@ void CPCA9539::Initialize()
 
 void CPCA9539::Update( CCommand &commandIn )
 {
-    if( pcaSampleTimer.HasElapsed( 1000 ) )
+    if( pcaSampleTimer.HasElapsed( 500 ) )
     {
-        if( toggle )
+        if( counter > 31)
         {
-            toggle = false;
-            auto ret = m_pca.DigitalWriteHex( 0x15 );
-            Serial.println(ret);
-        }
-        else
-        {
-            toggle = true;
-            auto ret = m_pca.DigitalWriteDecimal( 10 );
-            Serial.println(ret);
+            counter = 0;
         }
         
+        auto ret = m_pca.DigitalWriteDecimal( counter );
+        Serial.println(ret);        
     }
-
 
 
 }
