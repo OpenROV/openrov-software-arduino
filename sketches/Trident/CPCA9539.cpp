@@ -63,7 +63,7 @@ void CPCA9539::KnightRider()
 {
     if( knight_rider::firstPass )
     {
-        if( knight_rider::counter = 0 )
+        if( knight_rider::counter == 0 )
         {
             knight_rider::counter = 2;
         }
