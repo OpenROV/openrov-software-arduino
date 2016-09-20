@@ -9,7 +9,9 @@
 namespace
 {
     CTimer pcaSampleTimer;
+
     uint8_t counter;
+    bool firstPass;
 }
 
 CPCA9539::CPCA9539( CI2C *i2cInterfaceIn )
@@ -37,17 +39,42 @@ void CPCA9539::Update( CCommand &commandIn )
 {
     if( pcaSampleTimer.HasElapsed( 500 ) )
     {
-        if( counter > 31)
-        {
-            counter = 0;
-        }
-        
-        auto ret = m_pca.DigitalWriteDecimal( counter );
-        Serial.println(ret);
-        ++counter;        
+        KnightRider();       
     }
+}
 
+void CPCA9539::KnightRider()
+{
+    if( firstPass )
+    {
+        counter = (counter << 1);
+        auto ret = m_pca.DigitalWriteDecimal( counter );
+        if( ret != ERetCode::SUCCESS )
+        {
+            Serial.println(ret);
+        }
+
+        if( counter == 16 )
+        {
+            firstPass = false;
+        }
+    } 
+    else
+    {
+        counter = (counter >> 1);
+        auto ret = m_pca.DigitalWriteDecimal( counter );
+        if( ret != ERetCode::SUCCESS )
+        {
+            Serial.println(ret);
+        }
+
+        if( counter == 0 )
+        {
+            firstPass = true;
+        }
+    } 
 
 }
+
 
 #endif

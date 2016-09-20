@@ -42,7 +42,6 @@ namespace pca9539
             ERetCode DigitalWriteHex( uint8_t value );
             ERetCode DigitalWriteDecimal( uint8_t value );
 
-            
             ERetCode Initialize();
             bool IsInitialized() const { return m_isInitialized; };
 
