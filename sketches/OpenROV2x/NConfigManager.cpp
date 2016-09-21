@@ -1,4 +1,5 @@
 #include "NConfigManager.h"
+#include "NCommManager.h"
 #include "NArduinoManager.h"
 #include "CompileOptions.h"
 

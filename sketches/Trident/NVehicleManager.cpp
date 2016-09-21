@@ -1,5 +1,6 @@
 // Includes
 #include "NVehicleManager.h"
+#include "NCommManager.h"
 #include "CCommand.h"
 #include "CompileOptions.h"
 
