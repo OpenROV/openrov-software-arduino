@@ -80,16 +80,6 @@ namespace NDataManager
 		Serial.print( F( "atmp:" ) );
 		Serial.print( m_capeData.ATMP );
 		Serial.print( ';' );
-		Serial.print( F( "ver:" ) );
-		Serial.print( F( "CUSTOM_BUILD" ) );
-		Serial.print( ';' );
-		Serial.print( F( "cmpd:" ) );
-		Serial.print( F( __DATE__ ) );
-		Serial.print( F( ", " ) );
-		Serial.print( F( __TIME__ ) );
-		Serial.print( F( ", " ) );
-		Serial.print( F( __VERSION__ ) );
-		Serial.print( ';' );
 		Serial.print( F( "time:" ) );
 		Serial.print( m_capeData.UTIM );
 		Serial.println( ';' );
