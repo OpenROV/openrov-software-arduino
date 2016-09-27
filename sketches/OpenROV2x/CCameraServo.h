@@ -3,7 +3,7 @@
 // Includes
 #include "CModule.h"
 
-class CCameraMount : public CModule
+class CCameraServo : public CModule
 {
 public:
     void Initialize();

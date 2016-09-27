@@ -1,12 +1,12 @@
 #include "AConfig.h"
-#if(HAS_STD_CAMERAMOUNT)
+#if(HAS_CAMERASERVO)
 
 // Includes
 #include <Arduino.h>
 #include <avr/io.h>
 #include <avr/interrupt.h>
 
-#include "CCameraMount.h"
+#include "CCameraServo.h"
 #include "CServo.h"
 #include "CPin.h"
 #include "NConfigManager.h"
@@ -14,14 +14,7 @@
 #include "NModuleManager.h"
 #include "NCommManager.h"
 
-// One of these will define the pin number for the camera mount
-#if(HAS_STD_CAPE)
-    #include "CCape.h"
-#endif
-
-#if(HAS_OROV_CONTROLLERBOARD_25)
-    #include "CControllerBoard.h"
-#endif
+#include "CControllerBoard.h"
 
 // Defines
 #ifndef F_CPU
@@ -31,15 +24,12 @@
 // File local variables and methods
 namespace
 {
-    // Use normal servo library if the camera servo is not on pin 11, otherwise use AVR IO methods
-#if( CAMERAMOUNT_PIN != 11 )
-    CServo tilt;
-#endif
-
     int commandedTilt	= CAMERA_SERVO_TARGET_MIDPOINT_US;
     int tiltTarget		= CAMERA_SERVO_TARGET_MIDPOINT_US;
 
     const int tiltRate	= 1;
+
+    int m_isInverted    = 0;    // 0 - Not inverted, 1 - Inverted
 
     int SmoothlyAdjustCameraPosition( int target, int current )
     {
@@ -57,13 +47,8 @@ namespace
     }
 }
 
-void CCameraMount::Initialize()
+void CCameraServo::Initialize()
 {
-    #if(CAMERAMOUNT_PIN != 11)
-    // Activate servo and set initial position
-    tilt.Activate( CAMERAMOUNT_PIN );
-    tilt.WriteMicroseconds( tiltTarget );
-    #else
     // Set up the pin for the camera servo
     pinMode( CAMERAMOUNT_PIN, OUTPUT );
     TCCR1A = 0;
@@ -74,13 +59,12 @@ void CCameraMount::Initialize()
     ICR1 = 40000; // 320000 / 8 = 40000
 
     SetCameraServoPosition( CAMERA_SERVO_TARGET_MIDPOINT_US );
-    #endif
 
     // Mark camera servo as enabled
     NConfigManager::m_capabilityBitmask |= ( 1 << CAMERA_MOUNT_1_AXIS_CAPABLE );
 }
 
-void CCameraMount::Update( CCommand& command )
+void CCameraServo::Update( CCommand& command )
 {
     // Check for messages
     if( NCommManager::m_isCommandAvailable )
@@ -94,6 +78,26 @@ void CCameraMount::Update( CCommand& command )
                 NDataManager::m_cameraMountData.CMTG = commandedTilt;
             }
         }
+
+        if( command.Equals( "tiltInverted" ) )
+        {
+            if( ( command.m_arguments[1] == 1 )
+            {
+                // Set inverted
+                m_isInverted = 1;
+
+                // Report back
+                Serial.print( F( "tiltInverted:1;" ) );
+            }
+            else if( command.m_arguments[1] == 0 )
+            {
+                // Set uninverted
+                m_isInverted = 0;
+
+                // Report back
+                Serial.print( F( "tiltInverted:0;" ) );
+            }
+        }
     }
 
     // Adjust camera tilt smoothly towards the target
@@ -103,11 +107,7 @@ void CCameraMount::Update( CCommand& command )
         tiltTarget = SmoothlyAdjustCameraPosition( commandedTilt, tiltTarget );
 
         // Write to servo
-        #if( CAMERAMOUNT_PIN != 11 )
-        tilt.WriteMicroseconds( tiltTarget );
-        #else
         SetCameraServoPosition( tiltTarget );
-        #endif
 
         NDataManager::m_cameraMountData.CMNT = tiltTarget;
     }
