@@ -26,14 +26,15 @@
 namespace
 {
     // Helper functions specifically for the HITEC servo
-    constexpr uint32_t DegreesToMicroseconds( float degreesIn )
+    constexpr uint32_t DegreesToMicroseconds( float degreesIn, bool isInverted = false )
     {
-        return static_cast<uint32_t>( ( kMicrosecPerDegree * degreesIn ) + kZeroPosMicrosecs );
+        return static_cast<uint32_t>( ( kMicrosecPerDegree * ( isInverted ? -degreesIn : degreesIn ) ) + kZeroPosMicrosecs );
     }
 
-    constexpr float MicrosecondsToDegrees( uint32_t microsecondsIn )
+    constexpr float MicrosecondsToDegrees( uint32_t microsecondsIn, bool isInverted = false )
     {
-        return ( static_cast<float>( microsecondsIn ) - kZeroPosMicrosecs ) * kDegPerMicrosec;
+        return ( isInverted ?   -( ( static_cast<float>( microsecondsIn ) - kZeroPosMicrosecs ) * kDegPerMicrosec )
+                                :( ( static_cast<float>( microsecondsIn ) - kZeroPosMicrosecs ) * kDegPerMicrosec ) );
     }
 
     constexpr float kZeroPosMicrosecs       = 1487.0f;
@@ -125,7 +126,7 @@ void CCameraServo::Update( CCommand& command )
             m_targetPos_deg = Decode( command.m_arguments[1] );
 
             // Update the target microseconds
-            m_targetPos_us = DegreesToMicroseconds( m_targetPos_deg );
+            m_targetPos_us = DegreesToMicroseconds( m_targetPos_deg, m_isInverted );
         }
         else if( command.Equals( "camServ_spd" ) )
         {
@@ -174,17 +175,24 @@ void CCameraServo::Update( CCommand& command )
             if( ( error / static_cast<float>( m_tDelta ) ) < m_speed_us_per_ms )
             {
                 // Move directly to the target
+                // NOTE: Cannot use the cast method like below, since the floating point
+                // representation of the target pos might be comparatively less than the integer value.
+                // I.e. target = 32, static_cast<float>( 32 ) -> 31.99999, static_cast<uint32_t>( 31.99999 ) -> 31
+                // This could lead to the current position never reaching the target
+                m_currentPos_us = m_targetPos_us;
+
+                // Update the floating point representation as well, for use in future target updates
                 m_fCurrentPos_us = static_cast<float>( m_targetPos_us );
             }
             else
             {
                 // Move by the delta towards the target
                 m_fCurrentPos_us += ( m_speed_us_per_ms * error );
+
+                // Cast the floating point servo command to an integer
+                m_currentPos_us = static_cast<uint32_t>( m_fCurrentPos_us );
             }
             
-            // Cast the floating point servo command to an integer
-            m_currentPos_us = static_cast<uint32_t>( m_fCurrentPos_us );
-
             // Set the servo to this target
             SetServoPosition( m_currentPos_us );
 
