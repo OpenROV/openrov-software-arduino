@@ -25,6 +25,10 @@
 // File local variables and methods
 namespace
 {
+    constexpr float kZeroPosMicrosecs       = 1487.0f;
+    constexpr float kMicrosecPerDegree      = 9.523809f;
+    constexpr float kDegPerMicrosec         = ( 1 / kMicrosecPerDegree );
+
     // Helper functions specifically for the HITEC servo
     constexpr uint32_t DegreesToMicroseconds( float degreesIn, bool isInverted = false )
     {
@@ -36,10 +40,6 @@ namespace
         return ( isInverted ?   -( ( static_cast<float>( microsecondsIn ) - kZeroPosMicrosecs ) * kDegPerMicrosec )
                                 :( ( static_cast<float>( microsecondsIn ) - kZeroPosMicrosecs ) * kDegPerMicrosec ) );
     }
-
-    constexpr float kZeroPosMicrosecs       = 1487.0f;
-    constexpr float kMicrosecPerDegree      = 9.523809f;
-    constexpr float kDegPerMicrosec         = ( 1 / kMicrosecPerDegree );
 
     constexpr float kNeutralPosition_deg    = 0.0f;
     constexpr uint32_t kNeutralPosition_us  = DegreesToMicroseconds( 0.0f );
