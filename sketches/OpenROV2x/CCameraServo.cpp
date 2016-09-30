@@ -17,6 +17,8 @@
 
 #include "CControllerBoard.h"
 
+#include <math.h>
+
 // Defines
 #ifndef F_CPU
     #define F_CPU 16000000UL
@@ -172,7 +174,7 @@ void CCameraServo::Update( CCommand& command )
             float error = static_cast<float>( m_targetPos_us ) - m_fCurrentPos_us;
 
             // Check to see if the error/dT is smaller than the speed limit
-            if( ( error / static_cast<float>( m_tDelta ) ) < m_speed_us_per_ms )
+            if( abs( error / static_cast<float>( m_tDelta ) ) < m_speed_us_per_ms )
             {
                 // Move directly to the target
                 // NOTE: Cannot use the cast method like below, since the floating point
