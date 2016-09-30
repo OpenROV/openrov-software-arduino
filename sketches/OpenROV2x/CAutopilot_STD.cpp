@@ -59,7 +59,7 @@ void CAutopilot::Update( CCommand& command )
 			hdg_Error_Integral = 0;  // Reset error integrator
 			tgt_Hdg = -500;  // -500 = system not in hdg hold
 	
-			int m_argumentsToSend[] = {1, 00}; //include number of parms as fist parm
+			int32_t m_argumentsToSend[] = {1, 00}; //include number of parms as fist parm
 			command.PushCommand( "yaw", m_argumentsToSend );
 			Serial.println( F( "log:heading_hold_disabled;" ) );
 			Serial.print( F( "targetHeading:" ) );
@@ -95,19 +95,19 @@ void CAutopilot::Update( CCommand& command )
 		{
 			if( _headingHoldEnabled )
 			{
-				int m_argumentsToSend[] = {0}; //include number of parms as fist parm
+				int32_t m_argumentsToSend[] = {0}; //include number of parms as fist parm
 				command.PushCommand( "headloff", m_argumentsToSend );
 			}
 			else
 			{
 				if( command.m_arguments[0] == 0 )
 				{
-					int m_argumentsToSend[] = {0}; //include number of parms as fist parm
+					int32_t m_argumentsToSend[] = {0}; //include number of parms as fist parm
 					command.PushCommand( "headlon", m_argumentsToSend );
 				}
 				else
 				{
-					int m_argumentsToSend[] = {1, command.m_arguments[1]}; //include number of parms as fist parm
+					int32_t m_argumentsToSend[] = {1, command.m_arguments[1]}; //include number of parms as fist parm
 					command.PushCommand( "headlon", m_argumentsToSend );
 				}
 	
@@ -120,7 +120,7 @@ void CAutopilot::Update( CCommand& command )
 			raw_lift = 0;
 			target_depth = 0;
 	
-			int m_argumentsToSend[] = {1, 0}; //include number of parms as fist parm
+			int32_t m_argumentsToSend[] = {1, 0}; //include number of parms as fist parm
 			command.PushCommand( "lift", m_argumentsToSend );
 			Serial.println( F( "log:depth_hold_disabled;" ) );
 			Serial.print( F( "targetDepth:" ) );
@@ -156,19 +156,19 @@ void CAutopilot::Update( CCommand& command )
 		{
 			if( _depthHoldEnabled )
 			{
-				int m_argumentsToSend[] = {0}; //include number of parms as fist parm
+				int32_t m_argumentsToSend[] = {0}; //include number of parms as fist parm
 				command.PushCommand( "deptloff", m_argumentsToSend );
 			}
 			else
 			{
 				if( command.m_arguments[0] == 0 )
 				{
-					int m_argumentsToSend[] = {0}; //include number of parms as fist parm
+					int32_t m_argumentsToSend[] = {0}; //include number of parms as fist parm
 					command.PushCommand( "deptlon", m_argumentsToSend );
 				}
 				else
 				{
-					int m_argumentsToSend[] = {1, command.m_arguments[1]}; //include number of parms as fist parm
+					int32_t m_argumentsToSend[] = {1, command.m_arguments[1]}; //include number of parms as fist parm
 					command.PushCommand( "deptlon", m_argumentsToSend );
 				}
 			}
@@ -201,12 +201,12 @@ void CAutopilot::Update( CCommand& command )
 
 			if( abs( depth_Error ) > depth_deadband )
 			{
-				int m_argumentsToSend[] = {1, lift}; //include number of parms as fist parm
+				int32_t m_argumentsToSend[] = {1, lift}; //include number of parms as fist parm
 				command.PushCommand( "lift", m_argumentsToSend );
 			}
 			else
 			{
-				int m_argumentsToSend[] = {1, 0}; //include number of parms as fist parm
+				int32_t m_argumentsToSend[] = {1, 0}; //include number of parms as fist parm
 				command.PushCommand( "lift", m_argumentsToSend );
 			}
 
@@ -261,12 +261,12 @@ void CAutopilot::Update( CCommand& command )
 					hdg_Error += heading_deadband;
 				}
 
-				int m_argumentsToSend[] = {1, yaw}; //include number of parms as fist parm
+				int32_t m_argumentsToSend[] = {1, yaw}; //include number of parms as fist parm
 				command.PushCommand( "yaw", m_argumentsToSend );
 			}
 			else
 			{
-				int m_argumentsToSend[] = {1, 0}; //include number of parms as fist parm
+				int32_t m_argumentsToSend[] = {1, 0}; //include number of parms as fist parm
 				command.PushCommand( "yaw", m_argumentsToSend );
 			}
 		}
