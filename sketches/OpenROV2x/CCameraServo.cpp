@@ -189,7 +189,7 @@ void CCameraServo::Update( CCommand& command )
             else
             {
                 // Move by the delta towards the target
-                m_fCurrentPos_us += ( m_speed_us_per_ms * static_cast<float>( m_tDelta ) );
+                m_fCurrentPos_us += ( ( ( error < 0 ) ? -m_speed_us_per_ms : m_speed_us_per_ms ) * static_cast<float>( m_tDelta ) );
 
                 // Cast the floating point servo command to an integer
                 m_currentPos_us = static_cast<uint32_t>( m_fCurrentPos_us );
