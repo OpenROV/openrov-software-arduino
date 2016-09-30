@@ -100,3 +100,10 @@
 
 // MS5837 Depth Sensor
 #define HAS_MS5837_30BA				(1)
+
+// MPL3115A2 Alt/Pressure Sensor
+#define HAS_MPL3115A2				(1)
+
+// PCA9539 GPIO Expander
+#define HAS_PCA9539				(1)
+

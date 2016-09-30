@@ -34,3 +34,13 @@ CBNO055 m_boschIMU( WIRE_INTERFACE_0 );
 #include "CMS5837_30BA.h"
 CMS5837_30BA m_depthSensor( WIRE_INTERFACE_0 );
 #endif
+
+#if(HAS_MPL3115A2)
+#include "CMPL3115A2.h"
+CMPL3115A2 m_mpl( WIRE_INTERFACE_0 );
+#endif
+
+#if(HAS_PCA9539)
+#include "CPCA9539.h"
+CPCA9539 m_pca( WIRE_INTERFACE_0 );
+#endif
