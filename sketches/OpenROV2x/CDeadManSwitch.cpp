@@ -38,7 +38,7 @@ void CDeadManSwitch::Update( CCommand& command )
 
 			if( _deadmanSwitchEnabled )
 			{
-				int argsToSend[] = {0};
+				int32_t argsToSend[] = {0};
 				command.PushCommand( "start", argsToSend );
 				_deadmanSwitchEnabled = false;
 			}
@@ -70,7 +70,7 @@ void CDeadManSwitch::Update( CCommand& command )
 
 	if( ( deadmanSwitchTimer.HasElapsed( 2000 ) ) && _deadmanSwitchArmed && ( _deadmanSwitchEnabled == false ) )
 	{
-		int argsToSend[] = {0}; //include number of parms as fist parm
+		int32_t argsToSend[] = {0}; //include number of parms as fist parm
 		command.PushCommand( "deptloff", argsToSend );
 		command.PushCommand( "headloff", argsToSend );
 		command.PushCommand( "stop", argsToSend );
@@ -79,7 +79,7 @@ void CDeadManSwitch::Update( CCommand& command )
 
 	if( _deadmanSwitchEnabled && blinklightTimer.HasElapsed( 500 ) )
 	{
-		int argsToSend[] = {1, 50};
+		int32_t argsToSend[] = {1, 50};
 
 		if( blinkstate )
 		{
