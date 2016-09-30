@@ -159,6 +159,9 @@ void CCameraServo::Update( CCommand& command )
                 // Report back
                 Serial.print( F( "camServ_inv:0;" ) );
             }
+
+            // Adjust target_us based on inversion
+            m_targetPos_us = DegreesToMicroseconds( m_targetPos_deg, m_isInverted );
         }
     }
 
