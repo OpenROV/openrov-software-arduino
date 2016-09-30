@@ -119,11 +119,11 @@ void CCameraServo::Update( CCommand& command )
             // TODO: Ideally this unit would have the ability to autonomously set its own target and ack receipt with a separate mechanism
             // Acknowledge target position
             Serial.print( F( "camServ_tpos:" ) );
-            Serial.print( command.m_arguments[1] );
+            Serial.print( static_cast<int32_t>( command.m_arguments[1] ) );
             Serial.println( ';' );
             
             // Update the target position
-            m_targetPos_deg = Decode( command.m_arguments[1] );
+            m_targetPos_deg = Decode( static_cast<int32_t>( command.m_arguments[1] ) );
 
             // Update the target microseconds
             m_targetPos_us = DegreesToMicroseconds( m_targetPos_deg, m_isInverted );
@@ -132,11 +132,11 @@ void CCameraServo::Update( CCommand& command )
         {
             // Acknowledge receipt of command
             Serial.print( F( "camServ_spd:" ) );
-            Serial.print( command.m_arguments[1] );
+            Serial.print( static_cast<int32_t>( command.m_arguments[1] ) );
             Serial.println( ';' );
 
             // Decode the requested speed and update the setting
-            m_speed_deg_per_s   = Decode( command.m_arguments[1] );
+            m_speed_deg_per_s   = Decode( static_cast<int32_t>( command.m_arguments[1] ) );
             m_speed_us_per_ms   = ( m_speed_deg_per_s * 0.001f ) * kMicrosecPerDegree;
         }
         else if( command.Equals( "camServ_inv" ) )

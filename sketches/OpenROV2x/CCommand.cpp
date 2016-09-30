@@ -97,7 +97,7 @@ namespace
 
 
 // Static member initialization
-int CCommand::m_arguments[COMMAND_MAX_ARGUMENTS];
+int32_t CCommand::m_arguments[COMMAND_MAX_ARGUMENTS];
 char CCommand::m_text[COMMAND_DATA_BUFFER_SIZE + 1] ;
 
 boolean CCommand::Equals( const char* targetcommand )
@@ -191,7 +191,7 @@ boolean CCommand::GetCommandString()
 	return false;
 }
 
-void CCommand::PushCommand( char* cmdtext, int cmdargs[COMMAND_MAX_ARGUMENTS] )
+void CCommand::PushCommand( char* cmdtext, int32_t cmdargs[COMMAND_MAX_ARGUMENTS] )
 {
 	// If commands are not being processed in time we overwrite the oldest ones.  Technically we should probably
 	// have a global array for all possible commands where only the most recent is ever processed to prevent
