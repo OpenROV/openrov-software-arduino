@@ -297,7 +297,7 @@ void CCommand::Parse()
 		else
 		{
 			//this is a parameter
-			m_arguments[i] = atoi( pch );
+			m_arguments[i] = atol( pch );
 
 			if( i > 1 )
 			{
