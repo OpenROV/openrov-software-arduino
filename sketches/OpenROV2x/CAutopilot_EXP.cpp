@@ -34,7 +34,7 @@ namespace
 			m_yawController.Deactivate();
 
 			// Send command to drive yaw at zero capacity (to turn off whatever was last sent by the controller)
-			int m_argumentsToSend[] = { 1, 0 };
+			int32_t m_argumentsToSend[] = { 1, 0 };
 			NCommManager::m_currentCommand.PushCommand( "yaw", m_argumentsToSend );
 
 			Serial.println( F( "log:heading_hold_disabled;" ) );
@@ -81,7 +81,7 @@ namespace
 			m_depthController.Deactivate();
 
 			// Send command to drive lift at zero capacity (to turn off whatever was last sent by the controller)
-			int m_argumentsToSend[] = { 1, 0 };
+			int32_t m_argumentsToSend[] = { 1, 0 };
 			NCommManager::m_currentCommand.PushCommand( "lift", m_argumentsToSend );
 
 			Serial.println( F( "log:depth_hold_disabled;" ) );
@@ -139,7 +139,7 @@ namespace
 			Serial.println( ';' );
 
 			// Send lift command
-			int m_argumentsToSend[] = { 1, lift };
+			int32_t m_argumentsToSend[] = { 1, lift };
 			NCommManager::m_currentCommand.PushCommand( "lift", m_argumentsToSend );
 		}
 	}
@@ -164,7 +164,7 @@ namespace
 			Serial.println( ';' );
 
 			// Send yaw command
-			int m_argumentsToSend[] = { 1, yaw };
+			int32_t m_argumentsToSend[] = { 1, yaw };
 			NCommManager::m_currentCommand.PushCommand( "yaw", m_argumentsToSend );
 		}
 	}
