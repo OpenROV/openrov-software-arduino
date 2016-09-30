@@ -40,9 +40,9 @@ CThrusters m_thrusters;
 CAutopilot m_autopilot;
 #endif
 
-#if(HAS_STD_CAMERAMOUNT)
-#include "CCameraMount.h"
-CCameraMount m_cameraMount;
+#if(HAS_CAMERASERVO)
+#include "CCameraServo.h"
+CCameraServo m_cameraServo;
 #endif
 
 #if(HAS_POLOLU_MINIMUV)
