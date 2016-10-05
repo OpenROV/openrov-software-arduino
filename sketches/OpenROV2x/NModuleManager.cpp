@@ -2,7 +2,7 @@
 #include <avr/wdt.h>
 
 #include "NModuleManager.h"
-#include "ModuleDefinitions.h"
+#include "SysModules.h"
 
 namespace NModuleManager
 {

@@ -2,7 +2,7 @@
 
 // Includes
 #include <Arduino.h>
-#include "SystemConstants.h"
+#include "PinDefinitions.h"
 
 class CPin
 {

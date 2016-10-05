@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CCommand.h"
+#include "Utility.h"
 #include <Arduino.h>
 
 class CModule

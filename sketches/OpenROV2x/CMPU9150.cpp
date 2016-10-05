@@ -1,6 +1,6 @@
 // Includes
 #include "CMPU9150.h"
-#include "AConfig.h"
+#include "SysConfig.h"
 
 #if( HAS_MPU9150 )
 
@@ -9,7 +9,7 @@
 #include "LibMPU.h"
 #include "LibMPU_Calibration.h"
 
-#include "NConfigManager.h"
+#include "NVehicleManager.h"
 #include "NDataManager.h"
 #include "CModule.h"
 #include "CTimer.h"
@@ -83,8 +83,8 @@ void CMPU9150::Initialize()
 		Serial.println( F( "log:init on primary addresses;" ) );
 	}                             // start the MPU
 
-	NConfigManager::m_capabilityBitmask |= ( 1 << COMPASS_CAPABLE );
-	NConfigManager::m_capabilityBitmask |= ( 1 << ORIENTATION_CAPABLE );
+	NVehicleManager::m_capabilityBitmask |= ( 1 << COMPASS_CAPABLE );
+	NVehicleManager::m_capabilityBitmask |= ( 1 << ORIENTATION_CAPABLE );
 
 	MPU9150ReInit.Reset();
 	mpu_update_timer.Reset();

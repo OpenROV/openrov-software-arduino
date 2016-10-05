@@ -1,9 +1,10 @@
 #pragma once
 
+// Pins
+#define MAX_PIN_OUTPUT_STRING_LENGTH			50
+
 // Includes
 #include <Arduino.h>
-
-#define MAX_PIN_OUTPUT_STRING_LENGTH			50
 
 class CPin
 {

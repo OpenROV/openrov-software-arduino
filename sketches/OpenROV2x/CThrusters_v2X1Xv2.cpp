@@ -1,17 +1,13 @@
-#include "AConfig.h"
+#include "SysConfig.h"
 #if( THRUSTER_CONFIGURATION == THRUSTER_CONFIG_v2X1Xv2 )
 
 // Includes
 #include "CThrusters.h"
-#include "NConfigManager.h"
+#include "NVehicleManager.h"
 #include "NDataManager.h"
 #include "CMotor.h"
 #include "CTimer.h"
 #include "CPin.h"
-
-#if(HAS_STD_CAPE)
-    #include "CCape.h"
-#endif
 
 #if(HAS_OROV_CONTROLLERBOARD_25)
     #include "CControllerBoard.h"
@@ -23,10 +19,10 @@ const int CThrusters::kMotorCount = 5;
 
 namespace
 {
-    CMotor port_forward_motor( PORT_FORWARD_PIN );
-    CMotor port_aft_motor( PORT_AFT_PIN );
-    CMotor vertical_motor( VERTICAL_PIN );
-    CMotor starboard_forward_motor( STARBOARD_FORWARD_PIN );
+    CMotor port_forward_motor( PIN_PORT_FORWARD_MOTOR );
+    CMotor port_aft_motor( PIN_PORT_AFT_MOTOR );
+    CMotor vertical_motor( PIN_VERTICAL_MOTOR );
+    CMotor starboard_forward_motor( PIN_STAR_FORWARD_MOTOR );
     CMotor starboard_aft_motor( STARBOARD_AFT_PIN );
 
     int new_pf	= MOTOR_TARGET_NEUTRAL_US;
@@ -51,9 +47,9 @@ namespace
     CTimer thrusterOutput;
     boolean bypasssmoothing;
 
-#ifdef ESCPOWER_PIN
+#ifdef PIN_ENABLE_ESC
     bool canPowerESCs = true;
-    CPin escpower( "escpower", ESCPOWER_PIN, CPin::kDigital, CPin::kOutput );
+    CPin escpower( "escpower", PIN_ENABLE_ESC, CPin::kDigital, CPin::kOutput );
 #else
     boolean canPowerESCs = false;
 #endif
@@ -61,24 +57,24 @@ namespace
 
 void CThrusters::Initialize()
 {
-    port_forward_motor.m_negativeDeadzoneBuffer = NConfigManager::m_deadZoneMin;
-    port_forward_motor.m_positiveDeadzoneBuffer = NConfigManager::m_deadZoneMax;
+    port_forward_motor.m_negativeDeadzoneBuffer = NVehicleManager::m_deadZoneMin;
+    port_forward_motor.m_positiveDeadzoneBuffer = NVehicleManager::m_deadZoneMax;
     port_forward_motor.Activate();
 
-    port_aft_motor.m_negativeDeadzoneBuffer = NConfigManager::m_deadZoneMin;
-    port_aft_motor.m_positiveDeadzoneBuffer = NConfigManager::m_deadZoneMax;
+    port_aft_motor.m_negativeDeadzoneBuffer = NVehicleManager::m_deadZoneMin;
+    port_aft_motor.m_positiveDeadzoneBuffer = NVehicleManager::m_deadZoneMax;
     port_aft_motor.Activate();
 
-    vertical_motor.m_negativeDeadzoneBuffer = NConfigManager::m_deadZoneMin;
-    vertical_motor.m_positiveDeadzoneBuffer = NConfigManager::m_deadZoneMax;
+    vertical_motor.m_negativeDeadzoneBuffer = NVehicleManager::m_deadZoneMin;
+    vertical_motor.m_positiveDeadzoneBuffer = NVehicleManager::m_deadZoneMax;
     vertical_motor.Activate();
 
-    starboard_forward_motor.m_negativeDeadzoneBuffer = NConfigManager::m_deadZoneMin;
-    starboard_forward_motor.m_positiveDeadzoneBuffer = NConfigManager::m_deadZoneMax;
+    starboard_forward_motor.m_negativeDeadzoneBuffer = NVehicleManager::m_deadZoneMin;
+    starboard_forward_motor.m_positiveDeadzoneBuffer = NVehicleManager::m_deadZoneMax;
     starboard_forward_motor.Activate();
 
-    starboard_aft_motor.m_negativeDeadzoneBuffer = NConfigManager::m_deadZoneMin;
-    starboard_aft_motor.m_positiveDeadzoneBuffer = NConfigManager::m_deadZoneMax;
+    starboard_aft_motor.m_negativeDeadzoneBuffer = NVehicleManager::m_deadZoneMin;
+    starboard_aft_motor.m_positiveDeadzoneBuffer = NVehicleManager::m_deadZoneMax;
     starboard_aft_motor.Activate();
 
     thrusterOutput.Reset();
@@ -86,7 +82,7 @@ void CThrusters::Initialize()
 
     bypasssmoothing = false;
 
-    #ifdef ESCPOWER_PIN
+    #ifdef PIN_ENABLE_ESC
     escpower.Reset();
     escpower.Write( 1 ); //Turn on the ESCs
     #endif
@@ -319,7 +315,7 @@ void CThrusters::Update( CCommand& command )
         }
     }
 
-    #ifdef ESCPOWER_PIN
+    #ifdef PIN_ENABLE_ESC
     else if( command.Equals( "escp" ) )
     {
         escpower.Write( command.m_arguments[1] ); //Turn on the ESCs
@@ -350,7 +346,7 @@ void CThrusters::Update( CCommand& command )
         //starboard_motor.stop();
     }
 
-    #ifdef ESCPOWER_PIN
+    #ifdef PIN_ENABLE_ESC
     else if( ( command.Equals( "mcal" ) ) && ( canPowerESCs ) )
     {
         Serial.println( F( "log:Motor Callibration Staring;" ) );

@@ -1,4 +1,4 @@
-#include "AConfig.h"
+#include "SysConfig.h"
 #if(HAS_MS5803_XXBA)
 
 #include "CMS5803_XXBA.h"
@@ -6,7 +6,7 @@
 #include "CTimer.h"
 #include "CI2C.h"
 
-#include "NConfigManager.h"
+#include "NVehicleManager.h"
 #include "NDataManager.h"
 
 namespace
@@ -37,7 +37,7 @@ namespace
 
 void CMS5803_14BA::Initialize()
 {
-	NConfigManager::m_capabilityBitmask |= ( 1 << DEPTH_CAPABLE );
+	NVehicleManager::m_capabilityBitmask |= ( 1 << DEPTH_CAPABLE );
 
 	// Reset the chip
 	dev.Initialize( false );
@@ -59,14 +59,14 @@ void CMS5803_14BA::Update( CCommand& commandIn )
 		else if( commandIn.Equals( "dtwa" ) )
 		{
 			// Print water type value
-			if( NConfigManager::m_waterType == WATERTYPE_FRESH )
+			if( NVehicleManager::m_waterType == WATERTYPE_FRESH )
 			{
-				NConfigManager::m_waterType = WATERTYPE_SALT;
+				NVehicleManager::m_waterType = WATERTYPE_SALT;
 				Serial.println( F( "dtwa:1;" ) );
 			}
 			else
 			{
-				NConfigManager::m_waterType = WATERTYPE_FRESH;
+				NVehicleManager::m_waterType = WATERTYPE_FRESH;
 				Serial.println( F( "dtwa:0;" ) );
 			}
 		}

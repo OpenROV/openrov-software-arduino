@@ -1,11 +1,16 @@
-#include "AConfig.h"
+#include "SysConfig.h"
 #if(HAS_ALT_SERVO)
 
 #include "CPin.h"
 #include "CAltServo.h"
 #include "CServo.h"
-#include "SystemConstants.h"
-#include "NConfigManager.h"
+#include "PinDefinitions.h"
+#include "NVehicleManager.h"
+
+// AltServo
+#define ALTS_MIDPOINT 1500
+#define ALTS_MINPOINT 1000
+#define ALTS_MAXPOINT 2000
 
 namespace
 {
@@ -26,9 +31,9 @@ namespace
 
 void CAltServo::Initialize()
 {
-	_altservo.Activate( ALTSERVO_PIN );
+	_altservo.Activate( PIN_ALTSERVO );
 	_altservo.WriteMicroseconds( ALTS_MIDPOINT );
-	NConfigManager::m_capabilityBitmask |= ( 1 << ALT_SERVO_CAPABLE );
+	NVehicleManager::m_capabilityBitmask |= ( 1 << ALT_SERVO_CAPABLE );
 
 }
 

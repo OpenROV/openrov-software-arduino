@@ -1,7 +1,8 @@
 #pragma once
-#include "AConfig.h"
+#include "SysConfig.h"
 
 #include "Plugins.h"
+#include "PinDefinitions.h"
 
 // ---------------------------------------
 // Conditional module definitions
@@ -15,14 +16,9 @@
 CControllerBoard m_controllerBoard;
 #endif
 
-#if(HAS_STD_CAPE)
-#include "CCape.h"
-CCape m_cape;
-#endif
-
 #if(HAS_STD_LIGHTS)
 #include "CLights.h"
-CLights m_lights;
+CLights m_lights( PIN_STANDARD_LIGHTS );
 #endif
 
 #if(HAS_STD_CALIBRATIONLASERS)
@@ -43,14 +39,6 @@ CAutopilot m_autopilot;
 #if(HAS_CAMERASERVO)
 #include "CCameraServo.h"
 CCameraServo m_cameraServo;
-#endif
-
-#if(HAS_POLOLU_MINIMUV)
-#define COMPASS_ENABLED 1
-#define GYRO_ENABLED 1
-#define ACCELEROMETER_ENABLED 1
-#include "CMinIMU9.h"
-CMinIMU9 m_miniMUV;
 #endif
 
 #if( HAS_MPU9150 )

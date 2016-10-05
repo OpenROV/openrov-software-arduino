@@ -1,13 +1,16 @@
-#include "AConfig.h"
+#include "SysConfig.h"
 #if(HAS_STD_LIGHTS)
 
 // Includes
 #include <Arduino.h>
 #include "CDeadManSwitch.h"
 #include "CTimer.h"
-#include "NConfigManager.h"
+#include "NVehicleManager.h"
 #include "NModuleManager.h"
 #include "NCommManager.h"
+
+// Deadman Switch
+#define DEADMAN_SWITCH_DELAY_TO_ARM_MS			180000
 
 // File local variables and methods
 namespace
@@ -22,7 +25,7 @@ namespace
 
 void CDeadManSwitch::Initialize()
 {
-	NConfigManager::m_capabilityBitmask |= ( 1 << LIGHTS_CAPABLE );
+	NVehicleManager::m_capabilityBitmask |= ( 1 << LIGHTS_CAPABLE );
 	deadmanSwitchTimer.Reset();
 	blinklightTimer.Reset();
 }

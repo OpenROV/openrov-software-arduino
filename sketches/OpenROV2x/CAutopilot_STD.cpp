@@ -1,4 +1,4 @@
-#include "AConfig.h"
+#include "SysConfig.h"
 #if(HAS_STD_AUTOPILOT)
 
 #include "CAutopilot.h"
@@ -63,7 +63,7 @@ void CAutopilot::Update( CCommand& command )
 			command.PushCommand( "yaw", m_argumentsToSend );
 			Serial.println( F( "log:heading_hold_disabled;" ) );
 			Serial.print( F( "targetHeading:" ) );
-			Serial.print( DISABLED );
+			Serial.print( F("DISABLED") );
 			Serial.println( ';' );
 	
 		}
@@ -124,7 +124,7 @@ void CAutopilot::Update( CCommand& command )
 			command.PushCommand( "lift", m_argumentsToSend );
 			Serial.println( F( "log:depth_hold_disabled;" ) );
 			Serial.print( F( "targetDepth:" ) );
-			Serial.print( DISABLED );
+			Serial.print( F("DISABLED") );
 			Serial.println( ';' );
 	
 		}

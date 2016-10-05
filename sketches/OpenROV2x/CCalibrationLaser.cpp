@@ -1,4 +1,4 @@
-#include "AConfig.h"
+#include "SysConfig.h"
 #if(HAS_STD_CALIBRATIONLASERS)
 
 // Includes
@@ -6,12 +6,7 @@
 #include "CPin.h"
 #include "NCommManager.h"
 #include "NModuleManager.h"
-#include "NConfigManager.h"
-
-// One of these has the correct pin definition for the lasers
-#if(HAS_STD_CAPE)
-    #include "CCape.h"
-#endif
+#include "NVehicleManager.h"
 
 #if(HAS_OROV_CONTROLLERBOARD_25)
     #include "CControllerBoard.h"
@@ -20,12 +15,12 @@
 // File local variables and methods
 namespace
 {
-    CPin calLaser( "claser", CALIBRATIONLASERS_PIN, CPin::kAnalog, CPin::kOutput );
+    CPin calLaser( "claser", PIN_LASERS, CPin::kAnalog, CPin::kOutput );
 }
 
 void CalibrationLaser::Initialize()
 {
-    NConfigManager::m_capabilityBitmask |= ( 1 << CALIBRATION_LASERS_CAPABLE );
+    NVehicleManager::m_capabilityBitmask |= ( 1 << CALIBRATION_LASERS_CAPABLE );
     calLaser.Write( 0 );
 }
 

@@ -1,5 +1,8 @@
 #include "CPin.h"
 
+// Pins
+#define MAX_PIN_OUTPUT_STRING_LENGTH			50
+
 CPin::CPin( String module_name, int pin_number, bool digital_truth, bool in_out )
 {
     m_name      = module_name;

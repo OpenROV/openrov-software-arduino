@@ -6,8 +6,6 @@
 // Forward declarations
 class CCommand;
 
-// Defines
-
 // If you have modules that add capabilities that should be advertised to the OpenROV Cockpit
 // software add them here. Check the bits on the server side for capabilities and gracefully
 // degrade (remove UI elements) if the capabilities do not exist.

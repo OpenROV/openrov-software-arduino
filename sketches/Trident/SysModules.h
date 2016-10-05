@@ -1,6 +1,7 @@
 #pragma once
 
 #include "SysConfig.h"
+#include "PinDefinitions.h"
 
 // ---------------------------------------
 // Conditional module definitions
@@ -17,7 +18,7 @@ CControllerBoard m_controllerBoard;
 
 #if(HAS_STD_LIGHTS)
 #include "CLights.h"
-CLights m_lights;
+CLights m_lights( PIN_STANDARD_LIGHTS );
 #endif
 
 #if(THRUSTER_CONFIGURATION != THRUSTER_CONFIG_NONE )

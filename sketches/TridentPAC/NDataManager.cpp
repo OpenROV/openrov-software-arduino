@@ -8,7 +8,6 @@ namespace NDataManager
 	TEnvironmentData	m_environmentData = {};
 	TCapeData			m_capeData = {};
 	TThrusterData		m_thrusterData = {};
-	TCameraMountData	m_cameraMountData = {};
 	TControllerData		m_controllerData = {};
 
 	CTimer				m_timer_1hz;
@@ -56,14 +55,6 @@ namespace NDataManager
 		Serial.print( m_thrusterData.MATC );
 		Serial.println( ';' );
 
-		// Camera Mount Data
-		Serial.print( F( "servo:" ) );
-		Serial.print( m_cameraMountData.CMNT );
-		Serial.print( ';' );
-		Serial.print( F( "starg:" ) );
-		Serial.print( m_cameraMountData.CMTG );
-		Serial.println( ';' );
-
 		// Cape Data
 		Serial.print( F( "fmem:" ) );
 		Serial.print( m_capeData.FMEM );
@@ -76,9 +67,6 @@ namespace NDataManager
 		Serial.print( ';' );
 		Serial.print( F( "btti:" ) );
 		Serial.print( m_capeData.BTTI );
-		Serial.print( ';' );
-		Serial.print( F( "atmp:" ) );
-		Serial.print( m_capeData.ATMP );
 		Serial.print( ';' );
 		Serial.print( F( "time:" ) );
 		Serial.print( m_capeData.UTIM );

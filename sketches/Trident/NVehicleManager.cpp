@@ -22,9 +22,6 @@ namespace NVehicleManager
 
 	void Initialize()
 	{
-		Serial.println( "Systems.VehicleManager.Status:INIT;" );
-
-		Serial.println( "Systems.VehicleManager.Status:READY;" );
 	}
 
 	void HandleMessages( CCommand &commandIn )

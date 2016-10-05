@@ -1,6 +1,6 @@
 // Includes
 #include "CMotor.h"
-#include "SystemConstants.h"
+#include "PinDefinitions.h"
 
 // Default constructor plus pin-setting
 CMotor::CMotor( int motorPinIn )

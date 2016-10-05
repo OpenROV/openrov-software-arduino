@@ -1,22 +1,30 @@
-#include "NConfigManager.h"
+// Includes
+#include "NVehicleManager.h"
 #include "NCommManager.h"
-#include "NArduinoManager.h"
+#include "CCommand.h"
 #include "CompileOptions.h"
 
-namespace NConfigManager
+namespace NVehicleManager
 {
-	// Initialize variables
+	// ---------------------------------------------------------
+	// Variable initialization
+	// ---------------------------------------------------------
+
 	uint32_t m_throttleSmoothingIncrement	= 40;
 	uint32_t m_deadZoneMin					= 50;
 	uint32_t m_deadZoneMax					= 50;
 	uint32_t m_capabilityBitmask			= 0;
 	uint32_t m_waterType					= WATERTYPE_FRESH;
 
+	// ---------------------------------------------------------
+	// Method Definitions
+	// ---------------------------------------------------------
+
 	void Initialize()
 	{
 	}
 
-	void HandleMessages( CCommand& commandIn )
+	void HandleMessages( CCommand &commandIn )
 	{
 		if( NCommManager::m_isCommandAvailable )
 		{
@@ -30,13 +38,13 @@ namespace NConfigManager
 			{
 				Serial.print( F( "*settings:" ) );
 				Serial.print( F( "smoothingIncriment|" ) );
-				Serial.print( String( NConfigManager::m_throttleSmoothingIncrement ) + "," );
+				Serial.print( String( m_throttleSmoothingIncrement ) + "," );
 				Serial.print( F( "deadZone_min|" ) );
-				Serial.print( String( NConfigManager::m_deadZoneMin ) + "," );
+				Serial.print( String( m_deadZoneMin ) + "," );
 				Serial.print( F( "deadZone_max|" ) );
-				Serial.print( String( NConfigManager::m_deadZoneMax ) + "," );
+				Serial.print( String( m_deadZoneMax ) + "," );
 				Serial.print( F( "water_type|" ) );
-				Serial.println( String( NConfigManager::m_waterType ) + ";" );
+				Serial.println( String( m_waterType ) + ";" );
 
 			}
 			else if( commandIn.Equals( "rcap" ) ) //report capabilities
@@ -49,10 +57,10 @@ namespace NConfigManager
 			{
 				//TODO: Need to update the motors with new deadZone setting. Probably move
 				//deadzone to the thruster resposibilitiy
-				NConfigManager::m_throttleSmoothingIncrement = commandIn.m_arguments[1];
-				NConfigManager::m_deadZoneMin					= commandIn.m_arguments[2];
-				NConfigManager::m_deadZoneMax		= commandIn.m_arguments[3];
-				NConfigManager::m_waterType		= commandIn.m_arguments[4];
+				m_throttleSmoothingIncrement 	= commandIn.m_arguments[1];
+				m_deadZoneMin					= commandIn.m_arguments[2];
+				m_deadZoneMax					= commandIn.m_arguments[3];
+				m_waterType						= commandIn.m_arguments[4];
 			}
 		}
 	}

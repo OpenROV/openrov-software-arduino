@@ -1,4 +1,4 @@
-#include "AConfig.h"
+#include "SysConfig.h"
 #if(HAS_CAMERASERVO)
 
 // Includes
@@ -9,7 +9,7 @@
 #include "CCameraServo.h"
 #include "CServo.h"
 #include "CPin.h"
-#include "NConfigManager.h"
+#include "NVehicleManager.h"
 #include "NDataManager.h"
 #include "NModuleManager.h"
 #include "NCommManager.h"
@@ -89,7 +89,7 @@ namespace
 void CCameraServo::Initialize()
 {
     // Set up the pin for the camera servo
-    pinMode( CAMERAMOUNT_PIN, OUTPUT );
+    pinMode( PIN_CAMERA_MOUNT, OUTPUT );
 
     // Set up the timers driving the PWM for the servo (AVR specific)
     TCCR1A = 0;
@@ -103,7 +103,7 @@ void CCameraServo::Initialize()
     SetServoPosition( kNeutralPosition_us );
 
     // Mark camera servo as enabled
-    NConfigManager::m_capabilityBitmask |= ( 1 << CAMERA_MOUNT_1_AXIS_CAPABLE );
+    NVehicleManager::m_capabilityBitmask |= ( 1 << CAMERA_MOUNT_1_AXIS_CAPABLE );
 
     // Reset timers
     m_controlTimer.Reset();

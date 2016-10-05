@@ -2,7 +2,7 @@
 #include <EEPROM.h>
 
 #include "NArduinoManager.h"
-#include "NConfigManager.h"
+#include "NVehicleManager.h"
 #include "NDataManager.h"
 #include "NCommManager.h"
 #include "NModuleManager.h"
@@ -13,7 +13,7 @@ void setup()
 	// Initialize main subsystems
 	NArduinoManager::Initialize();
 	NCommManager::Initialize();
-	NConfigManager::Initialize();
+	NVehicleManager::Initialize();
 	NModuleManager::Initialize();
 	NDataManager::Initialize();
 
@@ -33,7 +33,7 @@ void loop()
 	NCommManager::GetCurrentCommand();
 
 	// Handle any config change requests
-	NConfigManager::HandleMessages( NCommManager::m_currentCommand );
+	NVehicleManager::HandleMessages( NCommManager::m_currentCommand );
 
 	// Handle update loops for each module
 	NModuleManager::HandleModuleUpdates( NCommManager::m_currentCommand );

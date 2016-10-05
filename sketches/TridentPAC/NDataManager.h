@@ -24,26 +24,17 @@ struct TEnvironmentData
 
 struct TCapeData
 {
-	double FMEM;	// Free memory on the Arduino in bytes
+	uint32_t FMEM;	// Free memory on the Arduino in bytes
 	double VOUT;	// Voltage as meassed at the cape in milli-volts
 	double IOUT;	// Current measured in to the cape in milli-amps.
 	double BTTI;	// Current draw from both battery banks
-	double ATMP;	// Arduino internal temp in Celsius (should not get above ~86)
-	double UTIM;	// Up-time since Arduino was started in milliseconds
-
-	String VER;		// Version number of the OpenRov firmware
+	uint32_t UTIM;	// Up-time since Arduino was started in milliseconds
 };
 
 struct TThrusterData
 {
 	boolean MATC;			// Motors on-line indicator
 	boolean MotorsActive;	// Whether or not there is currently a motor running
-};
-
-struct TCameraMountData
-{
-	int CMNT;		// Camera Mount X Rotation in milliseconds
-	int CMTG;		// Camera Mount X Target Rotation in milliseconds
 };
 
 struct TControllerData
@@ -76,7 +67,6 @@ namespace NDataManager
 	extern TEnvironmentData		m_environmentData;
 	extern TCapeData			m_capeData;
 	extern TThrusterData		m_thrusterData;
-	extern TCameraMountData		m_cameraMountData;
 	extern TControllerData		m_controllerData;
 
 	extern CTimer				m_timer_1hz;

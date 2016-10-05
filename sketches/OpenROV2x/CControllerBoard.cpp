@@ -1,4 +1,4 @@
-#include "AConfig.h"
+#include "SysConfig.h"
 #if( HAS_OROV_CONTROLLERBOARD_25 )
 
 // Includes
@@ -30,7 +30,7 @@ namespace
 
 	float celsiusTempRead;
 
-	CPin i2cpower( "i2cpower", I2CPOWER_PIN, CPin::kDigital, CPin::kOutput );
+	CPin i2cpower( "i2cpower", PIN_ENABLE_I2C, CPin::kDigital, CPin::kOutput );
 
 	float mapf( long x, long in_min, long in_max, long out_min, long out_max )
 	{

@@ -27,7 +27,7 @@
 #include "CMS5803_XX.h"
 #include "CI2C.h"
 
-#include "NConfigManager.h"
+#include "NVehicleManager.h"
 #include "NDataManager.h"
 
 // For I2C, set the CSB Pin (pin 3) high for address 0x76, and pull low
@@ -331,7 +331,7 @@ void CMS5803::readSensor()
 	m_depth = ( mbar - 1013.25f ) * 1.019716f / 100.0f;
 
 	// Calculate the depth using pressure
-	if( NConfigManager::m_waterType == WATERTYPE_FRESH )
+	if( NVehicleManager::m_waterType == WATERTYPE_FRESH )
 	{
 		//FreshWater
 		m_depth = ( mbar - 1013.25f ) * 1.019716f / 100.0f;

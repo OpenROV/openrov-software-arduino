@@ -1,4 +1,4 @@
-#include "AConfig.h"
+#include "SysConfig.h"
 #if( HAS_EXP_AUTOPILOT )
 
 // Includes
@@ -40,7 +40,7 @@ namespace
 			Serial.println( F( "log:heading_hold_disabled;" ) );
 
 			Serial.print( F( "targetHeading:" ) );
-			Serial.print( DISABLED );
+			Serial.print( F("DISABLED") );
 			Serial.println( ';' );
 
 			return;
@@ -87,7 +87,7 @@ namespace
 			Serial.println( F( "log:depth_hold_disabled;" ) );
 
 			Serial.print( F( "targetDepth:" ) );
-			Serial.print( DISABLED );
+			Serial.print( F("DISABLED") );
 			Serial.println( ';' );
 
 			return;

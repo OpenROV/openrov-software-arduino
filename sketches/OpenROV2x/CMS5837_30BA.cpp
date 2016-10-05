@@ -1,4 +1,4 @@
-#include "AConfig.h"
+#include "SysConfig.h"
 #if(HAS_MS5837_30BA)
 
 #include "CMS5837_30BA.h"
@@ -7,7 +7,7 @@
 #include "CI2C.h"
 
 #include "NCommManager.h"
-#include "NConfigManager.h"
+#include "NVehicleManager.h"
 #include "NDataManager.h"
 
 namespace
@@ -67,7 +67,7 @@ void CMS5837_30BA::Initialize()
 	    Serial.println( "MS5837.init:Success;" );
 	    
 	    // Announce depth capability
-	    NConfigManager::m_capabilityBitmask |= ( 1 << DEPTH_CAPABLE );
+	    NVehicleManager::m_capabilityBitmask |= ( 1 << DEPTH_CAPABLE );
 	    
 	    // Print calibration coefficients and CRC check result
 	    PrintCoefficients();
@@ -99,7 +99,7 @@ void CMS5837_30BA::Update( CCommand& commandIn )
             	    Serial.println( "MS5837.init:Success;" );
             	    
             	    // Announce depth capability
-            	    NConfigManager::m_capabilityBitmask |= ( 1 << DEPTH_CAPABLE );
+            	    NVehicleManager::m_capabilityBitmask |= ( 1 << DEPTH_CAPABLE );
             	    
             	    // Print calibration coefficients and CRC check result
             	    PrintCoefficients();
@@ -132,15 +132,15 @@ void CMS5837_30BA::Update( CCommand& commandIn )
                 // TODO: Make this a command to change water type properly
                 
             	// Print water type value
-            	if( NConfigManager::m_waterType == WATERTYPE_FRESH )
+            	if( NVehicleManager::m_waterType == WATERTYPE_FRESH )
             	{
-            		NConfigManager::m_waterType = WATERTYPE_SALT;
+            		NVehicleManager::m_waterType = WATERTYPE_SALT;
             		m_sensor.SetWaterType( MS5837_WATERTYPE_SALT );
             		Serial.println( F( "dtwa:1;" ) );
             	}
             	else
             	{
-            		NConfigManager::m_waterType = WATERTYPE_FRESH;
+            		NVehicleManager::m_waterType = WATERTYPE_FRESH;
             		m_sensor.SetWaterType( MS5837_WATERTYPE_FRESH );
             		Serial.println( F( "dtwa:0;" ) );
             	}
