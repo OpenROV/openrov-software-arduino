@@ -41,6 +41,17 @@ CAutopilot m_autopilot;
 CCameraServo m_cameraServo;
 #endif
 
+#if(HAS_ALT_SERVO)
+#include "CAltServo.h"
+CAltServo altservo1;
+#endif
+
+#if(DEADMANSWITCH_ON)
+#include "CDeadManSwitch.h"
+CDeadManSwitch m_deadManSwitch;
+#endif
+
+// IMU1
 #if( HAS_MPU9150 )
 #define COMPASS_ENABLED 1
 #define GYRO_ENABLED 1
@@ -49,32 +60,20 @@ CCameraServo m_cameraServo;
 CMPU9150 m_mpu9150;
 #endif
 
-#if(HAS_ALT_SERVO)
-#include "CAltServo.h"
-CAltServo altservo1;
+#if(HAS_MS5803_14BA)
+#include "CMS5803_14BA.h"
+CMS5803_14BA m_ms5803( &I2C0 );
 #endif
 
-#if(HAS_MS5803_XXBA)
-#define DEPTH_ENABLED 1
-#include "CMS5803_XXBA.h"
-CMS5803_14BA m_depthSensor;
+// IMU2
+#if(HAS_BNO055)
+#include "CBNO055.h"
+CBNO055 m_boschIMU( &I2C0 );
 #endif
 
 #if(HAS_MS5837_30BA)
-#define DEPTH_ENABLED 1
 #include "CMS5837_30BA.h"
-CMS5837_30BA m_depthSensor;
+CMS5837_30BA m_ms5837( &I2C0 );
 #endif
 
-#if(DEADMANSWITCH_ON)
-#include "CDeadManSwitch.h"
-CDeadManSwitch m_deadManSwitch;
-#endif
 
-#if(HAS_BNO055)
-#define COMPASS_ENABLED 1
-#define GYRO_ENABLED 1
-#define ACCELEROMETER_ENABLED 1
-#include "CBNO055.h"
-CBNO055 m_boschIMU;
-#endif

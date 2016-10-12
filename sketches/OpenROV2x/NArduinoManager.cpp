@@ -1,8 +1,8 @@
 // Includes
 #include "NArduinoManager.h"
 
+#include <I2C.h>
 #include <EEPROM.h>
-#include "CI2C.h"
 
 namespace NArduinoManager
 {
@@ -21,13 +21,7 @@ namespace NArduinoManager
 		Serial.begin( 115200 );
 
 		// Start I2C Device
-		I2c.begin();
-
-		// Set 10ms timeout on I2C transmissions
-		I2c.timeOut( 50 );
-
-		// 400Khz
-		I2c.setSpeed( 1 );
+		I2C0.Enable();
 
 		// // Read first byte in EEPROM. If the watchdog triggered and the ISR completed, the first byte will be a "1"
 		if( EEPROM.read( 0 ) == 1 )

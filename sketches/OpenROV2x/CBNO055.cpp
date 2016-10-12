@@ -1,135 +1,120 @@
 #include "SysConfig.h"
 #if(HAS_BNO055)
 
-#include "NDataManager.h"
 #include "CBNO055.h"
-#include "CAdaBNO055.h"
 #include "CTimer.h"
+#include "NDataManager.h"
 
 namespace
 {
 	CTimer bno055_sample_timer;
 	CTimer report_timer;
 	CTimer imuTimer;
+	CTimer fusionTimer;
 
 	bool initalized				= false;
-	bool inFusionMode			= false;
+	bool browserPingReceived	= false;
 
-	CAdaBNO055 bno;
+	bool inFusionMode			= false;
 
 	imu::Vector<3> euler;
 
-	void InitializeSensor()
-	{
-		// Attempt to initialize. If this fails, we try every 30 seconds in its update loop
-		if( !bno.Initialize() )
-		{
-			Serial.println( "BNO_INIT_STATUS:FAILED;" );
-			initalized = false;
-		}
-		else
-		{
-			Serial.println( "BNO_INIT_STATUS:SUCCESS;" );
+	float roll = 0.0f;
+	float pitch = 0.0f;
+	float yaw = 0.0f;
+}
 
-
-			Serial.print( "BNO055.SW_Revision_ID:" );
-			Serial.print( bno.m_softwareVersionMajor, HEX );
-			Serial.print( "." );
-			Serial.print( bno.m_softwareVersionMinor, HEX );
-			Serial.println( ";" );
-
-			Serial.print( "BNO055.bootloader:" );
-			Serial.print( bno.m_bootloaderRev );
-			Serial.println( ";" );
-
-			initalized = true;
-			inFusionMode = true;
-		}
-	}
+CBNO055::CBNO055( I2C *i2cInterfaceIn )
+	: m_bno( i2cInterfaceIn )
+{
 }
 
 void CBNO055::Initialize()
 {
-	// Reset timers
+	Serial.println( "BNO055.Status:INIT;" );
+
+	//Reset timers
 	bno055_sample_timer.Reset();
 	report_timer.Reset();
 	imuTimer.Reset();
-	
-	InitializeSensor();
+	fusionTimer.Reset();
+
+	Serial.println( "BNO055.Status:POSTINIT;" );
 }
 
-void CBNO055::Update( CCommand& commandIn )
+void CBNO055::InitializeSensor()
 {
-	if( commandIn.Equals( "imumode" ) )
+	// Attempt to initialize. If this fails, we try every 30 seconds in its update loop
+	int32_t ret = m_bno.Initialize();
+	if( ret != 0 )
 	{
-		if( initalized && commandIn.m_arguments[ 0 ] != 0 )
-		{
-			if( commandIn.m_arguments[ 1 ] == 0 )
-			{
-				// Turn off override
-				inFusionMode	= true;
-				bno.EnterNDOFMode();
-
-			}
-
-			if( commandIn.m_arguments[ 1 ] == 12 )
-			{
-				// Override to NDOF
-				inFusionMode	= true;
-				bno.EnterNDOFMode();
-			}
-
-			if( commandIn.m_arguments[ 1 ] == 8 )
-			{
-				// Override to IMU mode
-				inFusionMode	= false;
-				bno.EnterIMUMode();
-			}
-		}
-		else
-		{
-			Serial.println( "log:Can't enter override, IMU is not initialized yet!;" );
-		}
+		Serial.println( "BNO_INIT_STATUS:FAILED;" );
+		Serial.print( "BNO_FAIL_REASON:" );
+		Serial.print( ret );
+		Serial.println( ";" );
 	}
-
-	// 1000 / 21
-	if( bno055_sample_timer.HasElapsed( 47 ) )
+	else
 	{
-		if( !initalized )
+		Serial.println( "BNO_INIT_STATUS:SUCCESS;" );
+
+
+		Serial.print( "BNO055.SW_Revision_ID:" );
+		Serial.print( m_bno.m_softwareVersionMajor, HEX );
+		Serial.print( "." );
+		Serial.print( m_bno.m_softwareVersionMinor, HEX );
+		Serial.println( ";" );
+
+		Serial.print( "BNO055.bootloader:" );
+		Serial.print( m_bno.m_bootloaderRev );
+		Serial.println( ";" );
+
+		inFusionMode = true;
+	}
+}
+
+
+
+void CBNO055::Update( CCommand &commandIn )
+{
+	// 100hz
+	if( bno055_sample_timer.HasElapsed( 10 ) )
+	{
+		if( !m_bno.m_isInitialized )
 		{
 			// Attempt every 10 secs
-			if( report_timer.HasElapsed( 10000 ) )
+			if( report_timer.HasElapsed( 5000 ) )
 			{
+				Serial.println( "BNO055.Status:TRYING;" );
 				// Attempt to initialize the chip again
 				InitializeSensor();
 			}
 
 			return;
 		}
-
+		
 		// System status checks
 		if( report_timer.HasElapsed( 1000 ) )
 		{
 			// System calibration
-			if( bno.GetCalibration() )
+			if( m_bno.GetCalibration() == 0 )
 			{
 				Serial.print( "BNO055.CALIB_MAG:" );
-				Serial.print( bno.m_magCal );
+				Serial.print( m_bno.m_magCal );
 				Serial.println( ';' );
 				Serial.print( "BNO055.CALIB_ACC:" );
-				Serial.print( bno.m_accelCal );
+				Serial.print( m_bno.m_accelCal );
 				Serial.println( ';' );
 				Serial.print( "BNO055.CALIB_GYR:" );
-				Serial.print( bno.m_gyroCal );
+				Serial.print( m_bno.m_gyroCal );
 				Serial.println( ';' );
 				Serial.print( "BNO055.CALIB_SYS:" );
-				Serial.print( bno.m_systemCal );
+				Serial.print( m_bno.m_systemCal );
 				Serial.println( ';' );
 
 				// Get offsets
-				bno.GetGyroOffsets();
-				bno.GetAccelerometerOffsets();
-				bno.GetMagnetometerOffsets();
+				m_bno.GetGyroOffsets();
+				m_bno.GetAccelerometerOffsets();
+				m_bno.GetMagnetometerOffsets();
 			}
 			else
 			{
@@ -148,10 +133,10 @@ void CBNO055::Update( CCommand& commandIn )
 			}
 
 			// Operating mode
-			if( bno.GetOperatingMode() )
+			if( m_bno.GetOperatingMode() == 0 )
 			{
 				Serial.print( "BNO055.MODE:" );
-				Serial.print( bno.m_operatingMode );
+				Serial.print( m_bno.m_operatingMode );
 				Serial.println( ';' );
 			}
 			else
@@ -162,10 +147,10 @@ void CBNO055::Update( CCommand& commandIn )
 			}
 
 			// System status
-			if( bno.GetSystemStatus() )
+			if( m_bno.GetSystemStatus() == 0 )
 			{
 				Serial.print( "BNO055_STATUS:" );
-				Serial.print( bno.m_systemStatus, HEX );
+				Serial.print( m_bno.m_systemStatus, HEX );
 				Serial.println( ";" );
 			}
 			else
@@ -176,10 +161,10 @@ void CBNO055::Update( CCommand& commandIn )
 			}
 
 			// System Error
-			if( bno.GetSystemError() )
+			if( m_bno.GetSystemError() == 0 )
 			{
 				Serial.print( "BNO055_ERROR_FLAG:" );
-				Serial.print( bno.m_systemError );
+				Serial.print( m_bno.m_systemError );
 				Serial.println( ";" );
 			}
 			else
@@ -192,7 +177,7 @@ void CBNO055::Update( CCommand& commandIn )
 		}
 
 		// Get orientation data
-        if( bno.GetVector( CAdaBNO055::VECTOR_EULER, euler ) )
+        if( m_bno.GetVector( bosch::VECTOR_EULER, euler ) == 0 )
         {			
             // Throw out exactly zero heading values that are all zeroes - necessary when switching modes
             if( euler.x() != 0.0f  )
@@ -208,4 +193,5 @@ void CBNO055::Update( CCommand& commandIn )
         }
 	}
 }
+
 #endif

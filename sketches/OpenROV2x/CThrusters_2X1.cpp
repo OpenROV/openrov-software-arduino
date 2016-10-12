@@ -9,11 +9,6 @@
 #include "CTimer.h"
 #include "CPin.h"
 
-#if(HAS_OROV_CONTROLLERBOARD_25)
-    #include "CControllerBoard.h"
-#endif
-
-
 // Static variable initialization
 const int CThrusters::kMotorCount = 3;
 

@@ -5,20 +5,19 @@
 #include <I2C.h>
 
 // Defines
-#define MS5837_WATERTYPE_FRESH  0
-#define MS5837_WATERTYPE_SALT   1
+#define MS5803_WATERTYPE_FRESH  0
+#define MS5803_WATERTYPE_SALT   1
 
-#define MS5837_MEAS_PRESSURE    0
-#define MS5837_MEAS_TEMPERATURE 1
+#define MS5803_MEAS_PRESSURE    0
+#define MS5803_MEAS_TEMPERATURE 1
 
-#define MS5837_ADC_256          0x00	// ADC resolution = 256
-#define MS5837_ADC_512          0x02	// ADC resolution = 512
-#define MS5837_ADC_1024	        0x04	// ADC resolution = 1024
-#define MS5837_ADC_2048        	0x06	// ADC resolution = 2048
-#define MS5837_ADC_4096	        0x08	// ADC resolution = 4096
-#define MS5837_ADC_8192	        0x0A	// ADC resolution = 8192
+#define MS5803_ADC_256          0x00	// ADC resolution = 256
+#define MS5803_ADC_512          0x02	// ADC resolution = 512
+#define MS5803_ADC_1024	        0x04	// ADC resolution = 1024
+#define MS5803_ADC_2048        	0x06	// ADC resolution = 2048
+#define MS5803_ADC_4096	        0x08	// ADC resolution = 4096
 
-class MS5837_30BA
+class MS5803_14BA
 {
 public:
    
@@ -31,10 +30,10 @@ public:
 	
 	int m_waterType;
 	
-	uint16_t m_sensorCoeffs[8]; // unsigned 16-bit integer (0-65535)
+	uint16_t m_sensorCoeffs[8];
 
 	 // Methods
-	MS5837_30BA( I2C *i2cInterfaceIn, uint8_t resolutionIn = MS5837_ADC_4096 );
+	MS5803_14BA( I2C *i2cInterfaceIn, uint8_t resolutionIn = MS5803_ADC_4096 );
 	
 	int Initialize();
 	int GetCalibrationCoefficients();

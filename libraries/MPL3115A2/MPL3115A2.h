@@ -9,8 +9,8 @@
 
 #pragma once
 
-//Forward declaration of I2C interface
-class CI2C;
+#include <Arduino.h>
+#include <I2C.h>
 
 namespace mpl3115a2
 {
@@ -56,7 +56,7 @@ namespace mpl3115a2
 
         public:
 
-            MPL3115A2( CI2C *i2cInterfaceIn );
+            MPL3115A2( I2C *i2cInterfaceIn );
 
             //Public member functions
             ERetCode Initialize();
@@ -162,7 +162,7 @@ namespace mpl3115a2
 
             //Private member Attributes
             uint8_t m_i2cAddress;
-            CI2C *m_pI2C;
+            I2C *m_pI2C;
 
             bool m_isInitialized = false;
     };

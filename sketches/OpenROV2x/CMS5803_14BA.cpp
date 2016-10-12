@@ -1,7 +1,7 @@
 #include "SysConfig.h"
-#if(HAS_MS5837_30BA)
+#if(HAS_MS5803_14BA)
 
-#include "CMS5837_30BA.h"
+#include "CMS5803_14BA.h"
 #include "CTimer.h"
 #include "NCommManager.h"
 #include "NVehicleManager.h"
@@ -11,10 +11,10 @@ namespace
 {
     enum ESensorState
     {
-        MS5837_UNINITIALIZED,
-        MS5837_IDLE,
-        MS5837_CONVERTING_PRESSURE,
-        MS5837_CONVERTING_TEMPERATURE
+        MS5803_UNINITIALIZED,
+        MS5803_IDLE,
+        MS5803_CONVERTING_PRESSURE,
+        MS5803_CONVERTING_TEMPERATURE
     };
 
 	CTimer m_initTimer;         // 10s timer for initialization attempts
@@ -26,25 +26,23 @@ namespace
 	float m_waterTemp_c     = 0;
 	float m_pressure_mbar   = 0;
 	
-	const uint32_t k_maxAttempts = 1000;
-	uint32_t m_initAttempts      = 0;
+	const int k_maxAttempts = 5;
+	int m_initAttempts      = 0;
 
-	ESensorState m_state    = MS5837_UNINITIALIZED;
+	ESensorState m_state    = MS5803_UNINITIALIZED;
 }
 
-CMS5837_30BA::CMS5837_30BA( I2C *i2cInterfaceIn )
+CMS5803_14BA::CMS5803_14BA( I2C *i2cInterfaceIn )
 	: m_sensor( i2cInterfaceIn )
 {
 }
 
-void CMS5837_30BA::Initialize()
+void CMS5803_14BA::Initialize()
 {
-	Serial.println( "MS5837.init:try;" );
-
 	// Attempt to initialize the sensor
 	if( m_sensor.Initialize() == 0 )
 	{
-	    Serial.println( "MS5837.init:success;" );
+	    Serial.println( "MS5803.init:Success;" );
 	    
 	    // Announce depth capability
 	    NVehicleManager::m_capabilityBitmask |= ( 1 << DEPTH_CAPABLE );
@@ -53,21 +51,21 @@ void CMS5837_30BA::Initialize()
 	    PrintCoefficients();
 	    
 	    // Set the state to IDLE, ready to start fetching data
-	    m_state = MS5837_IDLE;
+	    m_state = MS5803_IDLE;
 	}
 	else
 	{
-    	Serial.println( "MS5837.init:fail;" );
+    	Serial.println( "MS5803.init:Fail;" );
     	m_initTimer.Reset();
 	}
 }
 
-void CMS5837_30BA::PrintCoefficients()
+void CMS5803_14BA::PrintCoefficients()
 {
 	for( int i = 0; i < 8; ++i )
 	{
 		// Print out coefficients
-		Serial.print( "MS5837.C" );
+		Serial.print( "MS5803.C" );
 		Serial.print( i );
 		Serial.print( ":" );
 		Serial.print( m_sensor.m_sensorCoeffs[i] );
@@ -76,30 +74,28 @@ void CMS5837_30BA::PrintCoefficients()
 	
 	if( m_sensor.m_crcCheckSuccessful )
 	{
-		Serial.println( "MS5837.crcCheck:success;" );
+		Serial.println( "MS5803.crcCheck:Success;" );
 	}
 	else
 	{
-		Serial.println( "MS5837.crcCheck:fail;" );
+		Serial.println( "MS5803.crcCheck:Fail;" );
 	}
 }
 
-void CMS5837_30BA::Update( CCommand& commandIn )
+void CMS5803_14BA::Update( CCommand& commandIn )
 {
-    if( m_state == MS5837_UNINITIALIZED )
+    if( m_state == MS5803_UNINITIALIZED )
     {
         if( m_initAttempts < k_maxAttempts )
         {
             // Make an attempt to initialize the sensor every 10 seconds
             if( m_initTimer.HasElapsed( 5000 ) )
     		{
-				Serial.println( "MS5837.init:try;" );
-
             	if( m_sensor.Initialize() == 0 )
             	{
             	    m_initAttempts = 0;
             	    
-            	    Serial.println( "MS5837.init:success;" );
+            	    Serial.println( "MS5803.init:Success;" );
             	    
             	    // Announce depth capability
             	    NVehicleManager::m_capabilityBitmask |= ( 1 << DEPTH_CAPABLE );
@@ -108,11 +104,11 @@ void CMS5837_30BA::Update( CCommand& commandIn )
             	    PrintCoefficients();
             	    
             	    // Set the state to IDLE, ready to start fetching data
-            	    m_state = MS5837_IDLE;
+            	    m_state = MS5803_IDLE;
             	}
             	else
             	{
-            	    Serial.println( "MS5837.init:fail;" );
+            	    Serial.println( "MS5803.init:Fail;" );
             	    
             	    m_initTimer.Reset();
             	    m_initAttempts++;
@@ -138,13 +134,13 @@ void CMS5837_30BA::Update( CCommand& commandIn )
             	if( NVehicleManager::m_waterType == WATERTYPE_FRESH )
             	{
             		NVehicleManager::m_waterType = WATERTYPE_SALT;
-            		m_sensor.SetWaterType( MS5837_WATERTYPE_SALT );
+            		m_sensor.SetWaterType( MS5803_WATERTYPE_SALT );
             		Serial.println( F( "dtwa:1;" ) );
             	}
             	else
             	{
             		NVehicleManager::m_waterType = WATERTYPE_FRESH;
-            		m_sensor.SetWaterType( MS5837_WATERTYPE_FRESH );
+            		m_sensor.SetWaterType( MS5803_WATERTYPE_FRESH );
             		Serial.println( F( "dtwa:0;" ) );
             	}
             }
@@ -152,12 +148,12 @@ void CMS5837_30BA::Update( CCommand& commandIn )
         
         // TODO: Handle error checking for sensor actions, since they can fail due to I2C problems
         // Handle sensor update process
-        if( m_state == MS5837_IDLE )
+        if( m_state == MS5803_IDLE )
         {
             // Kick off a conversion every 50ms
             if( m_readTimer.HasElapsed( 50 ) )
     		{
-                m_sensor.StartConversion( MS5837_MEAS_PRESSURE );
+                m_sensor.StartConversion( MS5803_MEAS_PRESSURE );
                 
                 // Reset the read timer
                 m_readTimer.Reset();
@@ -165,32 +161,32 @@ void CMS5837_30BA::Update( CCommand& commandIn )
                 // Start the conversion timer
                 m_conversionTimer.Reset();
                 
-                m_state = MS5837_CONVERTING_PRESSURE;
+                m_state = MS5803_CONVERTING_PRESSURE;
     		}
         }
-        else if( m_state == MS5837_CONVERTING_PRESSURE )
+        else if( m_state == MS5803_CONVERTING_PRESSURE )
         {
             // Wait 20ms for a conversion to complete
             if( m_conversionTimer.HasElapsed( 10 ) )
     		{
     		    // Read the pressure value
-                m_sensor.Read( MS5837_MEAS_PRESSURE );
+                m_sensor.Read( MS5803_MEAS_PRESSURE );
                 
                 // Kick off the temperature conversion
-                m_sensor.StartConversion( MS5837_MEAS_TEMPERATURE );
+                m_sensor.StartConversion( MS5803_MEAS_TEMPERATURE );
                 
                 m_conversionTimer.Reset();
                 
-                m_state = MS5837_CONVERTING_TEMPERATURE;
+                m_state = MS5803_CONVERTING_TEMPERATURE;
     		}
         }
-        else if( m_state == MS5837_CONVERTING_TEMPERATURE )
+        else if( m_state == MS5803_CONVERTING_TEMPERATURE )
         {
             // Wait 20ms for a conversion to complete
             if( m_conversionTimer.HasElapsed( 10 ) )
     		{
     		    // Read the temperature value
-                m_sensor.Read( MS5837_MEAS_TEMPERATURE );
+                m_sensor.Read( MS5803_MEAS_TEMPERATURE );
                 
                 // Perform calculations
                 m_sensor.CalculateOutputs();
@@ -199,12 +195,20 @@ void CMS5837_30BA::Update( CCommand& commandIn )
                 m_depth_m       = m_sensor.m_depth_m - m_depthOffset_m;
                 m_waterTemp_c   = m_sensor.m_temperature_c;
                 m_pressure_mbar = m_sensor.m_pressure_mbar;
+                
+                //Serial.print( "MS5803.waterTemp_c:" );
+                //Serial.print( m_waterTemp_c );
+                //Serial.println( ";" );
+                
+                //Serial.print( "MS5803.pressure_mbar:" );
+                //Serial.print( m_pressure_mbar );
+                //Serial.println( ";" );
     		    
     		    NDataManager::m_environmentData.TEMP = m_waterTemp_c;
     		    NDataManager::m_environmentData.PRES = m_pressure_mbar;
     		    NDataManager::m_navData.DEEP = m_depth_m;
                 
-                m_state = MS5837_IDLE;
+                m_state = MS5803_IDLE;
     		}
         }
     }

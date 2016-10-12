@@ -20,6 +20,8 @@
  // Modified for use in OpenROV's Software
 
 #pragma once
+#include <Arduino.h>
+#include <I2C.h>
 
 #include "LibBNO055_Definitions.h"
 #include "LibBNO055_imumaths.h"
@@ -28,14 +30,11 @@
 #define BNO055_ADDRESS_B (0x29)
 #define BNO055_ID        (0xA0)
 
-// Forward declaration
-class CI2C;
-
 class BNO055
 {
 public:
 
-	BNO055( CI2C *i2cInterfaceIn, int32_t sensorIdIn = -1, uint8_t addressIn = BNO055_ADDRESS_A );
+	BNO055( I2C *i2cInterfaceIn, int32_t sensorIdIn = -1, uint8_t addressIn = BNO055_ADDRESS_A );
 
 	int32_t Initialize();
 	int32_t Reset();
@@ -102,5 +101,5 @@ private:
 	bosch::TCalibrationOffsets m_gyroOffsets;
 	bosch::TCalibrationOffsets m_magOffsets;
 	
-	CI2C *m_pI2C;
+	I2C *m_pI2C;
 };

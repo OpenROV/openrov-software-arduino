@@ -1,12 +1,11 @@
 // Includes
-#include "CMPU9150.h"
 #include "SysConfig.h"
 
 #if( HAS_MPU9150 )
 
+#include "CMPU9150.h"
+#include <MPU9150.h>
 #include <EEPROM.h>
-
-#include "LibMPU.h"
 #include "LibMPU_Calibration.h"
 
 #include "NVehicleManager.h"
@@ -278,10 +277,6 @@ void CMPU9150::Update( CCommand& commandIn )
 		}
 
 		return;  //prevents the normal read and reporting of IMU data
-	}
-	else if( commandIn.Equals( "i2cscan" ) )
-	{
-		// scan();
 	}
 
 	//20 hz

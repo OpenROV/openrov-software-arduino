@@ -3,6 +3,8 @@
 #include "NModuleManager.h"
 #include "PinDefinitions.h"
 
+#include <I2C.h>
+
 namespace NDataManager
 {
 	// Default initialize all data
@@ -83,18 +85,43 @@ namespace NDataManager
 		Serial.print( m_environmentData.TEMP );
 		Serial.println( ';' );
 
-		// // Module loop timers in milliseconds
-		// Serial.print( F( "modtime:" ) );
+		// I2C Debugging
+		// -----------------------------------------------------------------
+		// RESULT_SUCCESS    	            = 0,   // Operation successful
+        // RESULT_NACK,                            // Transaction was denied or there was no response
 
-		// for( int i = 0; i < NModuleManager::m_moduleCount; ++i )
-		// {
-		// 	Serial.print( NModuleManager::m_pModules[ i ]->m_name );
-		// 	Serial.print( '|' );
-		// 	Serial.print( NModuleManager::m_pModules[ i ]->m_executionTime );
-		// 	Serial.print( '|' );
-		// }
+        // // Errors
+        // RESULT_ERR_TIMEOUT,                     // Operation timed out            
+        // RESULT_ERR_FAILED,                      // Operation failed
+        // RESULT_ERR_ALREADY_INITIALIZED,         // Interface already initialized
+        // RESULT_ERR_INVALID_BAUD,                // Invalid baud rate specified
+        // RESULT_ERR_LOST_ARBITRATION,            // Lost arbitration during transaction
+        // RESULT_ERR_BAD_ADDRESS,                 // Invalid I2C slave address specified
 
-		// Serial.println( ';' );
+		Serial.print( F( "i2c.OK:" ) );
+		Serial.print( I2C0.GetResultCount( i2c::EI2CResult::RESULT_SUCCESS ) );
+		Serial.println( ';' );
+		Serial.print( F( "i2c.NACK:" ) );
+		Serial.print( I2C0.GetResultCount( i2c::EI2CResult::RESULT_NACK ) );
+		Serial.println( ';' );
+		Serial.print( F( "i2c.TIMEOUT:" ) );
+		Serial.print( I2C0.GetResultCount( i2c::EI2CResult::RESULT_ERR_TIMEOUT ) );
+		Serial.println( ';' );
+		Serial.print( F( "i2c.FAILED:" ) );
+		Serial.print( I2C0.GetResultCount( i2c::EI2CResult::RESULT_ERR_FAILED ) );
+		Serial.println( ';' );
+		Serial.print( F( "i2c.AL_INIT:" ) );
+		Serial.print( I2C0.GetResultCount( i2c::EI2CResult::RESULT_ERR_ALREADY_INITIALIZED ) );
+		Serial.println( ';' );
+		Serial.print( F( "i2c.BAD_BAUD:" ) );
+		Serial.print( I2C0.GetResultCount( i2c::EI2CResult::RESULT_ERR_INVALID_BAUD ) );
+		Serial.println( ';' );
+		Serial.print( F( "i2c.LOST_ARB:" ) );
+		Serial.print( I2C0.GetResultCount( i2c::EI2CResult::RESULT_ERR_LOST_ARBITRATION ) );
+		Serial.println( ';' );
+		Serial.print( F( "i2c.BAD_ADDR:" ) );
+		Serial.print( I2C0.GetResultCount( i2c::EI2CResult::RESULT_ERR_BAD_ADDRESS ) );
+		Serial.println( ';' );
 	}
 
 	void HandleOutputLoops()

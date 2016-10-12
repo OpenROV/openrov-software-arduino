@@ -8,10 +8,6 @@
 #include "NModuleManager.h"
 #include "NVehicleManager.h"
 
-#if(HAS_OROV_CONTROLLERBOARD_25)
-    #include "CControllerBoard.h"
-#endif
-
 // File local variables and methods
 namespace
 {

@@ -7,15 +7,12 @@
 
 */
 
-#include <Arduino.h>
-#include <CI2C.h>
-
 #include "MPL3115A2.h"
 
 using namespace mpl3115a2;
 
 
-MPL3115A2::MPL3115A2( CI2C *i2cInterfaceIn )
+MPL3115A2::MPL3115A2( I2C *i2cInterfaceIn )
     : m_i2cAddress( mpl3115a2::MPL3115A2_ADDRESS )
     , m_pI2C( i2cInterfaceIn )
 {
@@ -81,7 +78,7 @@ ERetCode MPL3115A2::SetOversampleRatio( EOversampleRatio osrIn )
     //Read the current settings
     uint8_t tempSetting;
     returnCode = ReadByte( MPL3115A2_REGISTER::CONTROL_REGISTER_1, tempSetting );
-    if( returnCode != I2C::ERetCode::SUCCESS )
+    if( returnCode != i2c::EI2CResult::RESULT_SUCCESS )
     {
         return ERetCode::FAILED;
     }
@@ -94,7 +91,7 @@ ERetCode MPL3115A2::SetOversampleRatio( EOversampleRatio osrIn )
 
     //And write it to the register
     returnCode = WriteByte( MPL3115A2_REGISTER::CONTROL_REGISTER_1, tempSetting );
-    if( returnCode != I2C::ERetCode::SUCCESS )
+    if( returnCode != i2c::EI2CResult::RESULT_SUCCESS )
     {
         return ERetCode::FAILED;
     }
@@ -108,7 +105,7 @@ ERetCode MPL3115A2::EnableEventFlags()
 {
     // Enable all three pressure and temp event flags 
     auto ret = WriteByte( MPL3115A2_REGISTER::PT_DATA_CFG, 0x07);
-    if( ret != I2C::ERetCode::SUCCESS )
+    if( ret != i2c::EI2CResult::RESULT_SUCCESS )
     {
         return ERetCode::FAILED;
     }
@@ -126,7 +123,7 @@ ERetCode MPL3115A2::ReadPressure( float& pressureOut )
     uint8_t status;
 
     retCode = ReadByte( MPL3115A2_REGISTER::STATUS, status );
-    if( retCode != I2C::ERetCode::SUCCESS )
+    if( retCode != i2c::EI2CResult::RESULT_SUCCESS )
     {
         return ERetCode::FAILED;
     }
@@ -146,7 +143,7 @@ ERetCode MPL3115A2::ReadPressure( float& pressureOut )
     while( ( pdr & (1<<2) ) == 0 )
     {
         retCode = ReadByte( MPL3115A2_REGISTER::STATUS, pdr );
-        if( retCode != I2C::ERetCode::SUCCESS )
+        if( retCode != i2c::EI2CResult::RESULT_SUCCESS )
         {
             return ERetCode::FAILED;
         }
@@ -162,7 +159,7 @@ ERetCode MPL3115A2::ReadPressure( float& pressureOut )
     uint8_t buffer[3] = {};
 
     retCode = ReadNBytes( MPL3115A2_REGISTER::PRESSURE_OUT_MSB, buffer, 3 );
-    if( retCode != I2C::ERetCode::SUCCESS )
+    if( retCode != i2c::EI2CResult::RESULT_SUCCESS )
     {
         return ERetCode::FAILED;
     }
@@ -179,7 +176,7 @@ ERetCode MPL3115A2::ReadPressure( float& pressureOut )
     }
 
     //Pressure comes back as a left shifted 20 bit-number
-    uint32_t totalPressure = (uint32_t)(msb<<16) | (uint32_t)(csb<<8) | (uint32_t)lsb;
+    uint32_t totalPressure = (((uint32_t)(msb)<<16) | (((uint32_t)csb)<<8) | (uint32_t)lsb;
 
     //Pressure is an 18 bit number with 2 bits of decimal. Get rid of decimal portion.
     totalPressure >>= 6;
@@ -217,7 +214,7 @@ ERetCode MPL3115A2::ReadAltitude( float& altitudeOut )
     while( ( pdr & (1<<1) ) == 0 )
     {
         retCode = ReadByte( MPL3115A2_REGISTER::STATUS, pdr );
-        if( retCode != I2C::ERetCode::SUCCESS )
+        if( retCode != i2c::EI2CResult::RESULT_SUCCESS )
         {
             return ERetCode::FAILED;
         }
@@ -233,7 +230,7 @@ ERetCode MPL3115A2::ReadAltitude( float& altitudeOut )
     uint8_t buffer[3] = {};
 
     retCode = ReadNBytes( MPL3115A2_REGISTER::PRESSURE_OUT_MSB, buffer, 3 );
-    if( retCode != I2C::ERetCode::SUCCESS )
+    if( retCode != i2c::EI2CResult::RESULT_SUCCESS )
     {
         return ERetCode::FAILED;
     }
@@ -261,7 +258,7 @@ ERetCode MPL3115A2::ReadPressureAndTemp( float& pressureOut, float& tempOut )
     uint8_t status;
 
     retCode = ReadByte( MPL3115A2_REGISTER::STATUS, status );
-    if( retCode != I2C::ERetCode::SUCCESS )
+    if( retCode != i2c::EI2CResult::RESULT_SUCCESS )
     {
         return ERetCode::FAILED;
     }
@@ -281,7 +278,7 @@ ERetCode MPL3115A2::ReadPressureAndTemp( float& pressureOut, float& tempOut )
     while( ( pdr & (1<<2) ) == 0 )
     {
         retCode = ReadByte( MPL3115A2_REGISTER::STATUS, pdr );
-        if( retCode != I2C::ERetCode::SUCCESS )
+        if( retCode != i2c::EI2CResult::RESULT_SUCCESS )
         {
             return ERetCode::FAILED;
         }
@@ -297,7 +294,7 @@ ERetCode MPL3115A2::ReadPressureAndTemp( float& pressureOut, float& tempOut )
     uint8_t pressureBuffer[3] = {};
 
     retCode = ReadNBytes( MPL3115A2_REGISTER::PRESSURE_OUT_MSB, pressureBuffer, 3 );
-    if( retCode != I2C::ERetCode::SUCCESS )
+    if( retCode != i2c::EI2CResult::RESULT_SUCCESS )
     {
         return ERetCode::FAILED;
     }
@@ -305,7 +302,7 @@ ERetCode MPL3115A2::ReadPressureAndTemp( float& pressureOut, float& tempOut )
     //Read the Temp registers
     uint8_t tempBuffer[2] = {};
     retCode = ReadNBytes( MPL3115A2_REGISTER::TEMP_OUT_MSB, tempBuffer, 2 );
-    if( retCode != I2C::ERetCode::SUCCESS )
+    if( retCode != i2c::EI2CResult::RESULT_SUCCESS )
     {
         return ERetCode::FAILED;
     }
@@ -323,7 +320,7 @@ ERetCode MPL3115A2::ReadPressureAndTemp( float& pressureOut, float& tempOut )
     auto pressureLSB = pressureBuffer[2];
 
     //Pressure comes back as a left shifted 20 bit-number
-    uint32_t totalPressure = (uint32_t)(pressureMSB<<16) | (uint32_t)(pressureCSB<<8) | (uint32_t)pressureLSB;
+    uint32_t totalPressure = (((uint32_t)(pressureMSB)<<16) | (((uint32_t)pressureCSB)<<8) | (uint32_t)pressureLSB;
 
     //Pressure is an 18 bit number with 2 bits of decimal. Get rid of decimal portion.
     totalPressure >>= 6;
@@ -366,7 +363,7 @@ ERetCode MPL3115A2::VerifyChipId()
 
     auto ret = ReadByte( MPL3115A2_REGISTER::WHO_AM_I, id );
 
-    if( ret != I2C::ERetCode::SUCCESS )
+    if( ret != i2c::EI2CResult::RESULT_SUCCESS )
     {
         return ERetCode::FAILED;
     }
@@ -388,7 +385,7 @@ ERetCode MPL3115A2::SetModeBarometer()
     uint8_t setting;
 
     returnCode = ReadByte( MPL3115A2_REGISTER::CONTROL_REGISTER_1, setting );
-    if( returnCode != I2C::ERetCode::SUCCESS )
+    if( returnCode != i2c::EI2CResult::RESULT_SUCCESS )
     {
         return ERetCode::FAILED;
     }
@@ -398,7 +395,7 @@ ERetCode MPL3115A2::SetModeBarometer()
 
     //And write it to the register
     returnCode = WriteByte( MPL3115A2_REGISTER::CONTROL_REGISTER_1, setting );
-    if( returnCode != I2C::ERetCode::SUCCESS )
+    if( returnCode != i2c::EI2CResult::RESULT_SUCCESS )
     {
         return ERetCode::FAILED;
     }
@@ -413,7 +410,7 @@ ERetCode MPL3115A2::SetModeAltimeter()
     //Read the current settings
     uint8_t tempSetting;
     returnCode = ReadByte( MPL3115A2_REGISTER::CONTROL_REGISTER_1, tempSetting );
-    if( returnCode != I2C::ERetCode::SUCCESS )
+    if( returnCode != i2c::EI2CResult::RESULT_SUCCESS )
     {
         return ERetCode::FAILED;
     }
@@ -423,7 +420,7 @@ ERetCode MPL3115A2::SetModeAltimeter()
 
     //And write it to the register
     returnCode = WriteByte( MPL3115A2_REGISTER::CONTROL_REGISTER_1, tempSetting );
-    if( returnCode != I2C::ERetCode::SUCCESS )
+    if( returnCode != i2c::EI2CResult::RESULT_SUCCESS )
     {
         return ERetCode::FAILED;
     }
@@ -440,7 +437,7 @@ ERetCode MPL3115A2::SetModeStandby()
     //Read the current settings
     uint8_t tempSetting;
     returnCode = ReadByte( MPL3115A2_REGISTER::CONTROL_REGISTER_1, tempSetting );
-    if( returnCode != I2C::ERetCode::SUCCESS )
+    if( returnCode != i2c::EI2CResult::RESULT_SUCCESS )
     {
         return ERetCode::FAILED;
     }
@@ -450,7 +447,7 @@ ERetCode MPL3115A2::SetModeStandby()
 
     //And write it to the register
     returnCode = WriteByte( MPL3115A2_REGISTER::CONTROL_REGISTER_1, tempSetting );
-    if( returnCode != I2C::ERetCode::SUCCESS )
+    if( returnCode != i2c::EI2CResult::RESULT_SUCCESS )
     {
         return ERetCode::FAILED;
     }
@@ -467,7 +464,7 @@ ERetCode MPL3115A2::SetModeActive()
     //Read the current settings
     uint8_t tempSetting;
     returnCode = ReadByte( MPL3115A2_REGISTER::CONTROL_REGISTER_1, tempSetting );
-    if( returnCode != I2C::ERetCode::SUCCESS )
+    if( returnCode != i2c::EI2CResult::RESULT_SUCCESS )
     {
         return ERetCode::FAILED;
     }
@@ -477,7 +474,7 @@ ERetCode MPL3115A2::SetModeActive()
 
     //And write it to the register
     returnCode = WriteByte( MPL3115A2_REGISTER::CONTROL_REGISTER_1, tempSetting );
-    if( returnCode != I2C::ERetCode::SUCCESS )
+    if( returnCode != i2c::EI2CResult::RESULT_SUCCESS )
     {
         return ERetCode::FAILED;
     }
@@ -495,7 +492,7 @@ ERetCode MPL3115A2::ToggleOneShot()
     //Read the current settings
     uint8_t tempSetting;
     returnCode = ReadByte( MPL3115A2_REGISTER::CONTROL_REGISTER_1, tempSetting );
-    if( returnCode != I2C::ERetCode::SUCCESS )
+    if( returnCode != i2c::EI2CResult::RESULT_SUCCESS )
     {
         return ERetCode::FAILED_ONESHOT;
     }
@@ -503,14 +500,14 @@ ERetCode MPL3115A2::ToggleOneShot()
     //Clear the one shot bit
     tempSetting &= ~(1<<1);
     returnCode = WriteByte( MPL3115A2_REGISTER::CONTROL_REGISTER_1, tempSetting );
-    if( returnCode != I2C::ERetCode::SUCCESS )
+    if( returnCode != i2c::EI2CResult::RESULT_SUCCESS )
     {
         return ERetCode::FAILED_ONESHOT;
     }
 
     //Reat the current settings, just to be safe :)
     returnCode = ReadByte( MPL3115A2_REGISTER::CONTROL_REGISTER_1, tempSetting );
-    if( returnCode != I2C::ERetCode::SUCCESS )
+    if( returnCode != i2c::EI2CResult::RESULT_SUCCESS )
     {
         return ERetCode::FAILED_ONESHOT;
     }
@@ -518,7 +515,7 @@ ERetCode MPL3115A2::ToggleOneShot()
     //Set the overshot bit
     tempSetting |= (1<<1);
     returnCode = WriteByte( MPL3115A2_REGISTER::CONTROL_REGISTER_1, tempSetting );
-    if( returnCode != I2C::ERetCode::SUCCESS )
+    if( returnCode != i2c::EI2CResult::RESULT_SUCCESS )
     {
         return ERetCode::FAILED_ONESHOT;
     }
@@ -528,14 +525,14 @@ ERetCode MPL3115A2::ToggleOneShot()
 
 int32_t MPL3115A2::WriteByte( MPL3115A2_REGISTER addressIn, uint8_t dataIn )
 {
-	return (int32_t)m_pI2C->WriteByte( m_i2cAddress, (uint8_t)addressIn, dataIn );
+	return (int32_t)m_pI2C->WriteRegisterByte( m_i2cAddress, (uint8_t)addressIn, dataIn );
 }
 
 int32_t MPL3115A2::ReadByte( MPL3115A2_REGISTER addressIn, uint8_t &dataOut )
 {
-	return (int32_t)m_pI2C->ReadByte( m_i2cAddress, (uint8_t)addressIn, &dataOut );
+	return (int32_t)m_pI2C->ReadRegisterByte( m_i2cAddress, (uint8_t)addressIn, &dataOut );
 }
 int32_t MPL3115A2::ReadNBytes( MPL3115A2_REGISTER addressIn, uint8_t* dataOut, uint8_t byteCountIn )
 {
-    return (int32_t)m_pI2C->ReadBytes( m_i2cAddress, (uint8_t)addressIn, dataOut, byteCountIn );
+    return (int32_t)m_pI2C->ReadRegisterBytes( m_i2cAddress, (uint8_t)addressIn, dataOut, byteCountIn );
 }
