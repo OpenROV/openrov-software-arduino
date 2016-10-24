@@ -18,7 +18,7 @@ void setup()
 	NDataManager::Initialize();
 
 	// Set timer 5 divisor to 8 for PWM frequency of 3921.16Hz (D44, D45, D46)
-	TCCR5B = TCCR5B & B11111000 | B00000010;
+	TCCR5B = ( TCCR5B & B11111000 ) | B00000010;
 
 	// Boot complete
 	Serial.println( F( "boot:1;" ) );

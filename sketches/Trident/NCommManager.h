@@ -8,7 +8,7 @@ namespace NCommManager
 	// Variables
 	extern CCommand m_currentCommand;
 
-	extern boolean	m_isCommandAvailable;
+	extern bool	m_isCommandAvailable;
 
 	// Methods
 	extern void Initialize();

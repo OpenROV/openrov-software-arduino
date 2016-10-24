@@ -179,7 +179,7 @@ void CBNO055::Update( CCommand &commandIn )
 		}
 
 		// Get orientation data
-        if( m_bno.GetVector( bosch::VECTOR_EULER, euler ) == 0 )
+        if( m_bno.GetVector( bno055::VECTOR_EULER, euler ) == 0 )
         {			
             // Throw out exactly zero heading values that are all zeroes - necessary when switching modes
             if( euler.x() != 0.0f  )

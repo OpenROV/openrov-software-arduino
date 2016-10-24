@@ -1,4 +1,3 @@
-
 ////////////////////////////////////////////////////////////////////////////
 //
 //  This file is part of MPU9150Lib
@@ -22,50 +21,30 @@
 //  OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 //  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-#include "LibMPU_Calibration.h"
+#ifndef MPUQUATERNION_H_
+#define MPUQUATERNION_H_
 
-// AVR version
+#include <math.h>
+#include "MPU9150_Vector3.h"
 
-#include <EEPROM.h>
+#define QUAT_W		0										// scalar offset
+#define QUAT_X		1										// x offset
+#define QUAT_Y		2										// y offset
+#define QUAT_Z		3										// z offset
 
-void calLibErase( byte device )
+typedef float MPUQuaternion[4];
+
+void MPUQuaternionNormalize( MPUQuaternion q );
+void MPUQuaternionQuaternionToEuler( const MPUQuaternion q, MPUVector3 v );
+void MPUQuaternionEulerToQuaternion( const MPUVector3 v, MPUQuaternion q );
+void MPUQuaternionConjugate( const MPUQuaternion s, MPUQuaternion d );
+void MPUQuaternionMultiply( const MPUQuaternion qa, const MPUQuaternion qb, MPUQuaternion qd );
+
+inline float MPUQuaternionNorm( MPUQuaternion q )
 {
-	EEPROM.write( CALLIB_START, 0 ); // just destroy the valid byte
+	return sqrt( q[QUAT_W] * q[QUAT_W] + q[QUAT_X] * q[QUAT_X] +
+	             q[QUAT_Y] * q[QUAT_Y] + q[QUAT_Z] * q[QUAT_Z] );
 }
 
-void calLibWrite( byte device, CALLIB_DATA* calData )
-{
-	byte* ptr = ( byte* )calData;
-	byte length = sizeof( CALLIB_DATA );
-	int eeprom = CALLIB_START;
 
-	calData->valid = CALLIB_DATA_VALID;
-
-	for( byte i = 0; i < length; i++ )
-	{
-		EEPROM.write( eeprom + i, *ptr++ );
-	}
-}
-
-boolean calLibRead( byte device, CALLIB_DATA* calData )
-{
-	byte* ptr = ( byte* )calData;
-	byte length = sizeof( CALLIB_DATA );
-	int eeprom = CALLIB_START;
-
-	calData->magValid = false;
-	calData->accelValid = false;
-
-	if( ( EEPROM.read( eeprom ) != CALLIB_DATA_VALID_LOW ) ||
-	    ( EEPROM.read( eeprom + 1 ) != CALLIB_DATA_VALID_HIGH ) )
-	{
-		return false;    // invalid data
-	}
-
-	for( byte i = 0; i < length; i++ )
-	{
-		*ptr++ = EEPROM.read( eeprom + i );
-	}
-
-	return true;
-}
+#endif /* MPUQUATERNION_H_ */

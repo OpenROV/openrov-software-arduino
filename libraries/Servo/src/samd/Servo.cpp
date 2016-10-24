@@ -183,7 +183,7 @@ static void finISR(timer16_Sequence_t timer)
 #endif
 }
 
-static boolean isTimerActive(timer16_Sequence_t timer)
+static bool isTimerActive(timer16_Sequence_t timer)
 {
   // returns true if any servo is active on this timer
   for(uint8_t channel=0; channel < SERVOS_PER_TIMER; channel++) {
@@ -259,7 +259,7 @@ void Servo::write(int value)
 void Servo::writeMicroseconds(int value)
 {
   // calculate and store the values for the given channel
-  byte channel = this->servoIndex;
+  uint8_t channel = this->servoIndex;
   if( (channel < MAX_SERVOS) )   // ensure channel is valid
   {
     if (value < SERVO_MIN())          // ensure pulse width is valid

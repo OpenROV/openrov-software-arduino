@@ -32,7 +32,7 @@
 
 // Say which 16 bit timers can be used and in what order
 #if defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__)
-#define _useTimer5
+// #define _useTimer5 - Not used in OpenROV board
 #define _useTimer1
 #define _useTimer3
 #define _useTimer4

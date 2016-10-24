@@ -26,10 +26,10 @@ private:
 
 	// Methods
 public:
-	boolean GetCommandString();
-	boolean Equals( const char* commandStringIn );
+	bool GetCommandString();
+	bool Equals( const char* commandStringIn );
 
-	static void PushCommand( char* textIn, int32_t argumentsIn[ COMMAND_MAX_ARGUMENTS ] );
+	static void PushCommand( const char* textIn, int32_t argumentsIn[ COMMAND_MAX_ARGUMENTS ] );
 	static void Reset();
 
 private:

@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////////////////////////////
 //
-//  This file is part of MPU9150Lib
+//  This file is part of MPU9150
 //
 //  Copyright (c) 2013 Pansenti, LLC
 //
@@ -21,129 +21,97 @@
 //  OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 //  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-#ifndef _MPU9150LIB_H_
-#define _MPU9150LIB_H_
+#ifndef _MPU9150_H_
+#define _MPU9150_H_
 
-#include <Arduino.h>
-
-#include "LibMPU_Quaternion.h"
-#include "LibMPU_Calibration.h"
-
-//  Define this symbol to get debug info
-
-#define MPULIB_DEBUG
+#include "MPU9150_Def.h"
+#include "MPU9150_Quaternion.h"
+#include "MPU9150_Calibration.h"
 
 //  This symbol defines the scaled range for mag and accel values
-
 #define SENSOR_RANGE   4096
 
-class MPU9150Lib
+namespace mpu9150
 {
-public:
+	class MPU9150
+	{
+	public:
+		// Attributes
+		long 	m_rawQuaternion[4];				// the quaternion output from the DMP
+		short 	m_rawGyro[3];					// calibrated gyro output from the sensor
+		short 	m_rawAccel[3];					// raw accel data
+		short 	m_rawMag[3];					// raw mag data
 
-	// Constructor
+		float 	m_dmpQuaternion[4];				// float and normalized version of the dmp quaternion
+		float 	m_dmpEulerPose[3];				// Euler angles from the DMP quaternion
+		short 	m_calAccel[3];					// calibrated and scaled accel data
+		short 	m_calMag[3];					// calibrated mag data
 
-	MPU9150Lib();
+		float 	m_fusedEulerPose[3];			// the fused Euler angles
+		float 	m_fusedQuaternion[4];			// the fused quaternion
 
-	// selectDevice() can be called to select a device:
-	//
-	//   0 = device at address 0x68 (default)
-	//   1 = device at address 0x69
-	//
-	// selectDevice() must be called before init()
+		// Constructor
+		MPU9150( EAddress addressIn );
+		
+		void useAccelCal( bool useCal );
+		void useMagCal( bool useCal );
 
-	void selectDevice( int device );
+		// init must be called to setup the MPU chip.
+		// mpuRate is the update rate in Hz.
+		// magMix controls the amoutn of influence that the magnetometer has on yaw:
+		//   0 = just use MPU gyros (will not be referenced to north)
+		//   1 = just use magnetometer with no input from gyros
+		//   2-n = mix the two. Higher numbers decrease correction from magnetometer
+		// It returns false if something went wrong with the initialization.
+		// magRate is the magnetometer update rate in Hz. magRate <= mpuRate.
+		//   Also, magRate must be <= 100Hz.
+		// lpf is the low pass filter setting - can be between 5Hz and 188Hz.
+		//   0 means let the MotionDriver library decide.
 
-	// these two functions control if calibration data is used. Must be called before init()
-	// if defaults (use mag and accel cal) aren't required.
+		bool init( int mpuRate, int magMix = 5, int magRate = 10, int lpf = 0 );
+		bool read();
+		void disableAccelCal();
 
-	void useAccelCal( boolean useCal );
-	void useMagCal( boolean useCal );
+		bool isMagCal();
+		bool isAccelCal();
 
-	// init must be called to setup the MPU chip.
-	// mpuRate is the update rate in Hz.
-	// magMix controls the amoutn of influence that the magnetometer has on yaw:
-	//   0 = just use MPU gyros (will not be referenced to north)
-	//   1 = just use magnetometer with no input from gyros
-	//   2-n = mix the two. Higher numbers decrease correction from magnetometer
-	// It returns false if something went wrong with the initialization.
-	// magRate is the magnetometer update rate in Hz. magRate <= mpuRate.
-	//   Also, magRate must be <= 100Hz.
-	// lpf is the low pass filter setting - can be between 5Hz and 188Hz.
-	//   0 means let the MotionDriver library decide.
+		// Statistics
+		void AddResult( EResult resultTypeIn );
+        uint32_t GetResultCount( EResult resultTypeIn );
+        void ClearResultCount( EResult resultTypeIn );
 
-	boolean init( int mpuRate, int magMix = 5, int magRate = 10, int lpf = 0 );
+	private:
+		// Result statistics
+		orutil::TResultCount<EResult::_RESULT_COUNT, EResult::RESULT_SUCCESS> m_results;
 
-	//  read checks to see if there's been a new update.
-	//  returns true if yes, false if not.
+		CALLIB_DATA 	m_calData;					// calibration data
+		bool 			m_useMagCalibration;		// true if use mag calibration
+		bool 			m_useAccelCalibration;		// true if use mag calibration
+		uint8_t 		m_device;					// IMU device index
+		int 			m_magMix;					// controls gyro and magnetometer mixing for yaw
+		unsigned long 	m_magInterval;				// interval between mag reads in mS
+		unsigned long 	m_lastMagSample;			// last time mag was read
 
-	boolean read();
+		float 			m_lastDMPYaw;				// the last yaw from the DMP gyros
+		float 			m_lastYaw;					// last calculated output yaw
 
-	// disableAccelCal can be called while running to disable
-	// accel bias offsets while performing accel calibration
+		// Calibration data in processed form
+		short 			m_magXOffset;				// offset to be structed for mag X
+		short 			m_magXRange;				// range of mag X
+		short 			m_magYOffset;				// offset to be structed for mag Y
+		short 			m_magYRange;				// range of mag Y
+		short 			m_magZOffset;				// offset to be structed for mag Z
+		short 			m_magZRange;				// range of mag Z
 
-	void disableAccelCal();
+		short 			m_accelXRange;				// range of accel X
+		short 			m_accelYRange;				// range of accel Y
+		short 			m_accelZRange;				// range of accel Z
+		long 			m_accelOffset[3];			// offsets for accel
 
-	//  check if calibration in use
+		// Fuse mag data with the dmp quaternion
+		void dataFusion();                                        
 
-	boolean isMagCal();
-	boolean isAccelCal();
+	};
+}
 
-	//  these functions can be used to display quaternions and vectors
-
-	void printQuaternion( long* quaternion );
-	void printQuaternion( float* quaternion );
-	void printVector( short* vec );
-	void printVector( float* vec );
-	void printAngles( float* vec );
-
-	//  these variables are the values from the MPU
-
-	long m_rawQuaternion[4];                                  // the quaternion output from the DMP
-	short m_rawGyro[3];                                       // calibrated gyro output from the sensor
-	short m_rawAccel[3];                                      // raw accel data
-	short m_rawMag[3];                                        // raw mag data
-
-	//  these variables are processed results
-
-	float m_dmpQuaternion[4];                                 // float and normalized version of the dmp quaternion
-	float m_dmpEulerPose[3];                                  // Euler angles from the DMP quaternion
-	short m_calAccel[3];                                      // calibrated and scaled accel data
-	short m_calMag[3];                                        // calibrated mag data
-
-	// these variables are the fused results
-
-	float m_fusedEulerPose[3];                                // the fused Euler angles
-	float m_fusedQuaternion[4];								// the fused quaternion
-
-private:
-	CALLIB_DATA m_calData;                                    // calibration data
-	boolean m_useMagCalibration;                              // true if use mag calibration
-	boolean m_useAccelCalibration;                            // true if use mag calibration
-	byte m_device;                                            // IMU device index
-	int m_magMix;                                             // controls gyro and magnetometer mixing for yaw
-	unsigned long m_magInterval;                              // interval between mag reads in mS
-	unsigned long m_lastMagSample;                            // last time mag was read
-
-	void dataFusion();                                        // fuse mag data with the dmp quaternion
-
-	float m_lastDMPYaw;                                       // the last yaw from the DMP gyros
-	float m_lastYaw;                                          // last calculated output yaw
-
-	//  calibration data in processed form
-
-	short m_magXOffset;										// offset to be structed for mag X
-	short m_magXRange;										// range of mag X
-	short m_magYOffset;										// offset to be structed for mag Y
-	short m_magYRange;										// range of mag Y
-	short m_magZOffset;										// offset to be structed for mag Z
-	short m_magZRange;										// range of mag Z
-
-	short m_accelXRange;										// range of accel X
-	short m_accelYRange;										// range of accel Y
-	short m_accelZRange;										// range of accel Z
-	long m_accelOffset[3];                                    // offsets for accel
-
-};
-
-#endif // _MPU9150LIB_H_
+#endif // _MPU9150_H_

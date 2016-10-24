@@ -8,14 +8,13 @@
 namespace NDataManager
 {
 	// Default initialize all data
-	TNavData			m_navData = {};
-	TEnvironmentData	m_environmentData = {};
-	TCapeData			m_capeData = {};
-	TThrusterData		m_thrusterData = {};
-	TControllerData		m_controllerData = {};
+	TNavData			m_navData;
+	TEnvironmentData	m_environmentData;
+	TCapeData			m_capeData;
+	TThrusterData		m_thrusterData;
 
-	CTimer				m_timer_1hz;
-	CTimer				m_timer_10hz;
+	orutil::CTimer		m_timer_1hz;
+	orutil::CTimer		m_timer_10hz;
 
 	uint32_t			m_loopsPerSec = 0;
 
@@ -28,24 +27,24 @@ namespace NDataManager
 	void OutputNavData()
 	{
 		// Print Nav Data on the serial line
-		Serial.print( F( "hdgd:" ) );
-		Serial.print( m_navData.HDGD );
-		Serial.print( ';' );
-		Serial.print( F( "deap:" ) );
-		Serial.print( m_navData.DEEP );
-		Serial.print( ';' );
-		Serial.print( F( "deep:" ) );		// Compatibility for 30.1.x cockpit updates
-		Serial.print( m_navData.DEEP );
-		Serial.print( ';' );
-		Serial.print( F( "pitc:" ) );
-		Serial.print( m_navData.PITC );
-		Serial.print( ';' );
-		Serial.print( F( "roll:" ) );
-		Serial.print( m_navData.ROLL );
-		Serial.print( ';' );
-		Serial.print( F( "yaw:" ) );
-		Serial.print( m_navData.YAW );
-		Serial.print( ';' );
+		// Serial.print( F( "hdgd:" ) );
+		// Serial.print( m_navData.HDGD );
+		// Serial.print( ';' );
+		// Serial.print( F( "deap:" ) );
+		// Serial.print( m_navData.DEEP );
+		// Serial.print( ';' );
+		// Serial.print( F( "deep:" ) );		// Compatibility for 30.1.x cockpit updates
+		// Serial.print( m_navData.DEEP );
+		// Serial.print( ';' );
+		// Serial.print( F( "pitc:" ) );
+		// Serial.print( m_navData.PITC );
+		// Serial.print( ';' );
+		// Serial.print( F( "roll:" ) );
+		// Serial.print( m_navData.ROLL );
+		// Serial.print( ';' );
+		// Serial.print( F( "yaw:" ) );
+		// Serial.print( m_navData.YAW );
+		// Serial.print( ';' );
 		Serial.print( F( "fthr:" ) );
 		Serial.print( m_navData.FTHR );
 		Serial.println( ';' );

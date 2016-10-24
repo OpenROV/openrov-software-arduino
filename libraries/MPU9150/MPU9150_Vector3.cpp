@@ -1,3 +1,4 @@
+
 ////////////////////////////////////////////////////////////////////////////
 //
 //  This file is part of MPU9150Lib
@@ -21,30 +22,16 @@
 //  OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 //  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-#ifndef MPUQUATERNION_H_
-#define MPUQUATERNION_H_
+#include "MPU9150_Vector3.h"
 
-#include <math.h>
-#include "LibMPU_Vector3.h"
-
-#define QUAT_W		0										// scalar offset
-#define QUAT_X		1										// x offset
-#define QUAT_Y		2										// y offset
-#define QUAT_Z		3										// z offset
-
-typedef float MPUQuaternion[4];
-
-void MPUQuaternionNormalize( MPUQuaternion q );
-void MPUQuaternionQuaternionToEuler( const MPUQuaternion q, MPUVector3 v );
-void MPUQuaternionEulerToQuaternion( const MPUVector3 v, MPUQuaternion q );
-void MPUQuaternionConjugate( const MPUQuaternion s, MPUQuaternion d );
-void MPUQuaternionMultiply( const MPUQuaternion qa, const MPUQuaternion qb, MPUQuaternion qd );
-
-inline float MPUQuaternionNorm( MPUQuaternion q )
+void MPUVector3DotProduct( MPUVector3 a, MPUVector3 b, float* d )
 {
-	return sqrt( q[QUAT_W] * q[QUAT_W] + q[QUAT_X] * q[QUAT_X] +
-	             q[QUAT_Y] * q[QUAT_Y] + q[QUAT_Z] * q[QUAT_Z] );
+	*d = a[VEC3_X] * b[VEC3_X] + a[VEC3_Y] * b[VEC3_Y] + a[VEC3_Z] * b[VEC3_Z];
 }
 
-
-#endif /* MPUQUATERNION_H_ */
+void MPUVector3CrossProduct( MPUVector3 a, MPUVector3 b, MPUVector3 d )
+{
+	d[VEC3_X] = a[VEC3_Y] * b[VEC3_Z] - a[VEC3_Z] * b[VEC3_Y];
+	d[VEC3_Y] = a[VEC3_Z] * b[VEC3_X] - a[VEC3_X] * b[VEC3_Z];
+	d[VEC3_Z] = a[VEC3_X] * b[VEC3_Y] - a[VEC3_Y] * b[VEC3_X];
+}

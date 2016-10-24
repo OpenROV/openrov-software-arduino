@@ -28,7 +28,7 @@ CThrusters m_thrusters;
 
 #if(HAS_BNO055)
 #include "CBNO055.h"
-CBNO055 m_boschIMU( WIRE_INTERFACE_0 );
+CBNO055 m_bno055IMU( WIRE_INTERFACE_0 );
 #endif
 
 #if(HAS_MS5837_30BA)

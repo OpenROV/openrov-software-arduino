@@ -2,23 +2,21 @@
 #if(HAS_STD_AUTOPILOT)
 
 #include "CAutopilot.h"
-#include "CTimer.h"
+#include <orutil.h>
 #include "NDataManager.h"
 #include "NCommManager.h"
 
 namespace
 {
-	CTimer pilotTimer;
+	orutil::CTimer pilotTimer;
 
 	bool _headingHoldEnabled = false;
 	int  _headingHoldTarget = 0;
 	int hdg = 0;
 	int hdg_Error;
 	int raw_Left, raw_Right;
-	int left, right;  // motor outputs in microseconds, +/-500
 	float heading_loop_Gain = 1.0;
 	float depth_hold_loop_gain = 0.6;
-	int integral_Divisor = 100;
 	long hdg_Error_Integral = 0;
 	int tgt_Hdg = 0;
 	bool _depthHoldEnabled = false;
@@ -74,7 +72,7 @@ void CAutopilot::Update( CCommand& command )
 	
 			if( command.m_arguments[0] == 0 )
 			{
-				_headingHoldTarget = NDataManager::m_navData.HDGD;
+				_headingHoldTarget = NDataManager::m_navData.YAW;
 			}
 			else
 			{
@@ -216,7 +214,7 @@ void CAutopilot::Update( CCommand& command )
 		{
 
 			// Code for hold mode here
-			hdg = NDataManager::m_navData.HDGD;
+			hdg = NDataManager::m_navData.YAW;
 
 			// Calculate heading error
 

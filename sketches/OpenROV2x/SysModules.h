@@ -4,6 +4,8 @@
 #include "Plugins.h"
 #include "PinDefinitions.h"
 
+
+
 // ---------------------------------------
 // Conditional module definitions
 // -------------------------------
@@ -21,9 +23,14 @@ CControllerBoard m_controllerBoard;
 CLights m_lights( PIN_STANDARD_LIGHTS );
 #endif
 
+#if(HAS_EXT_LIGHTS )
+#include "CExternalLights.h"
+CExternalLights m_elights( PIN_PWM_3 );
+#endif
+
 #if(HAS_STD_CALIBRATIONLASERS)
 #include "CCalibrationLaser.h"
-CalibrationLaser m_calibrationLaser;
+CCalibrationLaser m_calibrationLaser( PIN_LASERS );
 #endif
 
 #if(THRUSTER_CONFIGURATION != THRUSTER_CONFIG_NONE )
@@ -53,27 +60,24 @@ CDeadManSwitch m_deadManSwitch;
 
 // IMU1
 #if( HAS_MPU9150 )
-#define COMPASS_ENABLED 1
-#define GYRO_ENABLED 1
-#define ACCELEROMETER_ENABLED 1
 #include "CMPU9150.h"
-CMPU9150 m_mpu9150;
+CMPU9150 m_mpu9150( mpu9150::EAddress::ADDRESS_A );
 #endif
 
 #if(HAS_MS5803_14BA)
 #include "CMS5803_14BA.h"
-CMS5803_14BA m_ms5803( &I2C0 );
+CMS5803_14BA m_ms5803( &I2C0, ms5803_14ba::EAddress::ADDRESS_A );
 #endif
 
 // IMU2
 #if(HAS_BNO055)
 #include "CBNO055.h"
-CBNO055 m_boschIMU( &I2C0 );
+CBNO055 m_bno055( &I2C0, bno055::EAddress::ADDRESS_A );
 #endif
 
 #if(HAS_MS5837_30BA)
 #include "CMS5837_30BA.h"
-CMS5837_30BA m_ms5837( &I2C0 );
+CMS5837_30BA m_ms5837( &I2C0, ms5837_30ba::EAddress::ADDRESS_A );
 #endif
 
 

@@ -29,20 +29,20 @@ void CMotor::SetPin( int motorPinIn )
 
 void CMotor::Activate()
 {
-	m_servo.Activate( m_motorPin );
+	m_servo.attach( m_motorPin );
 }
 
 void CMotor::Deactivate()
 {
 	// Set the servo back to the neutral PWM target and deactivate the pin associated with it
-	m_servo.WriteMicroseconds( MOTOR_TARGET_NEUTRAL_US );
-	m_servo.Detach();
+	m_servo.writeMicroseconds( MOTOR_TARGET_NEUTRAL_US );
+	m_servo.detach();
 }
 
 bool CMotor::IsActive()
 {
 	// Find out if the motor is active in the list of servos
-	return m_servo.IsActive();
+	return m_servo.attached();
 }
 
 int CMotor::SetMotorTarget( int targetIn_us )
@@ -79,7 +79,7 @@ int CMotor::SetMotorTarget( int targetIn_us )
 	}
 
 	// Set the final target value in the servo interface and return the value that was set
-	m_servo.WriteMicroseconds( constrain( finalTargetValue_us, MOTOR_TARGET_MIN_US, MOTOR_TARGET_MAX_US ) );
-	return m_servo.ReadMicroseconds();
+	m_servo.writeMicroseconds( constrain( finalTargetValue_us, MOTOR_TARGET_MIN_US, MOTOR_TARGET_MAX_US ) );
+	return m_servo.readMicroseconds();
 }
 

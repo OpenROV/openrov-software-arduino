@@ -17,23 +17,18 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-#ifndef IMUMATH_QUATERNION_HPP
-#define IMUMATH_QUATERNION_HPP
+#pragma once
 
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
 #include <math.h>
 
-#include "LibBNO055_vector.h"
+#include "BNO055_Vector.h"
+#include "BNO055_Matrix.h"
 
-
-namespace imu
+namespace bno055
 {
-
-
-
 	class Quaternion
 	{
 	public:
@@ -320,6 +315,4 @@ namespace imu
 	};
 
 
-};
-
-#endif
+}

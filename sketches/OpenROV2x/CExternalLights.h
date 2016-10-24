@@ -5,10 +5,10 @@
 #include "CPin.h"
 #include <orutil.h>
 
-class CLights : public CModule
+class CExternalLights : public CModule
 {
 public:
-    CLights( uint32_t pinIn );
+    CExternalLights( uint32_t pinIn );
     void Initialize();
     void Update( CCommand& commandIn );
 

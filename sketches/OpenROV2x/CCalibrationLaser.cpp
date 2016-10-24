@@ -3,24 +3,19 @@
 
 // Includes
 #include "CCalibrationLaser.h"
-#include "CPin.h"
 #include "NCommManager.h"
-#include "NModuleManager.h"
-#include "NVehicleManager.h"
 
-// File local variables and methods
-namespace
+CCalibrationLaser::CCalibrationLaser( uint8_t pinIn )
+    : m_pin( pinIn, CPin::kAnalog, CPin::kOutput )
 {
-    CPin calLaser( "claser", PIN_LASERS, CPin::kAnalog, CPin::kOutput );
 }
 
-void CalibrationLaser::Initialize()
+void CCalibrationLaser::Initialize()
 {
-    NVehicleManager::m_capabilityBitmask |= ( 1 << CALIBRATION_LASERS_CAPABLE );
-    calLaser.Write( 0 );
+    m_pin.Write( 0 );
 }
 
-void CalibrationLaser::Update( CCommand& command )
+void CCalibrationLaser::Update( CCommand& command )
 {
     // Check for messages
     if( !NCommManager::m_isCommandAvailable )
@@ -31,11 +26,11 @@ void CalibrationLaser::Update( CCommand& command )
     // Handle messages
     if( command.Equals( "claser" ) )
     {
-        int value = command.m_arguments[1];
+        // TODO: consistent api with lights
 
         // Set the laser pin value
-        calLaser.Write( value );
-        calLaser.Send( value );
+        m_pin.Write( command.m_arguments[1] );
+        Serial.print( "claser:" ); Serial.print( command.m_arguments[1] ); Serial.println( ';' );
     }
 }
 

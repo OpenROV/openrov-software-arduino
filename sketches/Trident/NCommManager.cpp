@@ -7,7 +7,7 @@ namespace NCommManager
 	// ---------------------------------------------------------
 
 	CCommand	m_currentCommand;
-	boolean		m_isCommandAvailable = false;
+	bool		m_isCommandAvailable = false;
 
 	// ---------------------------------------------------------
 	// Method Definitions

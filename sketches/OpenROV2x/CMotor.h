@@ -2,7 +2,7 @@
 
 // Includes
 #include <Arduino.h>
-#include "CServo.h"
+#include <Servo.h>
 
 // Motors
 #define MOTOR_TARGET_MIN_US						1000
@@ -16,7 +16,7 @@
 class CMotor
 {
 private:
-    CServo	m_servo;
+    Servo	m_servo;
     int		m_motorPin;
 
 public:

@@ -4,8 +4,7 @@
 // Includes
 #include <Arduino.h>
 #include "CDeadManSwitch.h"
-#include "CTimer.h"
-#include "NVehicleManager.h"
+#include <orutil.h>
 #include "NModuleManager.h"
 #include "NCommManager.h"
 
@@ -19,13 +18,12 @@ namespace
 	bool blinkstate				= false;
 	bool _deadmanSwitchArmed	= false;
 
-	CTimer deadmanSwitchTimer;
-	CTimer blinklightTimer;
+	orutil::CTimer deadmanSwitchTimer;
+	orutil::CTimer blinklightTimer;
 }
 
 void CDeadManSwitch::Initialize()
 {
-	NVehicleManager::m_capabilityBitmask |= ( 1 << LIGHTS_CAPABLE );
 	deadmanSwitchTimer.Reset();
 	blinklightTimer.Reset();
 }

@@ -1,717 +1,472 @@
-/***************************************************************************
-    This is a library for the BNO055 orientation sensor
-
-    Designed specifically to work with the Adafruit BNO055 Breakout.
-
-    Pick one up today in the adafruit shop!
-    ------> http://www.adafruit.com/products
-
-    These sensors use I2C to communicate, 2 pins are required to interface.
-
-    Adafruit invests time and resources providing this open source code,
-    please support Adafruit andopen-source hardware by purchasing products
-    from Adafruit!
-
-    Written by KTOWN for Adafruit Industries.
-
-    MIT license, all text above must be included in any redistribution
- ***************************************************************************/
-
 // Includes
-#include <math.h>
-#include <limits.h>
-
 #include "BNO055.h"
 
-using namespace bosch;
+using namespace bno055;
 
-BNO055::BNO055( I2C *i2cInterfaceIn, int32_t sensorIdIn, uint8_t addressIn )
-	: m_pI2C( i2cInterfaceIn )
-	, m_sensorId( sensorIdIn )
-	, m_i2cAddress( addressIn )
+BNO055::BNO055( I2C *i2cInterfaceIn, EAddress addressIn )
+    : m_pI2C( i2cInterfaceIn )
+    , m_address( ( addressIn == EAddress::ADDRESS_A ? I2C_ADDRESS_A : I2C_ADDRESS_B ) )
 {
 }
 
-int32_t BNO055::Initialize()
+// --------------------------------------------------------------
+// Public API
+// --------------------------------------------------------------
+
+void BNO055::Tick()
 {
-	m_isInitialized = false;
+    switch( m_state )
+    {
+        // -----------------------------
+        // Active operating conditions
+        // -----------------------------
+        case EState::ACTIVE:
+        {
+            if( m_calibTimer.HasElapsed( kCalUpdateRate_ms ) )
+            {
+                if( Cmd_ReadCalibrationState() )
+                {
+                    m_results.AddResult( EResult::RESULT_ERR_READING_CALIB );
+                }
+            }
 
-	delay( 500 );
+            if( m_dataTimer.HasElapsed( kModeInfo[ (uint8_t)m_mode ].updatePeriod ) )
+            {
+                if( Cmd_ReadEulerData() )
+                {
+                    m_results.AddResult( EResult::RESULT_ERR_READING_EULER );
+                }
+            }
 
-	// Verify chip ID
-	if( VerifyChipId() != i2c::EI2CResult::RESULT_SUCCESS )
-	{
-		return -1;
-	}
+            break;
+        }
 
-	delay( 10 );
+        // -----------------------------
+        // Initialization routines
+        // -----------------------------
+        case EState::DELAY:
+        {
+            // Do nothing until requested time has elapsed
+            if( m_delay.timer.HasElapsed( m_delay.delayTime_ms ) )
+            {
+                // Move to next state
+                Transition( m_delay.nextState );
+            }
 
-	// Reset the device
-	if( Reset() != i2c::EI2CResult::RESULT_SUCCESS )
-	{
-		return -2;
-	}
+            break;
+        }
 
-	unsigned long start = millis();
+        case EState::POWER_ON_RESET:
+        {
+            // Wait for POR to complete
+            DelayedTransition( EState::VERIFYING_CHIP_INFO, kPowerOnResetDelay_ms );
+            break;
+        }
 
-	// Try every 10ms to verify the chip ID again after reset
-	while( true )
-	{
-		m_lastRetcode = VerifyChipId();
+        case EState::USER_RESET:
+        {
+            // Attempt to reset
+            if( Cmd_Reset() )
+            {
+                // Failure, retry
+                HardReset();
+            }
+            else
+            {
+                // Sucess
+                Transition( EState::POWER_ON_RESET );
+            }
 
-		delay( 10 );
+            break;
+        }
 
-		if( m_lastRetcode == i2c::EI2CResult::RESULT_SUCCESS )
-		{
-			// Successfully reset
-			break;
-		}
+        case EState::VERIFYING_CHIP_INFO:
+        {
+            // Attempt to reset
+            if( Cmd_VerifyChipID() )
+            {
+                HardReset();
+                break;
+            }
 
-		if( ( millis() - start ) > 1000 )
-		{
-			// TODO: Error message
-			return -3;
-		}
-	}
+            // Check POST results
+            if( Cmd_VerifyPostResults() )
+            {
+                HardReset();
+                break;
+            }
 
-	// Switch to config mode
-	if( WriteByte( BNO055_OPR_MODE_ADDR, ( uint8_t )OPERATION_MODE_CONFIG ) != i2c::EI2CResult::RESULT_SUCCESS )
-	{
-		return -4;
-	}
+            // Get software revision info
+            if( Cmd_ReadRevisionInfo() )
+            {
+                HardReset();
+                break;
+            }
 
-	delay( 1000 );
+            // Sucess
+            Transition( EState::VERIFYING_CONFIG_MODE );
+        }
 
-	if( SetSelectedRegisterPage( 0 ) != i2c::EI2CResult::RESULT_SUCCESS  )
-	{
-		return -5;
-	}
+        case EState::VERIFYING_CONFIG_MODE:
+        {
+            // Attempt to reset
+            if( Cmd_ReadOperatingMode() )
+            {
+                // Failure, retry
+                HardReset();
+            }
+            else
+            {
+                if( m_opMode == EOpMode::OPERATION_MODE_CONFIG )
+                {
+                    // Sucess
+                    Transition( EState::CONFIGURING );
+                }
+                else
+                {
+                    // Failure, retry
+                    m_results.AddResult( EResult::RESULT_ERR_INCORRECT_STATE_AFTER_POR );
+                    HardReset();
+                }   
+            }
 
-	delay( 10 );
+            break;
+        }
 
-	// Get the Power-on self test results
-	if( GetPowerOnSelfTestResults() != i2c::EI2CResult::RESULT_SUCCESS  )
-	{
-		return -6;
-	}
+        case EState::CONFIGURING:
+        {
+            // Attempt to reset
+            if( Cmd_ConfigureSensor() )
+            {
+                // Failure, retry
+                HardReset();
+            }
+            else
+            {
+                // Sucess
+                DelayedTransition( EState::VERIFYING_ACTIVE, kModeSwitch_ms );
+            }
 
-	delay( 10 );
+            break;
+        }
 
-	if( m_powerOnSelfTestResult != 0x0F )
-	{
-		return -7;
-	}
+        case EState::VERIFYING_ACTIVE:
+        {
+            // Attempt to reset
+            if( Cmd_ReadOperatingMode() )
+            {
+                // Failure, retry
+                HardReset();
+            }
+            else
+            {
+                if( m_opMode == kModeInfo[ (uint8_t)m_mode ].opMode )
+                {
+                    // Sucess
+                    Transition( EState::ACTIVE );
+                }
+                else
+                {
+                    // Failure, retry
+                    HardReset();
+                }   
+            }
 
-	delay( 10 );
+            break;
+        }
 
-	if( GetSoftwareVersion() != i2c::EI2CResult::RESULT_SUCCESS )
-	{
-		return -8;
-	}
-
-	delay( 10 );
-
-	if( GetBootloaderRev() != i2c::EI2CResult::RESULT_SUCCESS )
-	{
-		return -9;
-	}
-
-	// Idempotent
-	if( SetUpUnitsAndOrientation() != i2c::EI2CResult::RESULT_SUCCESS )
-	{
-		return -10;
-	}
-
-	delay( 10 );
-
-	// Idempotent
-	// Set the power mode to normal
-	if( SetPowerMode( POWER_MODE_NORMAL ) != i2c::EI2CResult::RESULT_SUCCESS )
-	{
-		return -11;
-	}
-
-	delay( 10 );
-
-	// Move to NDOF mode out of config mode
-	if( WriteByte( BNO055_OPR_MODE_ADDR, ( uint8_t )OPERATION_MODE_NDOF ) != i2c::EI2CResult::RESULT_SUCCESS  )
-	{
-		return -12;
-	}
-
-	delay( 100 );
-
-	m_isInitialized = true;
-
-	return 0;
+        // -----------------------------
+        // Disabled
+        // -----------------------------
+        case EState::DISABLED:
+        default:
+        {
+            // Do nothing
+            break;
+        }
+    }
 }
 
-int32_t BNO055::SetMode( EOpMode modeIn )
+void BNO055::HardReset()
 {
-	m_lastRetcode = WriteByte( BNO055_OPR_MODE_ADDR, modeIn );
+    // Perform delayed transition to uninitialized
+    DelayedTransition( EState::USER_RESET, kRetryDelay_ms );
 
-	if( m_lastRetcode != i2c::EI2CResult::RESULT_SUCCESS )
-	{
-		return m_lastRetcode;
-	}
+    // Increment hard reset counter
+    m_results.AddResult( EResult::RESULT_ERR_HARD_RESET );
 
-	// Update our current mode
-	m_mode = modeIn;
+    // Reset timers
+    m_calibTimer.Reset();
+    m_dataTimer.Reset();
 
-	// TODO: Make this smart about which delay time to use. For now, default to 600
-	// Wait for required amount of time for mode change
-	delay( k_configToOpDelay_ms );
-
-	return m_lastRetcode;
+    // Clear the read error counter
+    ClearResultCount( EResult::RESULT_ERR_READING_EULER );
 }
 
-int32_t BNO055::SetExternalCrystalUse( bool shouldUseIn )
+void BNO055::FullReset()
 {
-	EOpMode originalMode = m_mode;
+    // Perform delayed transition to uninitialized
+    DelayedTransition( EState::USER_RESET, kRetryDelay_ms );
 
-	m_lastRetcode = SetMode( OPERATION_MODE_CONFIG );
+    // Reset timers
+    m_calibTimer.Reset();
+    m_dataTimer.Reset();
+    
+    // Clear all results
+    m_results.Clear();
 
-	// Switch to config mode (just in case since this is the default)
-	if( m_lastRetcode != i2c::EI2CResult::RESULT_SUCCESS )
-	{
-		return m_lastRetcode;
-	}
-
-	m_lastRetcode = WriteByte( BNO055_PAGE_ID_ADDR, 0 );
-
-	// Make sure we are on page 0
-	if( m_lastRetcode != i2c::EI2CResult::RESULT_SUCCESS )
-	{
-		return m_lastRetcode;
-	}
-
-	// Set the external crystal use register
-	if( shouldUseIn )
-	{
-		m_lastRetcode = WriteByte( BNO055_SYS_TRIGGER_ADDR, 0x80 );
-		if( m_lastRetcode != i2c::EI2CResult::RESULT_SUCCESS )
-		{
-			return m_lastRetcode;
-		}
-	}
-	else
-	{
-		m_lastRetcode = WriteByte( BNO055_SYS_TRIGGER_ADDR, 0x00 );
-		if( m_lastRetcode != i2c::EI2CResult::RESULT_SUCCESS )
-		{
-			return m_lastRetcode;
-		}
-	}
-
-	// Go back to the mode we were originally in
-	m_lastRetcode = SetMode( originalMode );
-	if( m_lastRetcode != i2c::EI2CResult::RESULT_SUCCESS )
-	{
-		return m_lastRetcode;
-	}
-
-	return m_lastRetcode;
+    // Re-enable device
+    m_enabled = true;
 }
 
-int32_t BNO055::GetSystemStatus()
+uint32_t BNO055::GetResultCount( EResult resultTypeIn )
 {
-	// System Status (see section 4.3.58)
-	// ---------------------------------
-	// 0 = Idle
-	// 1 = System Error
-	// 2 = Initializing Peripherals
-	// 3 = System Iniitalization
-	// 4 = Executing Self-Test
-	// 5 = Sensor fusio algorithm running
-	// 6 = System running without fusion algorithms
-
-	return ReadByte( BNO055_SYS_STAT_ADDR, m_systemStatus );
+    return m_results.GetResultCount( resultTypeIn );
 }
 
-int32_t BNO055::GetSystemError()
+void BNO055::ClearResultCount( EResult resultTypeIn )
 {
-	// System Error (see section 4.3.59)
-	// ---------------------------------
-	// 0 = No error
-	// 1 = Peripheral initialization error
-	// 2 = System initialization error
-	// 3 = Self test result failed
-	// 4 = Register map value out of range
-	// 5 = Register map address out of range
-	// 6 = Register map write error
-	// 7 = BNO low power mode not available for selected operat ion mode
-	// 8 = Accelerometer power mode not available
-	// 9 = Fusion algorithm configuration error
-	// A = Sensor configuration error
-
-	return ReadByte( BNO055_SYS_ERR_ADDR, m_systemError );
+    m_results.ClearResult( resultTypeIn );
 }
 
-int32_t BNO055::GetSoftwareVersion()
+void BNO055::Disable()
 {
-	m_lastRetcode = ReadByte( BNO055_SW_REV_ID_LSB_ADDR, m_softwareVersionMinor );
-	if( m_lastRetcode != i2c::EI2CResult::RESULT_SUCCESS )
-	{
-		return m_lastRetcode;
-	}
-
-	m_lastRetcode = ReadByte( BNO055_SW_REV_ID_MSB_ADDR, m_softwareVersionMajor );
-	if( m_lastRetcode != i2c::EI2CResult::RESULT_SUCCESS )
-	{
-		return m_lastRetcode;
-	}
-
-	return m_lastRetcode;
+    // Disable device entirely
+    Transition( EState::DISABLED );
+    m_enabled = false;
 }
 
-int32_t BNO055::GetBootloaderRev()
+bool BNO055::IsEnabled()
 {
-	return ReadByte( BNO055_BL_REV_ID_ADDR, m_bootloaderRev );
+    return m_enabled;
 }
 
-int32_t BNO055::GetOperatingMode()
+EResult BNO055::SetMode( EMode modeIn )
 {
-	return ReadByte( BNO055_OPR_MODE_ADDR, m_operatingMode );
+    if( modeIn < EMode::_MODE_COUNT )
+    {
+        // Change the operating mode
+        m_mode = modeIn;
+
+        // Reset sensor state machine
+        Transition( EState::USER_RESET );
+
+        return EResult::RESULT_SUCCESS;
+    }
+    else
+    {
+        return (EResult)m_results.AddResult( EResult::RESULT_ERR_INVALID_MODE );
+    }
 }
 
-int32_t BNO055::GetAccelerometerOffsets()
+EMode BNO055::GetMode()
 {
-	int32_t ret = 0;
-
-	uint8_t lsb = 0;
-	uint8_t msb = 0;
-
-	ret |= ReadByte( ACCEL_OFFSET_X_LSB_ADDR, lsb );
-	ret |= ReadByte( ACCEL_OFFSET_X_MSB_ADDR, msb );
-
-	m_accOffsets.x = ( ( ( uint16_t )msb ) << 8 ) | ( ( uint16_t )lsb );
-
-	ret |= ReadByte( ACCEL_OFFSET_Y_LSB_ADDR, lsb );
-	ret |= ReadByte( ACCEL_OFFSET_Y_MSB_ADDR, msb );
-
-	m_accOffsets.y = ( ( ( uint16_t )msb ) << 8 ) | ( ( uint16_t )lsb );
-
-	ret |= ReadByte( ACCEL_OFFSET_Z_LSB_ADDR, lsb );
-	ret |= ReadByte( ACCEL_OFFSET_Z_MSB_ADDR, msb );
-
-	m_accOffsets.z = ( ( ( uint16_t )msb ) << 8 ) | ( ( uint16_t )lsb );
-
-	if( ret == i2c::EI2CResult::RESULT_SUCCESS )
-	{
-		// Serial.print( "BNO055.acc.offset.x:" );
-		// Serial.print( m_accOffsets.x );
-		// Serial.println( ";" );
-
-		// Serial.print( "BNO055.acc.offset.y:" );
-		// Serial.print( m_accOffsets.y );
-		// Serial.println( ";" );
-
-		// Serial.print( "BNO055.acc.offset.z:" );
-		// Serial.print( m_accOffsets.z );
-		// Serial.println( ";" );
-	}
-
-	return ret;
+    return m_mode;
 }
 
-int32_t BNO055::GetGyroOffsets()
+uint32_t BNO055::GetUpdatePeriod()
 {
-	int32_t ret = 0;
-
-	uint8_t lsb = 0;
-	uint8_t msb = 0;
-
-	ret |= ReadByte( GYRO_OFFSET_X_LSB_ADDR, lsb );
-	ret |= ReadByte( GYRO_OFFSET_X_MSB_ADDR, msb );
-
-	m_gyroOffsets.x = ( ( ( uint16_t )msb ) << 8 ) | ( ( uint16_t )lsb );
-
-	ret |= ReadByte( GYRO_OFFSET_Y_LSB_ADDR, lsb );
-	ret |= ReadByte( GYRO_OFFSET_Y_MSB_ADDR, msb );
-
-	m_gyroOffsets.y = ( ( ( uint16_t )msb ) << 8 ) | ( ( uint16_t )lsb );
-
-	ret |= ReadByte( GYRO_OFFSET_Z_LSB_ADDR, lsb );
-	ret |= ReadByte( GYRO_OFFSET_Z_MSB_ADDR, msb );
-
-	m_gyroOffsets.z = ( ( ( uint16_t )msb ) << 8 ) | ( ( uint16_t )lsb );
-
-	if( ret == i2c::EI2CResult::RESULT_SUCCESS )
-	{
-		// Serial.print( "BNO055.gyro.offset.x:" );
-		// Serial.print( m_gyroOffsets.x );
-		// Serial.println( ";" );
-
-		// Serial.print( "BNO055.gyro.offset.y:" );
-		// Serial.print( m_gyroOffsets.y );
-		// Serial.println( ";" );
-
-		// Serial.print( "BNO055.gyro.offset.z:" );
-		// Serial.print( m_gyroOffsets.z );
-		// Serial.println( ";" );
-	}
-
-	return ret;
+    // Two conversion periods
+    return kModeInfo[ (uint8_t)m_mode ].updatePeriod;
 }
 
-int32_t BNO055::GetMagnetometerOffsets()
+// --------------------------------------------------------------
+// Private Methods
+// --------------------------------------------------------------
+
+void BNO055::Transition( EState stateIn )
 {
-	int32_t ret = 0;
-
-	uint8_t lsb = 0;
-	uint8_t msb = 0;
-
-	ret |= ReadByte( MAG_OFFSET_X_LSB_ADDR, lsb );
-	ret |= ReadByte( MAG_OFFSET_X_MSB_ADDR, msb );
-
-	m_magOffsets.x = ( ( ( uint16_t )msb ) << 8 ) | ( ( uint16_t )lsb );
-
-	ret |= ReadByte( MAG_OFFSET_Y_LSB_ADDR, lsb );
-	ret |= ReadByte( MAG_OFFSET_Y_MSB_ADDR, msb );
-
-	m_magOffsets.y = ( ( ( uint16_t )msb ) << 8 ) | ( ( uint16_t )lsb );
-
-	ret |= ReadByte( MAG_OFFSET_Z_LSB_ADDR, lsb );
-	ret |= ReadByte( MAG_OFFSET_Z_MSB_ADDR, msb );
-
-	m_magOffsets.z = ( ( ( uint16_t )msb ) << 8 ) | ( ( uint16_t )lsb );
-
-	if( ret == i2c::EI2CResult::RESULT_SUCCESS )
-	{
-		// Serial.print( "BNO055.mag.offset.x:" );
-		// Serial.print( m_magOffsets.x );
-		// Serial.println( ";" );
-
-		// Serial.print( "BNO055.mag.offset.y:" );
-		// Serial.print( m_magOffsets.y );
-		// Serial.println( ";" );
-
-		// Serial.print( "BNO055.mag.offset.z:" );
-		// Serial.print( m_magOffsets.z );
-		// Serial.println( ";" );
-	}
-
-	return ret;
+    // Set new state
+    m_state = stateIn;
 }
 
-int32_t BNO055::EnterIMUMode()
+void BNO055::DelayedTransition( EState nextState, uint32_t millisIn )
 {
-	// Get all of the offsets
-	GetGyroOffsets();
-	GetAccelerometerOffsets();
-	GetMagnetometerOffsets();
-
-	// Switch to config mode first
-	m_lastRetcode = SetMode( OPERATION_MODE_CONFIG );
-	if( m_lastRetcode != i2c::EI2CResult::RESULT_SUCCESS )
-	{
-		return m_lastRetcode;
-	}
-
-	// Switch to IMU mode
-	m_lastRetcode = SetMode( OPERATION_MODE_IMUPLUS );
-	if( m_lastRetcode != i2c::EI2CResult::RESULT_SUCCESS )
-	{
-		return m_lastRetcode;
-	}
-
-	Serial.print( "bno.mode:" );
-	Serial.print( "IMU" );
-	Serial.println( ';' );
-
-	return m_lastRetcode;
+    // Set delay info
+    m_state                 = EState::DELAY;
+    m_delay.nextState       = nextState;
+    m_delay.delayTime_ms    = millisIn;
+    m_delay.timer.Reset();
 }
 
-int32_t BNO055::EnterNDOFMode()
+EResult BNO055::Cmd_Reset()
 {
-	// Get all of the offsets
-	GetGyroOffsets();
-	GetAccelerometerOffsets();
-	GetMagnetometerOffsets();
-
-	// Switch to config mode first
-	m_lastRetcode = SetMode( OPERATION_MODE_CONFIG );
-	if( m_lastRetcode != i2c::EI2CResult::RESULT_SUCCESS )
-	{
-		return m_lastRetcode;
-	}
-
-	// Switch to NDOF mode
-	m_lastRetcode = SetMode( OPERATION_MODE_NDOF );
-	if( m_lastRetcode != i2c::EI2CResult::RESULT_SUCCESS )
-	{
-		return m_lastRetcode;
-	}
-
-	Serial.print( "bno.mode:" );
-	Serial.print( "NDOF" );
-	Serial.println( ';' );
-
-	return m_lastRetcode;
+    // Attempt to reset
+    if( WriteRegisterByte( ERegister::REG_SYS_TRIGGER_ADDR, 0x20 ) )
+    {
+        // I2C Failure
+        return (EResult)m_results.AddResult( EResult::RESULT_ERR_I2C_TRANSACTION );
+    }
+    else
+    {
+        return EResult::RESULT_SUCCESS;
+    }
 }
 
-int32_t BNO055::GetRevInfo( TRevisionInfo &revInfoOut )
+EResult BNO055::Cmd_VerifyChipID()
 {
-	uint8_t a, b;
+    // Read ID
+    if( ReadRegisterByte( ERegister::REG_CHIP_ID_ADDR, &m_chipID ) )
+    {
+        // I2C Failure
+        return (EResult)m_results.AddResult( EResult::RESULT_ERR_I2C_TRANSACTION );
+    }
+    else
+    {
+        if( m_chipID == BNO_ID )
+        {
+            return EResult::RESULT_SUCCESS;
+        }
+        else
+        {
+            return (EResult)m_results.AddResult( EResult::RESULT_ERR_INVALID_ID );
+        }
+    }
+}
 
-	// Clear the rev info
-	revInfoOut.accel_rev = 0;
-	revInfoOut.mag_rev = 0;
-	revInfoOut.gyro_rev = 0;
-	revInfoOut.bl_rev = 0;
-	revInfoOut.sw_rev = 0;
+EResult BNO055::Cmd_VerifyPostResults()
+{
+    // Read ID
+    if( ReadRegisterByte( ERegister::REG_SELFTEST_RESULT_ADDR, &m_postResults ) )
+    {
+        // I2C Failure
+        return (EResult)m_results.AddResult( EResult::RESULT_ERR_I2C_TRANSACTION );
+    }
+    else
+    {
+        // Bit 0 = Accelerometer self test
+        // Bit 1 = Magnetometer self test
+        // Bit 2 = Gyroscope self test
+        // Bit 3 = MCU self test
+        if( ( m_postResults & 0x0F ) == 0x0F )
+        {
+            return EResult::RESULT_SUCCESS;
+        }
+        else
+        {
+            return (EResult)m_results.AddResult( EResult::RESULT_ERR_INVALID_ID );
+        }
+    }
+}
 
-	int32_t ret = 0;
+EResult BNO055::Cmd_ReadRevisionInfo()
+{
+    uint8_t a;
+    uint8_t b;
 
-	ret |= ReadByte( BNO055_ACCEL_REV_ID_ADDR, revInfoOut.accel_rev );	// Accelerometer
-	ret |= ReadByte( BNO055_MAG_REV_ID_ADDR, revInfoOut.mag_rev );		// Magnetometer
-	ret |= ReadByte( BNO055_GYRO_REV_ID_ADDR, revInfoOut.gyro_rev );		// Gyrometer
-	ret |= ReadByte( BNO055_BL_REV_ID_ADDR, revInfoOut.bl_rev );			// Bootloader
-	ret |= ReadByte( BNO055_SW_REV_ID_LSB_ADDR, a );						// Software Version LSB
-	ret |= ReadByte( BNO055_SW_REV_ID_MSB_ADDR, b );						// Software Version MSB
-
-	if( ret != i2c::EI2CResult::RESULT_SUCCESS )
-	{
-		return ret;
-	}
+	if( ReadRegisterByte( REG_ACCEL_REV_ID_ADDR, &m_revInfo.accel ) )     { return (EResult)m_results.AddResult( EResult::RESULT_ERR_I2C_TRANSACTION ); }
+	if( ReadRegisterByte( REG_MAG_REV_ID_ADDR, &m_revInfo.mag ) )         { return (EResult)m_results.AddResult( EResult::RESULT_ERR_I2C_TRANSACTION ); }
+	if( ReadRegisterByte( REG_GYRO_REV_ID_ADDR, &m_revInfo.gyro ) )       { return (EResult)m_results.AddResult( EResult::RESULT_ERR_I2C_TRANSACTION ); }
+	if( ReadRegisterByte( REG_BL_REV_ID_ADDR, &m_revInfo.bootloader ) )   { return (EResult)m_results.AddResult( EResult::RESULT_ERR_I2C_TRANSACTION ); }
+	if( ReadRegisterByte( REG_SW_REV_ID_LSB_ADDR, &a ) )                  { return (EResult)m_results.AddResult( EResult::RESULT_ERR_I2C_TRANSACTION ); }
+    if( ReadRegisterByte( REG_SW_REV_ID_MSB_ADDR, &b ) )                  { return (EResult)m_results.AddResult( EResult::RESULT_ERR_I2C_TRANSACTION ); }
 
 	// Combine the LSB and MSB
-	revInfoOut.sw_rev = ( ( ( uint16_t )b ) << 8 ) | ( ( uint16_t )a );
+	m_revInfo.software = ( ( ( uint16_t )b ) << 8 ) | ( ( uint16_t )a );
 
-	return ret;
+    return EResult::RESULT_SUCCESS;
 }
 
-int32_t BNO055::GetCalibration()
+EResult BNO055::Cmd_ReadOperatingMode()
 {
-	uint8_t calData;
+    uint8_t opMode = 0;
 
-	m_lastRetcode = ReadByte( BNO055_CALIB_STAT_ADDR, calData );
-	if( m_lastRetcode != i2c::EI2CResult::RESULT_SUCCESS )
-	{
-		return m_lastRetcode;
-	}
-
-	m_systemCal	= ( calData >> 6 ) & 0x03;
-	m_gyroCal	= ( calData >> 4 ) & 0x03;
-	m_accelCal	= ( calData >> 2 ) & 0x03;
-	m_magCal	= calData & 0x03;
-
-	return m_lastRetcode;
+    // Read Op Mode Register
+    if( ReadRegisterByte( ERegister::REG_OPR_MODE_ADDR, &opMode ) )
+    {
+        // I2C Failure
+        return (EResult)m_results.AddResult( EResult::RESULT_ERR_I2C_TRANSACTION );
+    }
+    else
+    {
+        // OPR_MODE is the last 4 bits of the register
+        m_opMode = (EOpMode)(opMode & 0x0F);
+        return EResult::RESULT_SUCCESS;
+    }
 }
 
-int32_t BNO055::VerifyChipId()
+EResult BNO055::Cmd_ConfigureSensor()
 {
-	// Read the chip ID
-	uint8_t id;
-
-	m_lastRetcode = ReadByte( BNO055_CHIP_ID_ADDR, id );
-	if( m_lastRetcode != i2c::EI2CResult::RESULT_SUCCESS )
-	{
-		return m_lastRetcode;
-	}
-
-	// Check to see if it matches the proper ID (0xA0)
-	if( id != BNO055_ID )
-	{
-		return -1;
-	}
-
-	return m_lastRetcode;
-}
-
-int32_t BNO055::Reset()
-{
-	// Set System Reset bit
-	m_lastRetcode = WriteByte( BNO055_SYS_TRIGGER_ADDR, 0x20 );
-	if( m_lastRetcode != i2c::EI2CResult::RESULT_SUCCESS )
-	{
-		return m_lastRetcode;
-	}
-
-	// Delay for required time to perform a reset
-	delay( k_resetDelay_ms );
-
-	return m_lastRetcode;
-}
-
-int32_t BNO055::SetPowerMode( EPowerMode powerModeIn )
-{
-	return WriteByte( BNO055_PWR_MODE_ADDR, powerModeIn );
-}
-
-int32_t BNO055::SetSelectedRegisterPage( byte pageIdIn )
-{
-	return WriteByte( BNO055_PAGE_ID_ADDR, pageIdIn );
-}
-
-int32_t BNO055::SetUpUnitsAndOrientation()
-{
-	// Select the output units
+    // Set up units and orientation
 	uint8_t unitSelect =	( 0 << 7 ) |	// Orientation = Android
 	                        ( 0 << 4 ) |	// Temperature = Celsius
 	                        ( 0 << 2 ) |	// Euler = Degrees
 	                        ( 0 << 1 ) |	// Gyro = Deg/s
 	                        ( 1 << 0 );		// Accelerometer = mg
 
-
-	int32_t ret = 0;
-
-	ret |= WriteByte( BNO055_UNIT_SEL_ADDR, unitSelect );
+	if( WriteRegisterByte( REG_UNIT_SEL_ADDR, unitSelect ) )    { return (EResult)m_results.AddResult( EResult::RESULT_ERR_I2C_TRANSACTION ); }
 
 	// Wires forward, sensors down
-	// What this actually means is: X=X, Y=-Y, Z=-Z
-	ret |= WriteByte( BNO055_AXIS_MAP_CONFIG_ADDR, 0x24 );	// This is the default value
-	ret |= WriteByte( BNO055_AXIS_MAP_SIGN_ADDR, 0x00 );		// Negate Y and Z axes from default (Z-down configuration)
+    // 0x24 = Default axis assignment setup
+    // 0x00 = Default axis direction setup
+    // 0x04 = X axis direction flipped
+	if( WriteRegisterByte( REG_AXIS_MAP_CONFIG_ADDR, 0x24 ) )   { return (EResult)m_results.AddResult( EResult::RESULT_ERR_I2C_TRANSACTION ); }
+	if( WriteRegisterByte( REG_AXIS_MAP_SIGN_ADDR, 0x03 ) )     { return (EResult)m_results.AddResult( EResult::RESULT_ERR_I2C_TRANSACTION ); }
 
-	if( ret != i2c::EI2CResult::RESULT_SUCCESS )
+    // Move to selected fusion mode
+    if( WriteRegisterByte( REG_OPR_MODE_ADDR, kModeInfo[ (uint8_t)m_mode ].opMode ) )
+    { 
+        return (EResult)m_results.AddResult( EResult::RESULT_ERR_I2C_TRANSACTION );
+    }
+
+    return EResult::RESULT_SUCCESS;
+}
+
+EResult BNO055::Cmd_ReadCalibrationState()
+{
+    uint8_t calData;
+
+	if( ReadRegisterByte( REG_CALIB_STAT_ADDR, &calData ) )
 	{
-		return -1;
+		return (EResult)m_results.AddResult( EResult::RESULT_ERR_I2C_TRANSACTION );
 	}
 
-	return ret;
+    m_calibration.Update(   (ECalibration)((calData>>2)&0x03),      // Accel
+                            (ECalibration)((calData>>4)&0x03),      // Gyro
+                            (ECalibration)(calData&0x03),           // Mag
+                            (ECalibration)((calData>>6)&0x03) );    // System
+
+	return EResult::RESULT_SUCCESS;
 }
 
-int32_t BNO055::GetTemperature( int8_t &temperatureOut )
+EResult BNO055::Cmd_ReadEulerData()
 {
-	uint8_t temp;
+    uint8_t buffer[6];
 
-	m_lastRetcode = ReadByte( BNO055_TEMP_ADDR, temp );
-	if( m_lastRetcode != i2c::EI2CResult::RESULT_SUCCESS )
-	{
-		return m_lastRetcode;
-	}
-
-	temperatureOut = ( int8_t )temp;
-
-	return m_lastRetcode;
-}
-
-int32_t BNO055::GetPowerOnSelfTestResults()
-{
-	// Self Test Results (see section )
-	// --------------------------------
-	// 1 = test passed, 0 = test failed
-	//
-	// Bit 0 = Accelerometer self test
-	// Bit 1 = Magnetometer self test
-	// Bit 2 = Gyroscope self test
-	// Bit 3 = MCU self test
-	//
-	// 0x0F = all good!
-
-	return ReadByte( BNO055_SELFTEST_RESULT_ADDR, m_powerOnSelfTestResult );
-}
-
-int32_t BNO055::GetVector( EVectorType vectorTypeIn, imu::Vector<3> &vectorOut )
-{
-	// Create and zero buffer
-	uint8_t buffer[6];
-	memset( buffer, 0, 6 );
-
-	int16_t x = 0;
+    int16_t x = 0;
 	int16_t y = 0;
 	int16_t z = 0;
 
-
-	// Read vector data (6 bytes)
-	m_lastRetcode = ReadNBytes( ( ERegisterAddress )vectorTypeIn, buffer, 6 );
-	if( m_lastRetcode != i2c::EI2CResult::RESULT_SUCCESS )
+    // Read vector data (6 bytes)
+	
+	if( ReadRegisterBytes( EVectorAddress::VECTOR_EULER, buffer, 6 ) )
 	{
-		return m_lastRetcode;
+		return (EResult)m_results.AddResult( EResult::RESULT_ERR_I2C_TRANSACTION );
 	}
 
 	x = ( ( int16_t )buffer[0] ) | ( ( ( int16_t )buffer[1] ) << 8 );
 	y = ( ( int16_t )buffer[2] ) | ( ( ( int16_t )buffer[3] ) << 8 );
 	z = ( ( int16_t )buffer[4] ) | ( ( ( int16_t )buffer[5] ) << 8 );
 
-	// Convert the value to an appropriate range and assign the value to the Vector type
-	switch( vectorTypeIn )
-	{
-		case VECTOR_MAGNETOMETER:
-			// 1uT = 16 LSB
-			vectorOut[0] = ( ( double )x ) / 16.0;
-			vectorOut[1] = ( ( double )y ) / 16.0;
-			vectorOut[2] = ( ( double )z ) / 16.0;
-			break;
+    // 1 Degree = 16.0f
+    // (rpy)
+    m_data.Update( ( ( (float)y ) / 16.0f ), -( ( (float)z ) / 16.0f ), ( ( (float)x ) / 16.0f ) );
 
-		case VECTOR_GYROSCOPE:
-			// 1rps = 900 LSB
-			vectorOut[0] = ( ( double )x ) / 900.0;
-			vectorOut[1] = ( ( double )y ) / 900.0;
-			vectorOut[2] = ( ( double )z ) / 900.0;
-			break;
-
-		case VECTOR_EULER:
-			// 1 degree = 16 LSB
-			vectorOut[0] = ( ( double )x ) / 16.0;
-			vectorOut[1] = ( ( double )y ) / 16.0;
-			vectorOut[2] = ( ( double )z ) / 16.0;
-
-			break;
-
-		case VECTOR_ACCELEROMETER:
-		case VECTOR_LINEARACCEL:
-		case VECTOR_GRAVITY:
-			// 1m/s^2 = 100 LSB
-			vectorOut[0] = ( ( double )x ) / 100.0;
-			vectorOut[1] = ( ( double )y ) / 100.0;
-			vectorOut[2] = ( ( double )z ) / 100.0;
-			break;
-	}
-
-	return m_lastRetcode;
+    return EResult::RESULT_SUCCESS;
 }
 
-int32_t BNO055::GetQuat( imu::Quaternion &quatOut )
+// I2C call wrappers
+i2c::EI2CResult BNO055::WriteRegisterByte( uint8_t registerIn, uint8_t dataIn )
 {
-	// Create and zero buffer
-	uint8_t buffer[8];
-	memset( buffer, 0, 8 );
-
-	int16_t x = 0;
-	int16_t y = 0;
-	int16_t z = 0;
-	int16_t w = 0;
-
-
-	// Read quat data (8 bytes)
-	m_lastRetcode = ReadNBytes( BNO055_QUATERNION_DATA_W_LSB_ADDR, buffer, 8 );
-	if( m_lastRetcode != i2c::EI2CResult::RESULT_SUCCESS )
-	{
-		return m_lastRetcode;
-	}
-
-	w = ( ( ( uint16_t )buffer[1] ) << 8 ) | ( ( uint16_t )buffer[0] );
-	x = ( ( ( uint16_t )buffer[3] ) << 8 ) | ( ( uint16_t )buffer[2] );
-	y = ( ( ( uint16_t )buffer[5] ) << 8 ) | ( ( uint16_t )buffer[4] );
-	z = ( ( ( uint16_t )buffer[7] ) << 8 ) | ( ( uint16_t )buffer[6] );
-
-	// Assign to quaternion
-	// See http://ae-bst.resource.bosch.com/media/products/dokumente/bno055/BST_BNO055_DS000_12~1.pdf 3.6.5.5 Orientation (Quaternion)
-	const double scale = ( 1.0 / ( 1 << 14 ) );
-
-	quatOut = imu::Quaternion( scale * w, scale * x, scale * y, scale * z );
-
-	return m_lastRetcode;
+    return m_pI2C->WriteRegisterByte( m_address, registerIn, dataIn );
 }
 
-/***************************************************************************
-    PRIVATE FUNCTIONS
- ***************************************************************************/
-
-// Note: Non-zero returns are errors which correlate to specific I2C failures. Zero return means success.
-
-int32_t BNO055::WriteByte( ERegisterAddress addressIn, uint8_t dataIn )
+i2c::EI2CResult BNO055::ReadRegisterByte( uint8_t registerIn, uint8_t *dataOut )
 {
-	return (int32_t)m_pI2C->WriteRegisterByte( m_i2cAddress, (uint8_t)addressIn, dataIn );
+    return m_pI2C->ReadRegisterByte( m_address, registerIn, dataOut );
 }
 
-int32_t BNO055::ReadByte( ERegisterAddress addressIn, uint8_t &dataOut )
+i2c::EI2CResult BNO055::ReadRegisterBytes( uint8_t registerIn, uint8_t *dataOut, uint8_t numBytesIn )
 {
-	return (int32_t)m_pI2C->ReadRegisterByte( m_i2cAddress, (uint8_t)addressIn, &dataOut );
-}
-
-int32_t BNO055::ReadNBytes( ERegisterAddress addressIn, uint8_t *dataOut, uint8_t byteCountIn )
-{
-	return (int32_t)m_pI2C->ReadRegisterBytes( m_i2cAddress, (uint8_t)addressIn, dataOut, byteCountIn );
+    return m_pI2C->ReadRegisterBytes( m_address, registerIn, dataOut, numBytesIn );
 }

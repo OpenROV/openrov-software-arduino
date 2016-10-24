@@ -13,6 +13,6 @@ public:
 	CTimer();
 
 	uint32_t Now();
-	boolean HasElapsed( uint32_t msIn );
+	bool HasElapsed( uint32_t msIn );
 	void Reset();
 };

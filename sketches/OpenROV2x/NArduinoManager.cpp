@@ -11,8 +11,6 @@ namespace NArduinoManager
 
 	void Initialize()
 	{
-		delay( 1000 );
-
 		// Hardware intialization
 		DisableWatchdogTimer();
 		EnableWatchdogTimer();

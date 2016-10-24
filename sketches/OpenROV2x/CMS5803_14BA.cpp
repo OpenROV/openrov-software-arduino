@@ -2,216 +2,135 @@
 #if(HAS_MS5803_14BA)
 
 #include "CMS5803_14BA.h"
-#include "CTimer.h"
 #include "NCommManager.h"
-#include "NVehicleManager.h"
-#include "NDataManager.h"
+
+using namespace ms5803_14ba;
 
 namespace
 {
-    enum ESensorState
-    {
-        MS5803_UNINITIALIZED,
-        MS5803_IDLE,
-        MS5803_CONVERTING_PRESSURE,
-        MS5803_CONVERTING_TEMPERATURE
-    };
+	constexpr uint32_t kMaxHardResets 		= 5;
 
-	CTimer m_initTimer;         // 10s timer for initialization attempts
-	CTimer m_readTimer;         // 50ms timer for generating data points
-	CTimer m_conversionTimer;   // 20ms timer for allowing the sensor to perform conversion before attempting to read the value
-
-	float m_depth_m         = 0;
-	float m_depthOffset_m   = 0;
-	float m_waterTemp_c     = 0;
-	float m_pressure_mbar   = 0;
-	
-	const int k_maxAttempts = 5;
-	int m_initAttempts      = 0;
-
-	ESensorState m_state    = MS5803_UNINITIALIZED;
+	constexpr uint32_t kStatusCheckDelay_ms	= 1000;							// 1hz
+	constexpr uint32_t kTelemetryDelay_ms 	= 100;							// 10hz
 }
 
-CMS5803_14BA::CMS5803_14BA( I2C *i2cInterfaceIn )
-	: m_sensor( i2cInterfaceIn )
+CMS5803_14BA::CMS5803_14BA( I2C *i2cInterfaceIn, ms5803_14ba::EAddress addressIn )
+	: m_device( i2cInterfaceIn, addressIn )
 {
 }
 
 void CMS5803_14BA::Initialize()
 {
-	// Attempt to initialize the sensor
-	if( m_sensor.Initialize() == 0 )
-	{
-	    Serial.println( "MS5803.init:Success;" );
-	    
-	    // Announce depth capability
-	    NVehicleManager::m_capabilityBitmask |= ( 1 << DEPTH_CAPABLE );
-	    
-	    // Print calibration coefficients and CRC check result
-	    PrintCoefficients();
-	    
-	    // Set the state to IDLE, ready to start fetching data
-	    m_state = MS5803_IDLE;
-	}
-	else
-	{
-    	Serial.println( "MS5803.init:Fail;" );
-    	m_initTimer.Reset();
-	}
-}
+	Serial.println( F( "ms5803_init:1;" ) );
 
-void CMS5803_14BA::PrintCoefficients()
-{
-	for( int i = 0; i < 8; ++i )
-	{
-		// Print out coefficients
-		Serial.print( "MS5803.C" );
-		Serial.print( i );
-		Serial.print( ":" );
-		Serial.print( m_sensor.m_sensorCoeffs[i] );
-		Serial.println( ";" );
-	}
-	
-	if( m_sensor.m_crcCheckSuccessful )
-	{
-		Serial.println( "MS5803.crcCheck:Success;" );
-	}
-	else
-	{
-		Serial.println( "MS5803.crcCheck:Fail;" );
-	}
+	m_statusCheckTimer.Reset();
+	m_telemetryTimer.Reset();
+
+	// 25% max failure rate before 
+	m_maxFailuresPerPeriod = ( kStatusCheckDelay_ms / 4 ) / m_device.GetUpdatePeriod();
 }
 
 void CMS5803_14BA::Update( CCommand& commandIn )
 {
-    if( m_state == MS5803_UNINITIALIZED )
-    {
-        if( m_initAttempts < k_maxAttempts )
-        {
-            // Make an attempt to initialize the sensor every 10 seconds
-            if( m_initTimer.HasElapsed( 5000 ) )
-    		{
-            	if( m_sensor.Initialize() == 0 )
-            	{
-            	    m_initAttempts = 0;
-            	    
-            	    Serial.println( "MS5803.init:Success;" );
-            	    
-            	    // Announce depth capability
-            	    NVehicleManager::m_capabilityBitmask |= ( 1 << DEPTH_CAPABLE );
-            	    
-            	    // Print calibration coefficients and CRC check result
-            	    PrintCoefficients();
-            	    
-            	    // Set the state to IDLE, ready to start fetching data
-            	    m_state = MS5803_IDLE;
-            	}
-            	else
-            	{
-            	    Serial.println( "MS5803.init:Fail;" );
-            	    
-            	    m_initTimer.Reset();
-            	    m_initAttempts++;
-            	}
-    		}
-        }
-    }
-    else
-    {
-        // Handle commands
-        if( NCommManager::m_isCommandAvailable )
-        {
-            // Zero the depth value
-            if( commandIn.Equals( "dzer" ) )
-            {
-            	m_depthOffset_m = m_depth_m;
-            }
-            else if( commandIn.Equals( "dtwa" ) )
-            {
-                // TODO: Make this a command to change water type properly
-                
-            	// Print water type value
-            	if( NVehicleManager::m_waterType == WATERTYPE_FRESH )
-            	{
-            		NVehicleManager::m_waterType = WATERTYPE_SALT;
-            		m_sensor.SetWaterType( MS5803_WATERTYPE_SALT );
-            		Serial.println( F( "dtwa:1;" ) );
-            	}
-            	else
-            	{
-            		NVehicleManager::m_waterType = WATERTYPE_FRESH;
-            		m_sensor.SetWaterType( MS5803_WATERTYPE_FRESH );
-            		Serial.println( F( "dtwa:0;" ) );
-            	}
-            }
-        }
-        
-        // TODO: Handle error checking for sensor actions, since they can fail due to I2C problems
-        // Handle sensor update process
-        if( m_state == MS5803_IDLE )
-        {
-            // Kick off a conversion every 50ms
-            if( m_readTimer.HasElapsed( 50 ) )
-    		{
-                m_sensor.StartConversion( MS5803_MEAS_PRESSURE );
-                
-                // Reset the read timer
-                m_readTimer.Reset();
-                
-                // Start the conversion timer
-                m_conversionTimer.Reset();
-                
-                m_state = MS5803_CONVERTING_PRESSURE;
-    		}
-        }
-        else if( m_state == MS5803_CONVERTING_PRESSURE )
-        {
-            // Wait 20ms for a conversion to complete
-            if( m_conversionTimer.HasElapsed( 10 ) )
-    		{
-    		    // Read the pressure value
-                m_sensor.Read( MS5803_MEAS_PRESSURE );
-                
-                // Kick off the temperature conversion
-                m_sensor.StartConversion( MS5803_MEAS_TEMPERATURE );
-                
-                m_conversionTimer.Reset();
-                
-                m_state = MS5803_CONVERTING_TEMPERATURE;
-    		}
-        }
-        else if( m_state == MS5803_CONVERTING_TEMPERATURE )
-        {
-            // Wait 20ms for a conversion to complete
-            if( m_conversionTimer.HasElapsed( 10 ) )
-    		{
-    		    // Read the temperature value
-                m_sensor.Read( MS5803_MEAS_TEMPERATURE );
-                
-                // Perform calculations
-                m_sensor.CalculateOutputs();
-                
-                // Get and report results
-                m_depth_m       = m_sensor.m_depth_m - m_depthOffset_m;
-                m_waterTemp_c   = m_sensor.m_temperature_c;
-                m_pressure_mbar = m_sensor.m_pressure_mbar;
-                
-                //Serial.print( "MS5803.waterTemp_c:" );
-                //Serial.print( m_waterTemp_c );
-                //Serial.println( ";" );
-                
-                //Serial.print( "MS5803.pressure_mbar:" );
-                //Serial.print( m_pressure_mbar );
-                //Serial.println( ";" );
-    		    
-    		    NDataManager::m_environmentData.TEMP = m_waterTemp_c;
-    		    NDataManager::m_environmentData.PRES = m_pressure_mbar;
-    		    NDataManager::m_navData.DEEP = m_depth_m;
-                
-                m_state = MS5803_IDLE;
-    		}
-        }
-    }
+	if( m_device.IsEnabled() == false )
+	{
+		return;
+	}
+
+	// Check for lock
+	if( m_hasLock == false )
+	{
+		// Attempt to get the lock
+		m_hasLock = m_device.GetLock();
+
+		if( m_hasLock == false )
+		{
+			// Don't allow the code to proceed
+			return;
+		}
+	}
+
+	// Handle health checks
+	if( m_statusCheckTimer.HasElapsed( kStatusCheckDelay_ms ) )
+	{
+		// Check to see if the error threshold is above acceptable levels
+		if( m_device.GetResultCount( EResult::RESULT_ERR_FAILED_SEQUENCE ) > m_maxFailuresPerPeriod )
+		{
+			Serial.println( "ms5803_HardReset:1" );
+			m_device.HardReset();
+		}
+		else
+		{
+			// Clear the error counter
+			m_device.ClearResultCount( EResult::RESULT_ERR_FAILED_SEQUENCE );
+		}
+		
+		// Check to see if we have surpassed our hard reset threshhold 
+		if( m_device.GetResultCount( EResult::RESULT_ERR_HARD_RESET ) > kMaxHardResets )
+		{
+			// Free the lock
+			if( m_hasLock )
+			{
+				m_hasLock = false;
+				m_device.FreeLock();
+			}
+
+			// Permanently disable the device
+			m_device.Disable();
+			Serial.println( F( "ms5803_disabled:1;" ) );
+			return;
+		}
+	}
+    
+	// Handle commands
+	if( NCommManager::m_isCommandAvailable )
+	{
+		// Zero the depth value
+		if( commandIn.Equals( "depth_zero" ) )
+		{
+			// Set offset based on current value
+			m_depthOffset_m = m_device.m_data.depth_m;
+
+			// Send ack
+			Serial.println( F( "depth_zero:ack;" ) );
+		}
+		else if( commandIn.Equals( "depth_water" ) )
+		{
+			if( commandIn.m_arguments[1] == (uint32_t)EWaterType::FRESH )
+			{
+				m_device.SetWaterType( EWaterType::FRESH );
+
+				// Ack
+				Serial.print( F( "depth_water:" ) );	
+				Serial.print( commandIn.m_arguments[1] ); 	
+				Serial.println( ';' );
+			}
+			else if( commandIn.m_arguments[1] == (uint32_t)EWaterType::SALT )
+			{
+				m_device.SetWaterType( EWaterType::SALT );
+
+				// Ack
+				Serial.print( F( "depth_water:" ) );	
+				Serial.print( commandIn.m_arguments[1] ); 	
+				Serial.println( ';' );
+			}
+		}
+	}
+
+	// Tick device state machine
+	m_device.Tick();
+
+	// Emit telemetry
+	if( m_telemetryTimer.HasElapsed( kTelemetryDelay_ms ) )
+	{
+		if( m_device.m_data.SampleAvailable() )
+		{
+			// Report results
+			Serial.print( F( "depth_t:" ) );	Serial.print( orutil::Encode1K( m_device.m_data.temperature_c ) ); 	Serial.print( ';' );
+			Serial.print( F( "depth_p:" ) );	Serial.print( orutil::Encode1K( m_device.m_data.pressure_mbar ) ); 	Serial.print( ';' );
+			Serial.print( F( "depth_d:" ) );	Serial.print( orutil::Encode1K( m_device.m_data.depth_m ) ); 		Serial.println( ';' );
+		}
+	}
 }
 
 #endif

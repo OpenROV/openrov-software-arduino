@@ -22,16 +22,50 @@
 //  OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 //  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-#include "LibMPU_Vector3.h"
+#include "MPU9150_Calibration.h"
 
-void MPUVector3DotProduct( MPUVector3 a, MPUVector3 b, float* d )
+// AVR version
+
+#include <EEPROM.h>
+
+void calLibErase( uint8_t device )
 {
-	*d = a[VEC3_X] * b[VEC3_X] + a[VEC3_Y] * b[VEC3_Y] + a[VEC3_Z] * b[VEC3_Z];
+	EEPROM.write( CALLIB_START, 0 ); // just destroy the valid byte
 }
 
-void MPUVector3CrossProduct( MPUVector3 a, MPUVector3 b, MPUVector3 d )
+void calLibWrite( uint8_t device, CALLIB_DATA* calData )
 {
-	d[VEC3_X] = a[VEC3_Y] * b[VEC3_Z] - a[VEC3_Z] * b[VEC3_Y];
-	d[VEC3_Y] = a[VEC3_Z] * b[VEC3_X] - a[VEC3_X] * b[VEC3_Z];
-	d[VEC3_Z] = a[VEC3_X] * b[VEC3_Y] - a[VEC3_Y] * b[VEC3_X];
+	uint8_t* ptr = ( uint8_t* )calData;
+	uint8_t length = sizeof( CALLIB_DATA );
+	int eeprom = CALLIB_START;
+
+	calData->valid = CALLIB_DATA_VALID;
+
+	for( uint8_t i = 0; i < length; i++ )
+	{
+		EEPROM.write( eeprom + i, *ptr++ );
+	}
+}
+
+bool calLibRead( uint8_t device, CALLIB_DATA* calData )
+{
+	uint8_t* ptr = ( uint8_t* )calData;
+	uint8_t length = sizeof( CALLIB_DATA );
+	int eeprom = CALLIB_START;
+
+	calData->magValid = false;
+	calData->accelValid = false;
+
+	if( ( EEPROM.read( eeprom ) != CALLIB_DATA_VALID_LOW ) ||
+	    ( EEPROM.read( eeprom + 1 ) != CALLIB_DATA_VALID_HIGH ) )
+	{
+		return false;    // invalid data
+	}
+
+	for( uint8_t i = 0; i < length; i++ )
+	{
+		*ptr++ = EEPROM.read( eeprom + i );
+	}
+
+	return true;
 }

@@ -43,6 +43,9 @@ public:
   i2c::EI2CResult Disable();
   i2c::EI2CResult Reset();
 
+  bool LockAddress( uint8_t addressIn );
+  void FreeAddress( uint8_t addressIn );
+
   bool IsAvailable();
   i2c::EI2CResult SetBaudRate( i2c::EI2CBaudRate baudRateIn );
 
@@ -66,7 +69,9 @@ public:
 private:
   // Attributes  
   bool m_isEnabled                      = false;
-  i2c::EI2CBaudRate m_baudRate  = i2c::EI2CBaudRate::BAUDRATE_100K;
+  i2c::EI2CBaudRate m_baudRate          = i2c::EI2CBaudRate::BAUDRATE_400K;
+
+  uint8_t m_addressLocks[ 127 ]         = { 0 };
 
   // Custom properties defined for specific architectures
   TI2CProperties m_customProperties;

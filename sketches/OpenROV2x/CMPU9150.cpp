@@ -4,297 +4,165 @@
 #if( HAS_MPU9150 )
 
 #include "CMPU9150.h"
-#include <MPU9150.h>
-#include <EEPROM.h>
-#include "LibMPU_Calibration.h"
 
-#include "NVehicleManager.h"
 #include "NDataManager.h"
+#include "NCommManager.h"
 #include "CModule.h"
-#include "CTimer.h"
+#include <orutil.h>
 
-namespace
-{
-	MPU9150Lib MPU;
+#define MPU_MODULE_ID 0
 
-	int MPUModuleId = 1;
-
-	boolean DidInit = false;
-	boolean InCallibrationMode = false;
-
-	CTimer MPU9150ReInit;
-	CTimer mpu_update_timer;
-	CTimer calibration_timer;
-
-	CALLIB_DATA calData;
-
-	int counter = 0;
-
-	//  MPU_UPDATE_RATE defines the rate (in Hz) at which the MPU updates the sensor data and DMP output
+//  MPU_UPDATE_RATE defines the rate (in Hz) at which the MPU updates the sensor data and DMP output
 #define MPU_UPDATE_RATE  (20)
 
-	//  MAG_UPDATE_RATE defines the rate (in Hz) at which the MPU updates the magnetometer data
-	//  MAG_UPDATE_RATE should be less than or equal to the MPU_UPDATE_RATE
+//  MAG_UPDATE_RATE defines the rate (in Hz) at which the MPU updates the magnetometer data
+//  MAG_UPDATE_RATE should be less than or equal to the MPU_UPDATE_RATE
 #define MAG_UPDATE_RATE  (10)
 
-	//  MPU_MAG_MIX defines the influence that the magnetometer has on the yaw output.
-	//  The magnetometer itself is quite noisy so some mixing with the gyro yaw can help
-	//  significantly. Some example values are defined below:
+//  MPU_MAG_MIX defines the influence that the magnetometer has on the yaw output.
+//  The magnetometer itself is quite noisy so some mixing with the gyro yaw can help
+//  significantly. Some example values are defined below:
 #define  MPU_MAG_MIX_GYRO_ONLY          0                   // just use gyro yaw
 #define  MPU_MAG_MIX_MAG_ONLY           1                   // just use magnetometer and no gyro yaw
 #define  MPU_MAG_MIX_GYRO_AND_MAG       10                  // a good mix value
 #define  MPU_MAG_MIX_GYRO_AND_SOME_MAG  50                  // mainly gyros with a bit of mag correction
 
-	//  MPU_LPF_RATE is the low pas filter rate and can be between 5 and 188Hz
-#define MPU_LPF_RATE   5
+//  MPU_LPF_RATE is the low pas filter rate and can be between 5 and 188Hz
+#define MPU_LPF_RATE   40
 
+using namespace mpu9150;
+
+namespace
+{
+	constexpr uint32_t kMaxHardResets 		= 5;
+	
+	constexpr uint32_t kStatusCheckDelay_ms	= 1000;							// 1hz
+	constexpr uint32_t kTelemetryDelay_ms 	= 50;							// 20hz
+	constexpr uint32_t kResetDelay_ms		= 1000;
+	
+	// Attempt to read at twice rate of updates to prevent MPU FIFO overflow 
+	// Normally handled by using a physical interrupt to service on demand
+	constexpr uint32_t kDataUpdateRate_ms	= ( ( 1000 / MPU_UPDATE_RATE ) / 2 );	
+}
+
+CMPU9150::CMPU9150( mpu9150::EAddress addressIn )
+	: m_device( addressIn )
+{
 }
 
 void CMPU9150::Initialize()
 {
-	//Todo: Read calibration values from EPROM
-	MPU.selectDevice( MPUModuleId );
+	Serial.println( F( "mpu9150_init:0;" ) );
+	
+	m_statusCheckTimer.Reset();
+	m_telemetryTimer.Reset();
+	m_updateTimer.Reset();
+	m_resetTimer.Reset();
 
-	if( !MPU.init( MPU_UPDATE_RATE, MPU_MAG_MIX_GYRO_ONLY, MAG_UPDATE_RATE, MPU_LPF_RATE ) )
-	{
-		Serial.println( F( "log:Trying other MPU9150 address to init;" ) );
-		Serial.print( F( "log:IMU Address was :" ) );
-		Serial.print( 1 );
-		MPUModuleId = !MPUModuleId;
-		Serial.print( F( " but is now:" ) );
-		Serial.print( MPUModuleId );
-		Serial.println( ";" );
-		MPU.selectDevice( MPUModuleId );
-
-		if( MPU.init( MPU_UPDATE_RATE, MPU_MAG_MIX_GYRO_ONLY, MAG_UPDATE_RATE, MPU_LPF_RATE ) )
-		{
-			DidInit = true;
-			Serial.println( F( "log:Init worked the second time;" ) );
-		}
-		else
-		{
-			Serial.println( F( "log:Failed to init on both addresses;" ) );
-		}
-	}
-	else
-	{
-		DidInit = true;
-		Serial.println( F( "log:init on primary addresses;" ) );
-	}                             // start the MPU
-
-	NVehicleManager::m_capabilityBitmask |= ( 1 << COMPASS_CAPABLE );
-	NVehicleManager::m_capabilityBitmask |= ( 1 << ORIENTATION_CAPABLE );
-
-	MPU9150ReInit.Reset();
-	mpu_update_timer.Reset();
+	// 25% max failure rate before 
+	m_maxFailuresPerPeriod = 30;
 }
 
 void CMPU9150::Update( CCommand& commandIn )
 {
-	if( !DidInit )
+	// If disabled, do nothing
+	if( m_isDisabled )
 	{
-		if( MPU9150ReInit.HasElapsed( 30000 ) )
-		{
-			CMPU9150::Initialize();
-		}
-
 		return;
 	}
 
-	if( commandIn.Equals( "ccal" ) )
+	// Handle initialization if necessary
+	if( m_isInitialized == false )
 	{
-		// Compass_Calibrate();
-		// The IMU needs both Magnatrometer and Acceleromter to be calibrated. This attempts to do them both at the same time
-		calLibRead( MPUModuleId, &calData );             // pick up existing accel data if there
-
-		calData.accelValid = false;
-		calData.accelMinX = 0x7fff;                              // init accel cal data
-		calData.accelMaxX = 0x8000;
-		calData.accelMinY = 0x7fff;
-		calData.accelMaxY = 0x8000;
-		calData.accelMinZ = 0x7fff;
-		calData.accelMaxZ = 0x8000;
-
-		calData.magValid = false;
-		calData.magMinX = 0x7fff;                                // init mag cal data
-		calData.magMaxX = 0x8000;
-		calData.magMinY = 0x7fff;
-		calData.magMaxY = 0x8000;
-		calData.magMinZ = 0x7fff;
-		calData.magMaxZ = 0x8000;
-
-		MPU.useAccelCal( false );
-		//MPU.init(MPU_UPDATE_RATE, 5, 1, MPU_LPF_RATE);
-
-		counter = 359;
-		InCallibrationMode = true;
-		calibration_timer.Reset();
-		Serial.println( F( "!!!:While the compass counts down from 360 to 0, rotate the ROV slowly in all three axis;" ) );
-
-	}
-
-	if( InCallibrationMode )
-	{
-		bool changed = false;
-
-
-		if( counter > 0 )
+		if( m_device.GetResultCount( EResult::RESULT_ERR_HARD_RESET ) > kMaxHardResets )
 		{
-			if( MPU.read() )                                         // get the latest data
+			m_isDisabled = true;
+			Serial.println( F( "mpu9150_disabled:1;" ) );
+			return;
+		}
+		else
+		{
+			if( m_resetTimer.HasElapsed( kResetDelay_ms ) )
 			{
-				changed = false;
-
-				if( MPU.m_rawAccel[VEC3_X] < calData.accelMinX )
+				// Attempt to initialize
+				if( m_device.init( MPU_UPDATE_RATE, MPU_MAG_MIX_GYRO_ONLY, MAG_UPDATE_RATE, MPU_LPF_RATE ) == true )
 				{
-					calData.accelMinX = MPU.m_rawAccel[VEC3_X];
-					changed = true;
+					// Success
+					m_isInitialized = true;
+					Serial.println( F( "mpu9150_init:1;" ) );
+				}
+				else
+				{
+					Serial.println( F( "mpu9150_init:0;" ) );
 				}
 
-				if( MPU.m_rawAccel[VEC3_X] > calData.accelMaxX )
-				{
-					calData.accelMaxX = MPU.m_rawAccel[VEC3_X];
-					changed = true;
-				}
+				// Increment hard reset counter, whether init succeeded or not
+				m_device.AddResult( EResult::RESULT_ERR_HARD_RESET );
 
-				if( MPU.m_rawAccel[VEC3_Y] < calData.accelMinY )
-				{
-					calData.accelMinY = MPU.m_rawAccel[VEC3_Y];
-					changed = true;
-				}
-
-				if( MPU.m_rawAccel[VEC3_Y] > calData.accelMaxY )
-				{
-					calData.accelMaxY = MPU.m_rawAccel[VEC3_Y];
-					changed = true;
-				}
-
-				if( MPU.m_rawAccel[VEC3_Z] < calData.accelMinZ )
-				{
-					calData.accelMinZ = MPU.m_rawAccel[VEC3_Z];
-					changed = true;
-				}
-
-				if( MPU.m_rawAccel[VEC3_Z] > calData.accelMaxZ )
-				{
-					calData.accelMaxZ = MPU.m_rawAccel[VEC3_Z];
-					changed = true;
-				}
-
-				if( MPU.m_rawMag[VEC3_X] < calData.magMinX )
-				{
-					calData.magMinX = MPU.m_rawMag[VEC3_X];
-					changed = true;
-				}
-
-				if( MPU.m_rawMag[VEC3_X] > calData.magMaxX )
-				{
-					calData.magMaxX = MPU.m_rawMag[VEC3_X];
-					changed = true;
-				}
-
-				if( MPU.m_rawMag[VEC3_Y] < calData.magMinY )
-				{
-					calData.magMinY = MPU.m_rawMag[VEC3_Y];
-					changed = true;
-				}
-
-				if( MPU.m_rawMag[VEC3_Y] > calData.magMaxY )
-				{
-					calData.magMaxY = MPU.m_rawMag[VEC3_Y];
-					changed = true;
-				}
-
-				if( MPU.m_rawMag[VEC3_Z] < calData.magMinZ )
-				{
-					calData.magMinZ = MPU.m_rawMag[VEC3_Z];
-					changed = true;
-				}
-
-				if( MPU.m_rawMag[VEC3_Z] > calData.magMaxZ )
-				{
-					calData.magMaxZ = MPU.m_rawMag[VEC3_Z];
-					changed = true;
-				}
-
-				if( changed )
-				{
-					Serial.print( F( "dia:accel.MinX=" ) );
-					Serial.print( calData.accelMinX );
-					Serial.println( ";" );
-					Serial.print( F( "dia:accel.maxX=" ) );
-					Serial.print( calData.accelMaxX );
-					Serial.println( ";" );
-					Serial.print( F( "dia:accel.minY=" ) );
-					Serial.print( calData.accelMinY );
-					Serial.println( ";" );
-					Serial.print( F( "dia:accel.maxY=" ) );
-					Serial.print( calData.accelMaxY );
-					Serial.println( ";" );
-					Serial.print( F( "dia:accel.minZ=" ) );
-					Serial.print( calData.accelMinZ );
-					Serial.println( ";" );
-					Serial.print( F( "dia:accel.maxZ=" ) );
-					Serial.print( calData.accelMaxZ );
-					Serial.println( ";" );
-					Serial.print( F( "dia:mag.minX=" ) );
-					Serial.print( calData.magMinX );
-					Serial.println( ";" );
-					Serial.print( F( "dia:mag.maxX=" ) );
-					Serial.print( calData.magMaxX );
-					Serial.println( ";" );
-					Serial.print( F( "dia:mag.minY=" ) );
-					Serial.print( calData.magMinY );
-					Serial.println( ";" );
-					Serial.print( F( "dia:mag.maxY=" ) );
-					Serial.print( calData.magMaxY );
-					Serial.println( ";" );
-					Serial.print( F( "dia:mag.minZ=" ) );
-					Serial.print( calData.magMinZ );
-					Serial.println( ";" );
-					Serial.print( F( "dia:mag.maxZ=" ) );
-					Serial.print( calData.magMaxZ );
-					Serial.println( ";" );
-				}
+				return;
 			}
-
-			if( calibration_timer.HasElapsed( 1000 ) )
+			else
 			{
-				counter--;
-				NDataManager::m_navData.HDGD = counter;
-				Serial.print( F( "hdgd:" ) );
-				Serial.print( NDataManager::m_navData.HDGD );
-				Serial.print( ';' );
+				return;
 			}
 		}
-
-		if( counter <= 0 )
-		{
-			calData.accelValid = true;
-			calData.magValid = true;
-			calLibWrite( MPUModuleId, &calData );
-			Serial.println( F( "log:Accel cal data saved for module;" ) );
-			InCallibrationMode = false;
-		}
-
-		return;  //prevents the normal read and reporting of IMU data
 	}
 
-	//20 hz
-	if( mpu_update_timer.HasElapsed( 50 ) )
+	// Handle commands
+	if( NCommManager::m_isCommandAvailable )
 	{
-		if( MPU.read() )
+		// Zero the yaw value
+		if( commandIn.Equals( "imu_zYaw" ) )
 		{
-			NDataManager::m_navData.HDGD = MPU.m_fusedEulerPose[VEC3_Z] * RAD_TO_DEGREE;
+			// Set offset based on current value
+			m_yawOffset = NDataManager::m_navData.YAW;
 
-			//To convert to-180/180 to 0/360
-			if( NDataManager::m_navData.HDGD < 0 )
+			// Send ack
+			Serial.println( F( "imu_zYaw:ack;" ) );
+		}
+		// Set the operating mode
+		else if( commandIn.Equals( "imu_mode" ) )
+		{
+			// Does not support mode changes right now
+		}
+	}
+
+	// Handle health checks
+	if( m_statusCheckTimer.HasElapsed( kStatusCheckDelay_ms ) )
+	{
+		// Check to see if the error threshold is above acceptable levels
+		if( m_device.GetResultCount( EResult::RESULT_ERR_READ_ERROR ) > m_maxFailuresPerPeriod )
+		{
+			// Trigger a hard reset on the next loop
+			m_isInitialized = false;
+
+			// End this run of Update()
+			return;
+		}
+		else
+		{
+			// Clear the error counter
+			m_device.ClearResultCount( EResult::RESULT_ERR_READ_ERROR );
+		}
+	}
+
+	// Read data
+	if( m_updateTimer.HasElapsed( kDataUpdateRate_ms ) )
+	{
+		if( m_device.read() == true )
+		{
+			// Successfully got data, update shared state
+			NDataManager::m_navData.ROLL 	= m_device.m_fusedEulerPose[VEC3_X] * RAD_TO_DEGREE;
+			NDataManager::m_navData.PITC 	= m_device.m_fusedEulerPose[VEC3_Y] * RAD_TO_DEGREE;
+			NDataManager::m_navData.YAW 	= NORMALIZE_ANGLE_180( ( m_device.m_fusedEulerPose[VEC3_Z] * RAD_TO_DEGREE ) - m_yawOffset );
+
+			// Handle telemetry updates
+			if( m_telemetryTimer.HasElapsed( kTelemetryDelay_ms ) )
 			{
-				NDataManager::m_navData.HDGD += 360;
+				Serial.print( F( "imu_r:" ) );	Serial.print( orutil::Encode1K( NDataManager::m_navData.ROLL ) ); 	Serial.print( ';' );
+				Serial.print( F( "imu_p:" ) );	Serial.print( orutil::Encode1K( NDataManager::m_navData.PITC ) ); 	Serial.print( ';' );
+				Serial.print( F( "imu_y:" ) );	Serial.print( orutil::Encode1K( NDataManager::m_navData.YAW ) ); 	Serial.println( ';' );
 			}
-
-			NDataManager::m_navData.PITC = MPU.m_fusedEulerPose[VEC3_Y] * RAD_TO_DEGREE;
-			NDataManager::m_navData.ROLL = MPU.m_fusedEulerPose[VEC3_X] * RAD_TO_DEGREE;
-			NDataManager::m_navData.YAW = MPU.m_fusedEulerPose[VEC3_Z] * RAD_TO_DEGREE;
 		}
 	}
 }

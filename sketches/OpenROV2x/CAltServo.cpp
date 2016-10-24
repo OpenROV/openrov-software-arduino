@@ -3,9 +3,8 @@
 
 #include "CPin.h"
 #include "CAltServo.h"
-#include "CServo.h"
+#include <Servo.h>
 #include "PinDefinitions.h"
-#include "NVehicleManager.h"
 
 // AltServo
 #define ALTS_MIDPOINT 1500
@@ -14,7 +13,7 @@
 
 namespace
 {
-	CServo _altservo;
+	Servo _altservo;
 
 	int alts_val = ALTS_MIDPOINT;
 	int new_alts = ALTS_MIDPOINT;
@@ -31,10 +30,8 @@ namespace
 
 void CAltServo::Initialize()
 {
-	_altservo.Activate( PIN_ALTSERVO );
-	_altservo.WriteMicroseconds( ALTS_MIDPOINT );
-	NVehicleManager::m_capabilityBitmask |= ( 1 << ALT_SERVO_CAPABLE );
-
+	_altservo.attach( PIN_ALTSERVO );
+	_altservo.writeMicroseconds( ALTS_MIDPOINT );
 }
 
 void CAltServo::Update( CCommand& commandIn )
@@ -46,19 +43,19 @@ void CAltServo::Update( CCommand& commandIn )
 		if( ( ms >= ALTS_MINPOINT ) && ( ms <= ALTS_MAXPOINT ) )
 		{
 			alts_val = ms;
-			Serial.print( "asr.t:" );
+			Serial.print( F( "asr.t:" ) );
 			Serial.print( alts_val );
-			Serial.println( ";" );
+			Serial.println( ';' );
 		}
 	}
 
 	if( alts_val != new_alts )
 	{
 		new_alts = smoothAdjustedServo( alts_val, new_alts );
-		_altservo.WriteMicroseconds( new_alts );
-		Serial.print( "asr.v:" );
+		_altservo.writeMicroseconds( new_alts );
+		Serial.print( F( "asr.v:" ) );
 		Serial.print( new_alts );
-		Serial.println( ";" );
+		Serial.println( ';' );
 	}
 
 

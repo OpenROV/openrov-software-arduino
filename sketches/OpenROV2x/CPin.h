@@ -10,29 +10,23 @@ private:
     static const char kSeparator = ':';
     static const char kDelimeter = ';';
 
-    String	m_name;
-
     int		m_pinNumber;
     int		m_value;
 
-    boolean m_isDigital;
-    boolean m_isInput;
+    bool m_isDigital;
+    bool m_isInput;
 
 public:
-    static const boolean kAnalog	= false;
-    static const boolean kDigital	= true;
-    static const boolean kOutput	= false;
-    static const boolean kInput		= true;
+    static const bool kAnalog	= false;
+    static const bool kDigital	= true;
+    static const bool kOutput	= false;
+    static const bool kInput		= true;
 
-    CPin( String pin_name, int pin_number, boolean digital_truth, boolean in_out );
-    CPin( String pin_name, int pin_number, boolean digital_truth );
+    CPin( int pin_number, bool digital_truth, bool in_out );
+    CPin( int pin_number, bool digital_truth );
 
     int Read();
     void Write( int val );
 
-    void Send( int val );
     void Reset();
-
-    String ToString();
-
 };

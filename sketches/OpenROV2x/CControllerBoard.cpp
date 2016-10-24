@@ -5,8 +5,7 @@
 #include <Arduino.h>
 #include "NDataManager.h"
 #include "CControllerBoard.h"
-#include "CTimer.h"
-#include "Utility.h"
+#include <orutil.h>
 #include "CPin.h"
 
 // File local variables and methods
@@ -19,9 +18,9 @@ namespace
 	const int numReadings = 1;
 	int readings[numReadings];      // the readings from the analog input
 
-	CTimer time;
-	CTimer onesecondtimer;
-	CTimer statustime2;
+	orutil::CTimer time;
+	orutil::CTimer onesecondtimer;
+	orutil::CTimer statustime2;
 
 	int index			= 0;            // the index of the current reading
 	int total			= 0;            // the running total
@@ -30,7 +29,7 @@ namespace
 
 	float celsiusTempRead;
 
-	CPin i2cpower( "i2cpower", PIN_ENABLE_I2C, CPin::kDigital, CPin::kOutput );
+	CPin i2cpower( PIN_ENABLE_I2C, CPin::kDigital, CPin::kOutput );
 
 	float mapf( long x, long in_min, long in_max, long out_min, long out_max )
 	{
@@ -174,7 +173,7 @@ void CControllerBoard::Update( CCommand& commandIn )
 
 		// Total current draw from batteries:
 		NDataManager::m_capeData.BTTI = readCurrent( A5 ) + readCurrent( A6 );
-		NDataManager::m_capeData.FMEM = util::FreeMemory();
+		NDataManager::m_capeData.FMEM = orutil::FreeMemory();
 		NDataManager::m_capeData.UTIM = millis();
 	}
 }

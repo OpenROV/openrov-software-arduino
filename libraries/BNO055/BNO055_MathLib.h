@@ -17,14 +17,10 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef IMUMATH_H
-#define IMUMATH_H
+#pragma once 
 
-
-#include "LibBNO055_vector.h"
-#include "LibBNO055_matrix.h"
-#include "LibBNO055_quaternion.h"
-
-
-#endif
+// Includes all helper libraries
+#include "BNO055_Vector.h"
+#include "BNO055_Matrix.h"
+#include "BNO055_Quaternion.h"
 

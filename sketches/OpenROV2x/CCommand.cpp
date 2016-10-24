@@ -4,32 +4,32 @@
 namespace
 {
 	char				dataBuffer[COMMAND_DATA_BUFFER_SIZE + 1]; //Add 1 for NULL terminator
-	byte				dataBufferIndex = 0;
-	boolean				commandReady = false;
+	uint8_t				dataBufferIndex = 0;
+	bool				commandReady = false;
 	const char			endChar = ';'; // or '!', or whatever your end character is
-	boolean				storeString = false; //This will be our flag to put the data in our buffer
+	bool				storeString = false; //This will be our flag to put the data in our buffer
 	TInternalCommand	internalCommandBuffer[ COMMAND_MAX_COUNT ];
 	int					internalCommandBuffer_head = 0;
 	int					internalCommandBuffer_tail = 0;
 
 	// CRC-8 - based on the CRC8 formulas by Dallas/Maxim
 	// Code released under the therms of the GNU GPL 3.0 license
-	byte CRC8( byte start, char* data, byte len )
+	uint8_t CRC8( uint8_t start, char* data, uint8_t len )
 	{
-		byte crc = 0x00;
+		uint8_t crc = 0x00;
 
-		for( byte j = 0; j < start; j++ )
+		for( uint8_t j = 0; j < start; j++ )
 		{
 			*data++;
 		}
 
 		while( len-- )
 		{
-			byte extract = *data++;
+			uint8_t extract = *data++;
 
-			for( byte tempI = 8; tempI; tempI-- )
+			for( uint8_t tempI = 8; tempI; tempI-- )
 			{
-				byte sum = ( crc ^ extract ) & 0x01;
+				uint8_t sum = ( crc ^ extract ) & 0x01;
 				crc >>= 1;
 
 				if( sum )
@@ -45,7 +45,7 @@ namespace
 	}
 
 
-	boolean GetSerialString()
+	bool GetSerialString()
 	{
 		while( Serial.available() > 0 )
 		{
@@ -100,7 +100,7 @@ namespace
 int32_t CCommand::m_arguments[COMMAND_MAX_ARGUMENTS];
 char CCommand::m_text[COMMAND_DATA_BUFFER_SIZE + 1] ;
 
-boolean CCommand::Equals( const char* targetcommand )
+bool CCommand::Equals( const char* targetcommand )
 {
 	if( !commandReady )
 	{
@@ -118,7 +118,7 @@ boolean CCommand::Equals( const char* targetcommand )
 }
 
 
-boolean CCommand::GetCommandString()
+bool CCommand::GetCommandString()
 {
 	// Get string from buffer
 
@@ -191,7 +191,7 @@ boolean CCommand::GetCommandString()
 	return false;
 }
 
-void CCommand::PushCommand( char* cmdtext, int32_t cmdargs[COMMAND_MAX_ARGUMENTS] )
+void CCommand::PushCommand( const char* cmdtext, int32_t cmdargs[COMMAND_MAX_ARGUMENTS] )
 {
 	// If commands are not being processed in time we overwrite the oldest ones.  Technically we should probably
 	// have a global array for all possible commands where only the most recent is ever processed to prevent
@@ -246,16 +246,16 @@ void CCommand::Reset()
 void CCommand::Parse()
 {
 	char* pch;
-	byte crc = 0;
-	byte i = 0;
+	uint8_t crc = 0;
+	uint8_t i = 0;
 	crc = CRC8( 1, dataBuffer, dataBufferIndex - 1 );
 
 	Serial.print( F( "rawcmd:" ) );
-	byte tt = 0;
+	uint8_t tt = 0;
 
 	while( tt < dataBufferIndex )
 	{
-		byte zz = dataBuffer[tt];
+		uint8_t zz = dataBuffer[tt];
 		Serial.print( zz, HEX );
 		Serial.print( ',' );
 		tt++;
@@ -264,7 +264,7 @@ void CCommand::Parse()
 	Serial.println( ';' );
 
 	Serial.print( F( "crc:" ) );
-	byte testcrc = dataBuffer[0];
+	uint8_t testcrc = dataBuffer[0];
 
 	if( crc == testcrc )
 	{

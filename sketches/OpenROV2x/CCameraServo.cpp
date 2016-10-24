@@ -7,13 +7,12 @@
 #include <avr/interrupt.h>
 
 #include "CCameraServo.h"
-#include "CServo.h"
+#include <Servo.h>
 #include "CPin.h"
-#include "NVehicleManager.h"
 #include "NDataManager.h"
 #include "NModuleManager.h"
 #include "NCommManager.h"
-#include "CTimer.h"
+#include <orutil.h>
 
 #include "CControllerBoard.h"
 
@@ -49,8 +48,8 @@ namespace
     constexpr float kDefaultSpeed           = 50.0f;    // Degrees per sec
 
     // Attributes
-    CTimer m_controlTimer;
-    CTimer m_telemetryTimer;
+    orutil::CTimer m_controlTimer;
+    orutil::CTimer m_telemetryTimer;
 
     float m_targetPos_deg       = kNeutralPosition_deg;
     float m_currentPos_deg      = kNeutralPosition_deg;
@@ -101,9 +100,6 @@ void CCameraServo::Initialize()
 
     // Set initial position
     SetServoPosition( kNeutralPosition_us );
-
-    // Mark camera servo as enabled
-    NVehicleManager::m_capabilityBitmask |= ( 1 << CAMERA_MOUNT_1_AXIS_CAPABLE );
 
     // Reset timers
     m_controlTimer.Reset();
@@ -208,8 +204,8 @@ void CCameraServo::Update( CCommand& command )
         m_tLast = millis();
     }
 
-    // Emit position telemetry at 10Hz
-    if( m_telemetryTimer.HasElapsed( 100 ) )
+    // Emit position telemetry at 3Hz
+    if( m_telemetryTimer.HasElapsed( 333 ) )
     {
         Serial.print( F( "camServ_pos:" ) );
         Serial.print( Encode( m_currentPos_deg ) );

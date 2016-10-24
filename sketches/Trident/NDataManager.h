@@ -33,8 +33,8 @@ struct TCapeData
 
 struct TThrusterData
 {
-	boolean MATC;			// Motors on-line indicator
-	boolean MotorsActive;	// Whether or not there is currently a motor running
+	bool MATC;			// Motors on-line indicator
+	bool MotorsActive;	// Whether or not there is currently a motor running
 };
 
 struct TControllerData

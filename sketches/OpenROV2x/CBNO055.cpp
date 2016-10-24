@@ -2,195 +2,142 @@
 #if(HAS_BNO055)
 
 #include "CBNO055.h"
-#include "CTimer.h"
 #include "NDataManager.h"
+#include "NCommManager.h"
+
+using namespace bno055;
 
 namespace
 {
-	CTimer bno055_sample_timer;
-	CTimer report_timer;
-	CTimer imuTimer;
-	CTimer fusionTimer;
-
-	bool initalized				= false;
-	bool browserPingReceived	= false;
-
-	bool inFusionMode			= false;
-
-	imu::Vector<3> euler;
-
-	float roll = 0.0f;
-	float pitch = 0.0f;
-	float yaw = 0.0f;
+	constexpr uint32_t kMaxHardResets 		= 5;
+	
+	constexpr uint32_t kStatusCheckDelay_ms	= 1000;							// 1hz
+	constexpr uint32_t kTelemetryDelay_ms 	= 50;							// 20hz
+	constexpr uint32_t kCalibDelay_ms 		= bno055::kCalUpdateRate_ms;	// 1hz
 }
 
-CBNO055::CBNO055( I2C *i2cInterfaceIn )
-	: m_bno( i2cInterfaceIn )
+CBNO055::CBNO055( I2C *i2cInterfaceIn, bno055::EAddress addressIn )
+	: m_device( i2cInterfaceIn, addressIn )
 {
 }
 
 void CBNO055::Initialize()
 {
-	Serial.println( "BNO055.Status:INIT;" );
+	Serial.println( F( "bno055_init:1;" ) );
+	
+	m_statusCheckTimer.Reset();
+	m_telemetryTimer.Reset();
+	m_calibTimer.Reset();
 
-	//Reset timers
-	bno055_sample_timer.Reset();
-	report_timer.Reset();
-	imuTimer.Reset();
-	fusionTimer.Reset();
-
-	Serial.println( "BNO055.Status:POSTINIT;" );
+	// 25% max failure rate before 
+	m_maxFailuresPerPeriod = ( kStatusCheckDelay_ms / 4 ) / m_device.GetUpdatePeriod();
 }
-
-void CBNO055::InitializeSensor()
-{
-	// Attempt to initialize. If this fails, we try every 30 seconds in its update loop
-	int32_t ret = m_bno.Initialize();
-	if( ret != 0 )
-	{
-		Serial.println( "BNO_INIT_STATUS:FAILED;" );
-		Serial.print( "BNO_FAIL_REASON:" );
-		Serial.print( ret );
-		Serial.println( ";" );
-	}
-	else
-	{
-		Serial.println( "BNO_INIT_STATUS:SUCCESS;" );
-
-
-		Serial.print( "BNO055.SW_Revision_ID:" );
-		Serial.print( m_bno.m_softwareVersionMajor, HEX );
-		Serial.print( "." );
-		Serial.print( m_bno.m_softwareVersionMinor, HEX );
-		Serial.println( ";" );
-
-		Serial.print( "BNO055.bootloader:" );
-		Serial.print( m_bno.m_bootloaderRev );
-		Serial.println( ";" );
-
-		inFusionMode = true;
-	}
-}
-
-
 
 void CBNO055::Update( CCommand &commandIn )
 {
-	// 100hz
-	if( bno055_sample_timer.HasElapsed( 10 ) )
+	if( m_device.IsEnabled() == false )
 	{
-		if( !m_bno.m_isInitialized )
-		{
-			// Attempt every 10 secs
-			if( report_timer.HasElapsed( 5000 ) )
-			{
-				Serial.println( "BNO055.Status:TRYING;" );
-				// Attempt to initialize the chip again
-				InitializeSensor();
-			}
+		return;
+	}
 
-			return;
+	// Handle commands
+	if( NCommManager::m_isCommandAvailable )
+	{
+		// Zero the yaw value
+		if( commandIn.Equals( "imu_zYaw" ) )
+		{
+			// Set offset based on current value
+			m_yawOffset = m_device.m_data.yaw;
+
+			// Send ack
+			Serial.println( F( "imu_zYaw:ack;" ) );
+		}
+		// Set the operating mode
+		else if( commandIn.Equals( "imu_mode" ) )
+		{
+			// For now: 0-GYRO, 1-COMPASS
+			if( commandIn.m_arguments[1] == 0 )
+			{
+				m_device.SetMode( EMode::GYRO );
+
+				Serial.print( F( "imu_mode:" ) );
+				Serial.print( commandIn.m_arguments[1] );
+				Serial.println( ';' );
+			}
+			else if( commandIn.m_arguments[1] == 1 )
+			{
+				m_device.SetMode( EMode::COMPASS );
+
+				Serial.print( F( "imu_mode:" ) );
+				Serial.print( commandIn.m_arguments[1] );
+				Serial.println( ';' );
+			}
+		}
+	}
+
+	// Handle health checks
+	if( m_statusCheckTimer.HasElapsed( kStatusCheckDelay_ms ) )
+	{
+		// Check to see if the error threshold is above acceptable levels
+		if( m_device.GetResultCount( EResult::RESULT_ERR_READING_EULER ) > m_maxFailuresPerPeriod )
+		{
+			Serial.println( "bno055_HardReset:1" );
+			m_device.HardReset();
+		}
+		else
+		{
+			// Clear the error counter
+			m_device.ClearResultCount( EResult::RESULT_ERR_READING_EULER );
 		}
 		
-		// System status checks
-		if( report_timer.HasElapsed( 1000 ) )
+		// Check to see if we have surpassed our hard reset threshhold 
+		if( m_device.GetResultCount( EResult::RESULT_ERR_HARD_RESET ) > kMaxHardResets )
 		{
-			// System calibration
-			if( m_bno.GetCalibration() == 0 )
-			{
-				Serial.print( "BNO055.CALIB_MAG:" );
-				Serial.print( m_bno.m_magCal );
-				Serial.println( ';' );
-				Serial.print( "BNO055.CALIB_ACC:" );
-				Serial.print( m_bno.m_accelCal );
-				Serial.println( ';' );
-				Serial.print( "BNO055.CALIB_GYR:" );
-				Serial.print( m_bno.m_gyroCal );
-				Serial.println( ';' );
-				Serial.print( "BNO055.CALIB_SYS:" );
-				Serial.print( m_bno.m_systemCal );
-				Serial.println( ';' );
-
-				// Get offsets
-				m_bno.GetGyroOffsets();
-				m_bno.GetAccelerometerOffsets();
-				m_bno.GetMagnetometerOffsets();
-			}
-			else
-			{
-				Serial.print( "BNO055.CALIB_MAG:" );
-				Serial.print( "N/A" );
-				Serial.println( ';' );
-				Serial.print( "BNO055.CALIB_ACC:" );
-				Serial.print( "N/A" );
-				Serial.println( ';' );
-				Serial.print( "BNO055.CALIB_GYR:" );
-				Serial.print( "N/A" );
-				Serial.println( ';' );
-				Serial.print( "BNO055.CALIB_SYS:" );
-				Serial.print( "N/A" );
-				Serial.println( ';' );
-			}
-
-			// Operating mode
-			if( m_bno.GetOperatingMode() == 0 )
-			{
-				Serial.print( "BNO055.MODE:" );
-				Serial.print( m_bno.m_operatingMode );
-				Serial.println( ';' );
-			}
-			else
-			{
-				Serial.print( "BNO055.MODE:" );
-				Serial.print( "N/A" );
-				Serial.println( ';' );
-			}
-
-			// System status
-			if( m_bno.GetSystemStatus() == 0 )
-			{
-				Serial.print( "BNO055_STATUS:" );
-				Serial.print( m_bno.m_systemStatus, HEX );
-				Serial.println( ";" );
-			}
-			else
-			{
-				Serial.print( "BNO055_STATUS:" );
-				Serial.print( "N/A" );
-				Serial.println( ";" );
-			}
-
-			// System Error
-			if( m_bno.GetSystemError() == 0 )
-			{
-				Serial.print( "BNO055_ERROR_FLAG:" );
-				Serial.print( m_bno.m_systemError );
-				Serial.println( ";" );
-			}
-			else
-			{
-				Serial.print( "BNO055_ERROR_FLAG:" );
-				Serial.print( "N/A" );
-				Serial.println( ";" );
-			}
-
+			// Permanently disable the device
+			m_device.Disable();
+			Serial.println( F( "bno055_disabled:1;" ) );
+			return;
 		}
+	}
 
-		// Get orientation data
-        if( m_bno.GetVector( bosch::VECTOR_EULER, euler ) == 0 )
-        {			
-            // Throw out exactly zero heading values that are all zeroes - necessary when switching modes
-            if( euler.x() != 0.0f  )
-            {
-                // These may need adjusting
-                
-                NDataManager::m_navData.YAW		= euler.x();
-                NDataManager::m_navData.HDGD	= euler.x();
-            }
-			
-			NDataManager::m_navData.PITC	= euler.z();
-			NDataManager::m_navData.ROLL	= -euler.y();
-        }
+	// Run the state machine
+	m_device.Tick();
+
+	// Update shared navdata 
+	if( m_device.m_data.SampleAvailable() )
+	{	
+		// Throw out exactly zero heading values that are all zeroes - necessary when switching modes
+		if( m_device.GetMode() == EMode::GYRO )
+		{
+			NDataManager::m_navData.YAW	= NORMALIZE_ANGLE_180( m_device.m_data.yaw - m_yawOffset );
+		}
+		else
+		{
+			NDataManager::m_navData.YAW	= NORMALIZE_ANGLE_360( m_device.m_data.yaw - m_yawOffset );
+		}
+		
+		NDataManager::m_navData.PITC	= m_device.m_data.pitch;
+		NDataManager::m_navData.ROLL	= m_device.m_data.roll;
+
+		// Emit telemetry
+		if( m_telemetryTimer.HasElapsed( kTelemetryDelay_ms ) )
+		{
+			Serial.print( F( "imu_r:" ) );	Serial.print( orutil::Encode1K( NDataManager::m_navData.ROLL ) ); 	Serial.print( ';' );
+			Serial.print( F( "imu_p:" ) );	Serial.print( orutil::Encode1K( NDataManager::m_navData.PITC ) ); 	Serial.print( ';' );
+			Serial.print( F( "imu_y:" ) );	Serial.print( orutil::Encode1K( NDataManager::m_navData.YAW ) ); 	Serial.println( ';' );
+		}
+	}
+
+	// Report calibration levels of each subsystem
+	if( m_device.m_calibration.SampleAvailable() )
+	{	
+		if( m_calibTimer.HasElapsed( kCalibDelay_ms ) )
+		{
+			Serial.print( F( "bno055_cAcc:" ) );	Serial.print( m_device.m_calibration.accel ); 	Serial.print( ';' );
+			Serial.print( F( "bno055_cGyr:" ) );	Serial.print( m_device.m_calibration.gyro ); 	Serial.print( ';' );
+			Serial.print( F( "bno055_cMag:" ) );	Serial.print( m_device.m_calibration.mag ); 	Serial.print( ';' );
+			Serial.print( F( "bno055_cSys:" ) );	Serial.print( m_device.m_calibration.system ); 	Serial.println( ';' );
+		}
 	}
 }
 

@@ -5,7 +5,6 @@
 #include <Arduino.h>
 #include "CLights.h"
 #include "NCommManager.h"
-#include "NVehicleManager.h"
 
 namespace
 {
@@ -32,14 +31,12 @@ namespace
 }
 
 CLights::CLights( uint32_t pinIn )
-	: m_pin( "light", pinIn, CPin::kAnalog, CPin::kOutput )
+	: m_pin( pinIn, CPin::kAnalog, CPin::kOutput )
 {
 }
 
 void CLights::Initialize()
 {
-	NVehicleManager::m_capabilityBitmask |= ( 1 << LIGHTS_CAPABLE );
-
 	// Reset pin
 	m_pin.Reset();
 	m_pin.Write( 0 );
@@ -61,7 +58,7 @@ void CLights::Update( CCommand& commandIn )
 	if( commandIn.Equals( "lights_tpow" ) )
 	{
 		// Update the target position
-		m_targetPower = util::Decode1K( commandIn.m_arguments[1] );
+		m_targetPower = orutil::Decode1K( commandIn.m_arguments[1] );
 
 		// TODO: Ideally this unit would have the ability to autonomously set its own target and ack receipt with a separate mechanism
 		// Acknowledge target position
@@ -87,7 +84,7 @@ void CLights::Update( CCommand& commandIn )
 
 		// Emit current power
 		Serial.print( F( "lights_pow:" ) );
-		Serial.print( util::Encode1K( m_currentPower ) );
+		Serial.print( orutil::Encode1K( m_currentPower ) );
 		Serial.print( ';' );
 	}
 }

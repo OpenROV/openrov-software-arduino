@@ -5,9 +5,9 @@ namespace
 {
 	char				dataBuffer[COMMAND_DATA_BUFFER_SIZE + 1]; //Add 1 for NULL terminator
 	byte				dataBufferIndex = 0;
-	boolean				commandReady = false;
+	bool				commandReady = false;
 	const char			endChar = ';'; // or '!', or whatever your end character is
-	boolean				storeString = false; //This will be our flag to put the data in our buffer
+	bool				storeString = false; //This will be our flag to put the data in our buffer
 	TInternalCommand	internalCommandBuffer[ COMMAND_MAX_COUNT ];
 	int					internalCommandBuffer_head = 0;
 	int					internalCommandBuffer_tail = 0;
@@ -45,7 +45,7 @@ namespace
 	}
 
 
-	boolean GetSerialString()
+	bool GetSerialString()
 	{
 		while( Serial.available() > 0 )
 		{
@@ -100,7 +100,7 @@ namespace
 int CCommand::m_arguments[COMMAND_MAX_ARGUMENTS];
 char CCommand::m_text[COMMAND_DATA_BUFFER_SIZE + 1] ;
 
-boolean CCommand::Equals( const char *targetcommand )
+bool CCommand::Equals( const char *targetcommand )
 {
 	if( !commandReady )
 	{
@@ -118,7 +118,7 @@ boolean CCommand::Equals( const char *targetcommand )
 }
 
 
-boolean CCommand::GetCommandString()
+bool CCommand::GetCommandString()
 {
 	// Clear command
 	commandReady = false;

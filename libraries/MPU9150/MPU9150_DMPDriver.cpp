@@ -21,10 +21,10 @@
 #include <string.h>
 #include <math.h>
 
-#include "LibMPU_DriverLayer.h"
-#include "LibMPU_DMPDriver.h"
-#include "LibMPU_DMPKey.h"
-#include "LibMPU_DMPMap.h"
+#include "MPU9150_DriverLayer.h"
+#include "MPU9150_DMPDriver.h"
+#include "MPU9150_DMPKey.h"
+#include "MPU9150_DMPMap.h"
 
 /* The following functions must be defined for this platform:
  * i2c_write(unsigned char slave_addr, unsigned char reg_addr,

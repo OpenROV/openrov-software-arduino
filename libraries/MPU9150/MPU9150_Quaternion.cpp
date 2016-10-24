@@ -22,7 +22,7 @@
 //  OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 //  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-#include "LibMPU_Quaternion.h"
+#include "MPU9150_Quaternion.h"
 
 void MPUQuaternionNormalize( MPUQuaternion q )
 {

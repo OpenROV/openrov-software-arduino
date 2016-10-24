@@ -26,7 +26,7 @@
 
 #include <I2C.h>
 
-#include "LibMPU_DriverLayer.h"
+#include "MPU9150_DriverLayer.h"
 
 /* The following functions must be defined for this platform:
  * i2c_write(unsigned char slave_addr, unsigned char reg_addr,
@@ -51,45 +51,48 @@ static inline int reg_int_cb( struct int_param_s* int_param )
 {
 }
 
-#if !defined MPU6050 && !defined MPU9150 && !defined MPU6500 && !defined MPU9250
-#error  Which gyro are you using? Define MPUxxxx in your compiler options.
+#if !defined MPU6050 && !defined USING_MPU9150 && !defined MPU6500 && !defined USING_MPU9250
+	#error  Which gyro are you using? Define MPUxxxx in your compiler options.
 #endif
 
 /* Time for some messy macro work. =]
- * #define MPU9150
+ * #define USING_MPU9150
  * is equivalent to..
  * #define MPU6050
  * #define AK8975_SECONDARY
  *
- * #define MPU9250
+ * #define USING_MPU9250
  * is equivalent to..
  * #define MPU6500
  * #define AK8963_SECONDARY
  */
-#if defined MPU9150
-#ifndef MPU6050
-#define MPU6050
-#endif                          /* #ifndef MPU6050 */
-#if defined AK8963_SECONDARY
-#error "MPU9150 and AK8963_SECONDARY cannot both be defined."
-#elif !defined AK8975_SECONDARY /* #if defined AK8963_SECONDARY */
-#define AK8975_SECONDARY
-#endif                          /* #if defined AK8963_SECONDARY */
-#elif defined MPU9250           /* #if defined MPU9150 */
-#ifndef MPU6500
-#define MPU6500
-#endif                          /* #ifndef MPU6500 */
-#if defined AK8975_SECONDARY
-#error "MPU9250 and AK8975_SECONDARY cannot both be defined."
-#elif !defined AK8963_SECONDARY /* #if defined AK8975_SECONDARY */
-#define AK8963_SECONDARY
-#endif                          /* #if defined AK8975_SECONDARY */
-#endif                          /* #if defined MPU9150 */
+#if defined USING_MPU9150
+	#ifndef MPU6050
+		#define MPU6050
+	#endif
+
+	#if defined AK8963_SECONDARY
+		#error "USING_MPU9150 and AK8963_SECONDARY cannot both be defined."
+	#elif !defined AK8975_SECONDARY
+		#define AK8975_SECONDARY
+	#endif
+
+#elif defined USING_MPU9250 
+	#ifndef MPU6500
+		#define MPU6500
+	#endif
+
+	#if defined AK8975_SECONDARY
+		#error "USING_MPU9250 and AK8975_SECONDARY cannot both be defined."
+	#elif !defined AK8963_SECONDARY
+		#define AK8963_SECONDARY
+	#endif
+#endif
 
 #if defined AK8975_SECONDARY || defined AK8963_SECONDARY
-#define AK89xx_SECONDARY
+	#define AK89xx_SECONDARY
 #else
-/* #warning "No compass = less profit for Invensense. Lame." */
+	/* #warning "No compass = less profit for Invensense. Lame." */
 #endif
 
 static int set_int_enable( unsigned char enable );
@@ -3276,7 +3279,7 @@ static int setup_compass( void )
 		return -14;
 	}
 
-#ifdef MPU9150
+#ifdef USING_MPU9150
 	/* For the MPU9150, the auxiliary I2C bus needs to be set to VDD. */
 	data[0] = BIT_I2C_MST_VDDIO;
 

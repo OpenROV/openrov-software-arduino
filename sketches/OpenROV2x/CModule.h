@@ -1,16 +1,11 @@
 #pragma once
 
 #include "CCommand.h"
-#include "Utility.h"
 #include <Arduino.h>
 
 class CModule
 {
 public:
-	// Attributes
-	String		m_name;
-	uint32_t	m_executionTime;
-
 	// Methods
 	CModule();
 

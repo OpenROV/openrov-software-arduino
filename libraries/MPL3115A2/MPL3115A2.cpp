@@ -176,7 +176,7 @@ ERetCode MPL3115A2::ReadPressure( float& pressureOut )
     }
 
     //Pressure comes back as a left shifted 20 bit-number
-    uint32_t totalPressure = (((uint32_t)(msb)<<16) | (((uint32_t)csb)<<8) | (uint32_t)lsb;
+    uint32_t totalPressure = (((uint32_t)(msb)<<16) | (((uint32_t)csb)<<8) | (uint32_t)lsb );
 
     //Pressure is an 18 bit number with 2 bits of decimal. Get rid of decimal portion.
     totalPressure >>= 6;
@@ -320,7 +320,7 @@ ERetCode MPL3115A2::ReadPressureAndTemp( float& pressureOut, float& tempOut )
     auto pressureLSB = pressureBuffer[2];
 
     //Pressure comes back as a left shifted 20 bit-number
-    uint32_t totalPressure = (((uint32_t)(pressureMSB)<<16) | (((uint32_t)pressureCSB)<<8) | (uint32_t)pressureLSB;
+    uint32_t totalPressure = (((uint32_t)(pressureMSB)<<16) | (((uint32_t)pressureCSB)<<8) | (uint32_t)pressureLSB );
 
     //Pressure is an 18 bit number with 2 bits of decimal. Get rid of decimal portion.
     totalPressure >>= 6;

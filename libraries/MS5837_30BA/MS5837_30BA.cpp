@@ -1,105 +1,329 @@
 // Includes
 #include "MS5837_30BA.h"
+#include <assert.h>
 
-// For I2C, set the CSB Pin (pin 3) high for address 0x76, and pull low for address 0x77.
-#define I2C_ADDRESS             0x76    // or 0x77
+using namespace ms5837_30ba;
 
-#define CMD_RESET               0x1E
-#define CMD_PROM_READ_BASE      0xA0    // 112 bytes of factory calibration and vendor data
-#define CMD_ADC_READ            0x00
-#define CMD_ADC_CONV_BASE	    0x40	// ADC conversion base command. Modify based on D1/D2 and resolution
-
-#define CMD_ADC_D1              0x00
-#define CMD_ADC_D2              0x10
-
-// TODO: Add more error handling
-// TODO: The casting done in a lot of these calculations is terribly inefficient. Probably better to make more variables default to larger sizes.
-
-MS5837_30BA::MS5837_30BA( I2C *i2cInterfaceIn, uint8_t resolutionIn )
+MS5837_30BA::MS5837_30BA( I2C *i2cInterfaceIn, EAddress addressIn )
     : m_pI2C( i2cInterfaceIn )
-    , m_oversampleResolution( resolutionIn )
+    , m_address( ( addressIn == EAddress::ADDRESS_A ? I2C_ADDRESS_A : I2C_ADDRESS_B ) )
 {
 }
 
-int MS5837_30BA::Initialize()
-{
-    
-    int ret = Reset();
+// --------------------------------------------------------------
+// Public API
+// --------------------------------------------------------------
 
-    ret &= GetCalibrationCoefficients();
-    
-    return ret;
+void MS5837_30BA::Tick()
+{
+    // TODO: Clever way to do this with function pointers and lambdas?
+    switch( m_state )
+    {
+        case EState::DELAY:
+        {
+            // Do nothing until requested time has elapsed
+            if( m_delay.timer.HasElapsed( m_delay.delayTime_ms ) )
+            {
+                // Move to next state
+                Transition( m_delay.nextState );
+            }
+
+            break;
+        }
+
+        // -----------------------------
+        // Active operating conditions
+        // -----------------------------
+        case EState::CONVERTING_PRESSURE:
+        {
+            // Start a pressure conversion
+            if( Cmd_StartPresConversion() )
+            {
+                // Failure, start new conversion sequence
+                DelayedTransition( EState::CONVERTING_PRESSURE, kOSRInfo[ static_cast<uint8_t>( m_osr ) ].conversionTime_ms );
+                m_results.AddResult( EResult::RESULT_ERR_FAILED_SEQUENCE );
+            }
+            else
+            {
+                // Success, next read the value and start converting pressure
+                DelayedTransition( EState::CONVERTING_TEMPERATURE, kOSRInfo[ static_cast<uint8_t>( m_osr ) ].conversionTime_ms );
+            }
+
+            break;
+        };
+
+        case EState::CONVERTING_TEMPERATURE:
+        {
+            // Read pressure
+            if( Cmd_ReadPressure() )
+            {
+                // Failure, start new conversion sequence
+                DelayedTransition( EState::CONVERTING_PRESSURE, kOSRInfo[ static_cast<uint8_t>( m_osr ) ].conversionTime_ms );
+                m_results.AddResult( EResult::RESULT_ERR_FAILED_SEQUENCE );
+            }
+            else
+            {
+                // Start temp conversion
+                if( Cmd_StartTempConversion() )
+                {
+                    // Failure, start new conversion sequence
+                    DelayedTransition( EState::CONVERTING_PRESSURE, kOSRInfo[ static_cast<uint8_t>( m_osr ) ].conversionTime_ms );
+                    m_results.AddResult( EResult::RESULT_ERR_FAILED_SEQUENCE );
+                }
+                else
+                {
+                    // Success
+                    DelayedTransition( EState::PROCESSING_DATA, kOSRInfo[ static_cast<uint8_t>( m_osr ) ].conversionTime_ms );
+                }
+            }
+
+            break;
+        };
+
+        case EState::PROCESSING_DATA:
+        {
+            // Read temperature
+            if( Cmd_ReadTemperature() )
+            {
+                // Failure, start new conversion sequence
+                Transition( EState::CONVERTING_PRESSURE );
+                m_results.AddResult( EResult::RESULT_ERR_FAILED_SEQUENCE );
+            }
+            else
+            {
+                // Calculate depth and announce available data sample
+                ProcessData();
+
+                // Return to for the next read
+                Transition( EState::CONVERTING_PRESSURE );
+            }
+
+            break;
+        };
+
+        // ------------------------
+        // Initialization routines
+        // ------------------------
+
+        case EState::UNINITIALIZED:
+        {
+            // Attempt to reset
+            if( Cmd_Reset() )
+            {
+                // Failure
+                HardReset();
+            }
+            else
+            {
+                // Sucess
+                DelayedTransition( EState::READING_CALIB_DATA, kResetDelay_ms );
+            }
+
+            break;
+        }
+
+        case EState::READING_CALIB_DATA:
+        {
+            // Fetch calibration coefficients
+            if( Cmd_ReadCalibrationData() )
+            {
+                // Failure
+                HardReset();
+            }
+            else
+            {
+                // Success
+                Transition( EState::CONVERTING_PRESSURE );
+            }
+
+            break;
+        };
+
+        case EState::DISABLED:
+        default:
+        {
+            // Do nothing
+            break;
+        }
+    }
 }
 
-int MS5837_30BA::Reset()
+void MS5837_30BA::HardReset()
 {
+    // Perform delayed transition to uninitialized
+    DelayedTransition( EState::UNINITIALIZED, kRetryDelay_ms );
+
+    // Increment hard reset counter
+    m_results.AddResult( EResult::RESULT_ERR_HARD_RESET );
+
+    // Clear the sequence error counter
+    ClearResultCount( EResult::RESULT_ERR_FAILED_SEQUENCE );
+}
+
+void MS5837_30BA::FullReset()
+{
+    // Perform delayed transition to uninitialized
+    DelayedTransition( EState::UNINITIALIZED, kRetryDelay_ms );
+
+    // Clear all results
+    m_results.Clear();
+
+    // Re-enable device
+    m_enabled = true;
+}
+
+uint32_t MS5837_30BA::GetResultCount( EResult resultTypeIn )
+{
+    return m_results.GetResultCount( resultTypeIn );
+}
+
+void MS5837_30BA::ClearResultCount( EResult resultTypeIn )
+{
+    m_results.ClearResult( resultTypeIn );
+}
+
+void MS5837_30BA::Disable()
+{
+    // Disable device entirely
+    Transition( EState::DISABLED );
+
+    m_enabled = false;
+}
+
+bool MS5837_30BA::IsEnabled()
+{
+    return m_enabled;
+}
+
+bool MS5837_30BA::GetLock()
+{
+    return m_pI2C->LockAddress( m_address );
+}
+
+void MS5837_30BA::FreeLock()
+{
+    m_pI2C->FreeAddress( m_address );
+}
+
+EResult MS5837_30BA::SetOversampleRate( EOversampleRate rateIn )
+{
+    // Change the oversampling rate
+    m_osr = rateIn;
+
+    // Reset sensor, since we might be in the middle of a conversion.
+    Transition( EState::UNINITIALIZED );
+
+    return EResult::RESULT_SUCCESS;
+}
+
+EResult MS5837_30BA::SetWaterType( EWaterType typeIn )
+{
+    // Update the water modifier. No need to adjust state machine.
+    m_waterMod = ( ( typeIn == EWaterType::FRESH ) ? kWaterModFresh : kWaterModSalt );
+
+    return EResult::RESULT_SUCCESS;
+}
+
+uint32_t MS5837_30BA::GetUpdatePeriod()
+{
+    // Two conversion periods
+    return 2 * kOSRInfo[ static_cast<uint8_t>( m_osr ) ].conversionTime_ms;
+}
+
+// --------------------------------------------------------------
+// Private Methods
+// --------------------------------------------------------------
+
+void MS5837_30BA::Transition( EState stateIn )
+{
+    // Set new state
+    m_state = stateIn;
+}
+
+void MS5837_30BA::DelayedTransition( EState nextState, uint32_t millisIn )
+{
+    // Set delay info
+    m_state                 = EState::DELAY;
+    m_delay.nextState       = nextState;
+    m_delay.delayTime_ms    = millisIn;
+    m_delay.timer.Reset(); 
+}
+
+EResult MS5837_30BA::Cmd_Reset()
+{
+    // Attempt to reset
     if( WriteByte( CMD_RESET ) )
     {
-        // 1 = fail
-        return 1;
+        // I2C Failure
+        return (EResult)m_results.AddResult( EResult::RESULT_ERR_I2C_TRANSACTION );
     }
-
-    // TODO: NO DELAYS! Encode this in state machine!
-    // Specified by data sheet
-	delay( 10 );
-	
-    // 0 = success
-	return 0;
+    else
+    {
+        return EResult::RESULT_SUCCESS;
+    }
 }
 
-int MS5837_30BA::GetCalibrationCoefficients()
+EResult MS5837_30BA::Cmd_ReadCalibrationData()
 {
     uint8_t coeffs[ 2 ];
 
 	// Read sensor coefficients
-	for( uint32_t i = 0; i < 7; ++i )
+	for( uint8_t i = 0; i < 7; ++i )
 	{
         i2c::EI2CResult ret = ReadRegisterBytes( CMD_PROM_READ_BASE + ( i * 2 ), coeffs, 2 );
 
 		if( ret )
 		{
-			return (int32_t)ret;
+            // I2C Failure
+            return (EResult)m_results.AddResult( EResult::RESULT_ERR_I2C_TRANSACTION );
 		}
 
         // Combine high and low bytes
-        m_sensorCoeffs[i] = ( ( ( uint16_t )coeffs[ 0 ] << 8 ) | coeffs[ 1 ] );
+        m_coeffs[i] = ( ( ( uint16_t )coeffs[ 0 ] << 8 ) | coeffs[ 1 ] );
 	}
 
-    // Get the CRC value, which resides in the most significant four bits of C0
-    uint8_t crcRead = m_sensorCoeffs[ 0 ] >> 12;
-    
-    // Calculate the CRC value of the coefficients to make sure they are correct
-    uint8_t crcCalc = CalculateCRC4( m_sensorCoeffs );
+    uint8_t readCRC = ( m_coeffs[ 0 ] >> 12 );
 
-    if( crcRead == crcCalc )
+    // Compare read CRC4 to calculated CRC4
+    if( readCRC == CalculateCRC4() )
     {
-		m_crcCheckSuccessful = true;
-		return 0;
+		return EResult::RESULT_SUCCESS;
 	}
 	else
 	{
-		m_crcCheckSuccessful = false;
-		return 1;
+		return (EResult)m_results.AddResult( EResult::RESULT_ERR_CRC_MISMATCH );
 	}
 }
 
-int MS5837_30BA::StartConversion( int measurementTypeIn )
+EResult MS5837_30BA::Cmd_StartPresConversion()
 {
-    // Send the command to do the ADC conversion on the chip, address dependent on measurement type and sampling resolution
-    if( measurementTypeIn == MS5837_MEAS_PRESSURE )
+    if( WriteByte( CMD_PRES_CONV_BASE + kOSRInfo[ static_cast<uint8_t>( m_osr ) ].commandMod ) )
     {
-	    return (int32_t)WriteByte( CMD_ADC_CONV_BASE + m_oversampleResolution + CMD_ADC_D1 );
+        // I2C Failure
+        return (EResult)m_results.AddResult( EResult::RESULT_ERR_I2C_TRANSACTION );
     }
-    else if( MS5837_MEAS_TEMPERATURE )
+    else
     {
-	    return (int32_t)WriteByte( CMD_ADC_CONV_BASE + m_oversampleResolution + CMD_ADC_D2 );
+        // Success
+        return EResult::RESULT_SUCCESS;
     }
-    
-    // Non-i2c failure
-    return -1;
 }
 
-int MS5837_30BA::Read( int measurementTypeIn )
+EResult MS5837_30BA::Cmd_StartTempConversion()
+{
+    if( WriteByte( CMD_TEMP_CONV_BASE + kOSRInfo[ static_cast<uint8_t>( m_osr ) ].commandMod ) )
+    {
+        // I2C Failure
+        return (EResult)m_results.AddResult( EResult::RESULT_ERR_I2C_TRANSACTION );
+    }
+    else
+    {
+        // Success
+        return EResult::RESULT_SUCCESS;
+    }
+}
+
+EResult MS5837_30BA::Cmd_ReadPressure()
 {
     uint8_t bytes[ 3 ];
 
@@ -108,121 +332,128 @@ int MS5837_30BA::Read( int measurementTypeIn )
     if( ret )
     {
         // I2C Failure
-        return (int32_t)ret;
+        return (EResult)m_results.AddResult( EResult::RESULT_ERR_I2C_TRANSACTION );
     }
 
-	// Combine the bytes into one integer
-	uint32_t result = ( ( uint32_t )bytes[ 0 ] << 16 ) + ( ( uint32_t )bytes[ 1 ] << 8 ) + ( uint32_t )bytes[ 2 ];
-	
-	// Set the appropriate variable
-	if( measurementTypeIn == MS5837_MEAS_PRESSURE )
-    {
-        D1 = result;
-    }
-    else if( measurementTypeIn == MS5837_MEAS_TEMPERATURE )
-    {
-        D2 = result;
-    }
-    
-    // Success
-    return 0;
+    // Combine the bytes into one integer for the final result
+    m_D1 = ( ( uint32_t )bytes[ 0 ] << 16 ) + ( ( uint32_t )bytes[ 1 ] << 8 ) + ( uint32_t )bytes[ 2 ];
+
+    return EResult::RESULT_SUCCESS;
 }
 
-void MS5837_30BA::SetWaterType( int waterTypeIn )
+EResult MS5837_30BA::Cmd_ReadTemperature()
 {
-    m_waterType = waterTypeIn;
+    uint8_t bytes[ 3 ];
+
+    i2c::EI2CResult ret = ReadRegisterBytes( CMD_ADC_READ, bytes, 3 );
+
+    if( ret )
+    {
+        // I2C Failure
+        return (EResult)m_results.AddResult( EResult::RESULT_ERR_I2C_TRANSACTION );
+    }
+
+	// Combine the bytes into one integer for the final result
+	m_D2 = ( ( uint32_t )bytes[ 0 ] << 16 ) + ( ( uint32_t )bytes[ 1 ] << 8 ) + ( uint32_t )bytes[ 2 ];
+
+    return EResult::RESULT_SUCCESS;
 }
 
-uint8_t MS5837_30BA::CalculateCRC4( uint16_t n_prom[] )
+uint8_t MS5837_30BA::CalculateCRC4()
 {
-    int cnt; // simple counter
-    uint32_t n_rem=0; // crc remainder
+    int cnt;            // simple counter
+    uint32_t n_rem = 0; // crc remainder
     uint8_t n_bit;
     
-    n_prom[0]=((n_prom[0]) & 0x0FFF); // CRC byte is replaced by 0
-    n_prom[7]=0; // Leftover value from the MS5803 series, set to 0
+    // Replace the CRC byte with 0
+    m_coeffs[0] = ((m_coeffs[0]) & 0x0FFF); 
+
+    // Leftover value from the MS5803 series, set to 0
+    m_coeffs[7] = 0;
     
-    for (cnt =0; cnt < 16; cnt++) // operation is performed on bytes
+    // Loop through each byte in the coefficients
+    for( cnt = 0; cnt < 16; ++cnt )
     { 
-        // choose LSB or MSB
-        if (cnt%2==1) 
-            n_rem ^= (uint16_t) ((n_prom[cnt>>1]) &0x00FF);
-        else 
-            n_rem ^= (uint16_t) (n_prom[cnt>>1]>>8);
-            
-        for (n_bit = 8; n_bit > 0; n_bit--)
+        // Choose LSB or MSB
+        if( ( cnt % 2 ) == 1 ) 
         {
-            if (n_rem & (0x8000)) 
-                n_rem = (n_rem << 1) ^ 0x3000;
+            n_rem ^= (uint16_t)( ( m_coeffs[ cnt >> 1 ] ) & 0x00FF );
+        }
+        else
+        {
+            n_rem ^= (uint16_t)( m_coeffs[ cnt >> 1 ] >> 8 );
+        }
+            
+        for( n_bit = 8; n_bit > 0; --n_bit )
+        {
+            if( n_rem & 0x8000 )
+            {
+                n_rem = ( n_rem << 1 ) ^ 0x3000;
+            }
             else 
-                n_rem = (n_rem << 1);
+            {
+                n_rem = ( n_rem << 1 );
+            }
         }
     }
     
-    n_rem= ((n_rem >> 12) & 0x000F); // final 4-bit remainder is CRC code
+    // Final 4-bit remainder is the CRC value
+    n_rem = ( ( n_rem >> 12 ) & 0x000F ); 
     
-    return (n_rem ^ 0x00);
+    return ( n_rem ^ 0x00 );
 }
 
-void MS5837_30BA::CalculateOutputs()
+void MS5837_30BA::ProcessData()
 {
     // Calculate base terms
-	dT      = (int32_t)D2 - ( (int32_t)m_sensorCoeffs[5] * POW_2_8 );
-	TEMP    = 2000 + ( ( (int64_t)dT * (int32_t)m_sensorCoeffs[6] ) / POW_2_23 );
+	m_dT      = (int32_t)m_D2 - ( (int32_t)m_coeffs[5] * POW_2_8 );
+	m_TEMP    = 2000 + ( ( (int64_t)m_dT * (int32_t)m_coeffs[6] ) / POW_2_23 );
 	
-	OFF     = ( (int64_t)m_sensorCoeffs[2] * POW_2_16 ) + ( ( (int64_t)m_sensorCoeffs[4] * dT ) / POW_2_7 );
-	SENS    = ( (int64_t)m_sensorCoeffs[1] * POW_2_15 ) + ( ( (int64_t)m_sensorCoeffs[3] * dT ) / POW_2_8 );
+	m_OFF     = ( (int64_t)m_coeffs[2] * POW_2_16 ) + ( ( (int64_t)m_coeffs[4] * m_dT ) / POW_2_7 );
+	m_SENS    = ( (int64_t)m_coeffs[1] * POW_2_15 ) + ( ( (int64_t)m_coeffs[3] * m_dT ) / POW_2_8 );
 	
 	// Calculate intermediate values depending on temperature
-	if( TEMP < 2000 )
+	if( m_TEMP < 2000 )
 	{
 	    // Temps < 20C
-		Ti      = 3 * ( ( int64_t )dT * dT ) / POW_2_33;
-		OFFi    = 3 * ( ( TEMP - 2000 ) * ( TEMP - 2000 ) ) / 2 ;
-		SENSi   = 5 * ( ( TEMP - 2000 ) * ( TEMP - 2000 ) ) / 8 ;
+		m_Ti      = 3 * ( ( int64_t )m_dT * m_dT ) / POW_2_33;
+		m_OFFi    = 3 * ( ( m_TEMP - 2000 ) * ( m_TEMP - 2000 ) ) / 2 ;
+		m_SENSi   = 5 * ( ( m_TEMP - 2000 ) * ( m_TEMP - 2000 ) ) / 8 ;
 		
 		// Additional compensation for very low temperatures (< -15C)
-    	if( TEMP < -1500 )
+    	if( m_TEMP < -1500 )
     	{
     		// For 14 bar model
-    		OFFi    = OFFi + 7 * ( ( TEMP + 1500 ) * ( TEMP + 1500 ) );
-    		SENSi   = SENSi + 4 * ( ( TEMP + 1500 ) * ( TEMP + 1500 ) );
+    		m_OFFi    = m_OFFi + 7 * ( ( m_TEMP + 1500 ) * ( m_TEMP + 1500 ) );
+    		m_SENSi   = m_SENSi + 4 * ( ( m_TEMP + 1500 ) * ( m_TEMP + 1500 ) );
     	}
 	}
 	else
 	{
-	    Ti      = 2 * ( ( int64_t )dT * dT ) / POW_2_37;
-		OFFi    = 1 * ( ( TEMP - 2000 ) * ( TEMP - 2000 ) ) / 16;
-		SENSi   = 0;
+	    m_Ti      = 2 * ( ( int64_t )m_dT * m_dT ) / POW_2_37;
+		m_OFFi    = 1 * ( ( m_TEMP - 2000 ) * ( m_TEMP - 2000 ) ) / 16;
+		m_SENSi   = 0;
 	}
 	
-	OFF2    = OFF - OFFi;
-	SENS2   = SENS - SENSi;
+	m_OFF2    = m_OFF - m_OFFi;
+	m_SENS2   = m_SENS - m_SENSi;
 	
-	TEMP2 = (TEMP - Ti);
-	P = ( ( ( ( (int64_t)D1 * SENS2 ) / POW_2_21 ) - OFF2 ) / POW_2_13 );
+	m_TEMP2 = (m_TEMP - m_Ti);
+	m_P = ( ( ( ( (int64_t)m_D1 * m_SENS2 ) / POW_2_21 ) - m_OFF2 ) / POW_2_13 );
 	
-	m_temperature_c = (float)TEMP2 / 100.0f;
-	m_pressure_mbar = (float)P / 10.0f;
-	
-	// Calculate depth based on water type
-	if( m_waterType == MS5837_WATERTYPE_FRESH )
-	{
-	    m_depth_m = ( m_pressure_mbar - 1013.25f ) * 1.019716f / 100.0f;
-	}
-	else
-	{
-	    m_depth_m = ( m_pressure_mbar - 1013.25f ) * 0.9945f / 100.0f;
-	}
+    // Create data sample with calculated parameters
+    m_data.Update(  ( (float)m_TEMP2 / 100.0f ),    // Temperature
+                    ( (float)m_P / 10.0f ),         // Pressure
+                    m_waterMod );
 }
 
 // I2C call wrappers
 i2c::EI2CResult MS5837_30BA::WriteByte( uint8_t registerIn )
 {
-    return m_pI2C->WriteByte( I2C_ADDRESS, registerIn );
+    return m_pI2C->WriteByte( m_address, registerIn );
 }
 
 i2c::EI2CResult MS5837_30BA::ReadRegisterBytes( uint8_t registerIn, uint8_t *dataOut, uint8_t numBytesIn )
 {
-    return m_pI2C->ReadRegisterBytes( I2C_ADDRESS, registerIn, dataOut, numBytesIn );
+    return m_pI2C->ReadRegisterBytes( m_address, registerIn, dataOut, numBytesIn );
 }

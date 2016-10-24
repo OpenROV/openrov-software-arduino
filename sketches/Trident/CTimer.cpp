@@ -12,7 +12,7 @@ uint32_t CTimer::Now()
 	return millis();
 }
 
-boolean CTimer::HasElapsed( uint32_t msIn )
+bool CTimer::HasElapsed( uint32_t msIn )
 {
 	if( ( Now() - m_lastTimeMs ) > msIn )
 	{

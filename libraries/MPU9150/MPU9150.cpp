@@ -1,7 +1,7 @@
 
 ////////////////////////////////////////////////////////////////////////////
 //
-//  This file is part of MPU9150Lib
+//  This file is part of MPU9150
 //
 //  Copyright (c) 2013 Pansenti, LLC
 //
@@ -23,8 +23,8 @@
 //  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "MPU9150.h"
-#include "LibMPU_DriverLayer.h"
-#include "LibMPU_DMPDriver.h"
+#include "MPU9150_DriverLayer.h"
+#include "MPU9150_DMPDriver.h"
 
 ////////////////////////////////////////////////////////////////////////////
 //
@@ -43,6 +43,8 @@
  * gyro_orientation) to a scalar representation for use by the DMP.
  * NOTE: These functions are borrowed from InvenSense's MPL.
  */
+
+using namespace mpu9150;
 
 static inline unsigned short inv_row_2_scale( const signed char* row )
 {
@@ -115,26 +117,35 @@ static inline unsigned short inv_orientation_matrix_to_scalar( const signed char
 ////////////////////////////////////////////////////////////////////////////
 
 
-MPU9150Lib::MPU9150Lib()
+MPU9150::MPU9150( EAddress addressIn )
+	: m_device( ( addressIn == EAddress::ADDRESS_A ? DEVICE_A : DEVICE_B ) )
 {
-	//  use calibration if available
-
-	m_useAccelCalibration = true;
-	m_useMagCalibration = true;
-	m_device = 0;
+	// Use calibration if available
+	m_useAccelCalibration 	= true;
+	m_useMagCalibration 	= true;
 }
 
-void MPU9150Lib::selectDevice( int device )
+void MPU9150::AddResult( EResult resultTypeIn )
 {
-	m_device = device;
+	m_results.AddResult( resultTypeIn );
 }
 
-void MPU9150Lib::useAccelCal( boolean useCal )
+uint32_t MPU9150::GetResultCount( EResult resultTypeIn )
+{
+    return m_results.GetResultCount( resultTypeIn );
+}
+
+void MPU9150::ClearResultCount( EResult resultTypeIn )
+{
+    m_results.ClearResult( resultTypeIn );
+}
+
+void MPU9150::useAccelCal( bool useCal )
 {
 	m_useAccelCalibration = useCal;
 }
 
-void MPU9150Lib::disableAccelCal()
+void MPU9150::disableAccelCal()
 {
 	if( !m_useAccelCalibration )
 	{
@@ -150,12 +161,12 @@ void MPU9150Lib::disableAccelCal()
 	mpu_set_accel_bias( m_accelOffset );
 }
 
-void MPU9150Lib::useMagCal( boolean useCal )
+void MPU9150::useMagCal( bool useCal )
 {
 	m_useMagCalibration = useCal;
 }
 
-boolean MPU9150Lib::init( int mpuRate, int magMix, int magRate, int lpf )
+bool MPU9150::init( int mpuRate, int magMix, int magRate, int lpf )
 {
 	struct int_param_s int_param;
 	int result;
@@ -254,10 +265,6 @@ boolean MPU9150Lib::init( int mpuRate, int magMix, int magRate, int lpf )
 
 	if( result != 0 )
 	{
-#ifdef MPULIB_DEBUG
-		Serial.print( "mpu_init failed with code: " );
-		Serial.println( result );
-#endif
 		return false;
 	}
 
@@ -302,7 +309,7 @@ boolean MPU9150Lib::init( int mpuRate, int magMix, int magRate, int lpf )
 	return true;
 }
 
-boolean MPU9150Lib::read()
+bool MPU9150::read()
 {
 	short intStatus;
 	int result;
@@ -317,6 +324,7 @@ boolean MPU9150Lib::read()
 	if( ( intStatus & ( MPU_INT_STATUS_DMP | MPU_INT_STATUS_DMP_0 ) )
 	    != ( MPU_INT_STATUS_DMP | MPU_INT_STATUS_DMP_0 ) )
 	{
+		m_results.AddResult( EResult::RESULT_ERR_READ_ERROR );
 		return false;
 	}
 
@@ -324,6 +332,7 @@ boolean MPU9150Lib::read()
 
 	if( ( result = dmp_read_fifo( m_rawGyro, m_rawAccel, m_rawQuaternion, &timestamp, &sensors, &more ) ) != 0 )
 	{
+		m_results.AddResult( EResult::RESULT_ERR_READ_ERROR );
 		return false;
 	}
 
@@ -333,10 +342,7 @@ boolean MPU9150Lib::read()
 	{
 		if( ( result = mpu_get_compass_reg( m_rawMag, &timestamp ) ) != 0 )
 		{
-#ifdef MPULIB_DEBUG
-			Serial.print( "Failed to read compass: " );
-			Serial.println( result );
-#endif
+			m_results.AddResult( EResult::RESULT_ERR_READ_ERROR );
 			return false;
 		}
 
@@ -358,28 +364,25 @@ boolean MPU9150Lib::read()
 		}
 	}
 
-	// got the raw data - now process
+	// Got the raw data - now process
 
-	m_dmpQuaternion[QUAT_W] = ( float )m_rawQuaternion[QUAT_W]; // get float version of quaternion
+	// Get float version of quaternion
+	m_dmpQuaternion[QUAT_W] = ( float )m_rawQuaternion[QUAT_W]; 
 	m_dmpQuaternion[QUAT_X] = ( float )m_rawQuaternion[QUAT_X];
 	m_dmpQuaternion[QUAT_Y] = ( float )m_rawQuaternion[QUAT_Y];
 	m_dmpQuaternion[QUAT_Z] = ( float )m_rawQuaternion[QUAT_Z];
-	MPUQuaternionNormalize( m_dmpQuaternion );               // and normalize
+	
+	// Normalize
+	MPUQuaternionNormalize( m_dmpQuaternion );               
 
+	// Convert to Euler
 	MPUQuaternionQuaternionToEuler( m_dmpQuaternion, m_dmpEulerPose );
 
 
 	// Scale accel data
-
 	if( m_useAccelCalibration )
 	{
-		/*        m_calAccel[VEC3_X] = -(short)((((long)m_rawAccel[VEC3_X] + m_accelOffset[0])
-		                                        * (long)SENSOR_RANGE) / (long)m_accelXRange);
-		        m_calAccel[VEC3_Y] = (short)((((long)m_rawAccel[VEC3_Y] + m_accelOffset[1])
-		                                        * (long)SENSOR_RANGE) / (long)m_accelYRange);
-		        m_calAccel[VEC3_Z] = (short)((((long)m_rawAccel[VEC3_Z] + m_accelOffset[2])
-		                                        * (long)SENSOR_RANGE) / (long)m_accelZRange);
-		*/        if( m_rawAccel[VEC3_X] >= 0 )
+		if( m_rawAccel[VEC3_X] >= 0 )
 			m_calAccel[VEC3_X] = -( short )( ( ( ( long )m_rawAccel[VEC3_X] )
 			                                   * ( long )SENSOR_RANGE ) / ( long )m_calData.accelMaxX );
 		else
@@ -403,16 +406,19 @@ boolean MPU9150Lib::read()
 	}
 	else
 	{
+		// NOTE: Why is this negative?
 		m_calAccel[VEC3_X] = -m_rawAccel[VEC3_X];
 		m_calAccel[VEC3_Y] = m_rawAccel[VEC3_Y];
 		m_calAccel[VEC3_Z] = m_rawAccel[VEC3_Z];
 	}
 
+	// Perform fusion
 	dataFusion();
+	
 	return true;
 }
 
-void MPU9150Lib::dataFusion()
+void MPU9150::dataFusion()
 {
 	float qMag[4];
 	float deltaDMPYaw, deltaMagYaw;
@@ -445,12 +451,11 @@ void MPU9150Lib::dataFusion()
 
 	newMagYaw = -atan2( qMag[QUAT_Y], qMag[QUAT_X] );
 
-	if( newMagYaw != newMagYaw )                                  // check for nAn
+	// check for nAn
+	if( newMagYaw != newMagYaw )                                  
 	{
-#ifdef MPULIB_DEBUG
-		Serial.println( "***nAn\n" );
-#endif
-		return;                                                     // just ignore in this case
+		// just ignore in this case
+		return;                                                     
 	}
 
 	if( newMagYaw < 0 )
@@ -507,58 +512,4 @@ void MPU9150Lib::dataFusion()
 	m_fusedEulerPose[VEC3_Z] = newYaw;                            // fill in output yaw value
 
 	MPUQuaternionEulerToQuaternion( m_fusedEulerPose, m_fusedQuaternion );
-}
-
-void MPU9150Lib::printQuaternion( long* quat )
-{
-	Serial.print( "w: " );
-	Serial.print( quat[QUAT_W] );
-	Serial.print( " x: " );
-	Serial.print( quat[QUAT_X] );
-	Serial.print( " y: " );
-	Serial.print( quat[QUAT_Y] );
-	Serial.print( " z: " );
-	Serial.print( quat[QUAT_Z] );
-}
-
-void MPU9150Lib::printQuaternion( float* quat )
-{
-	Serial.print( "w: " );
-	Serial.print( quat[QUAT_W] );
-	Serial.print( " x: " );
-	Serial.print( quat[QUAT_X] );
-	Serial.print( " y: " );
-	Serial.print( quat[QUAT_Y] );
-	Serial.print( " z: " );
-	Serial.print( quat[QUAT_Z] );
-}
-
-void MPU9150Lib::printVector( short* vec )
-{
-	Serial.print( "x: " );
-	Serial.print( vec[VEC3_X] );
-	Serial.print( " y: " );
-	Serial.print( vec[VEC3_Y] );
-	Serial.print( " z: " );
-	Serial.print( vec[VEC3_Z] );
-}
-
-void MPU9150Lib::printVector( float* vec )
-{
-	Serial.print( "x: " );
-	Serial.print( vec[VEC3_X] );
-	Serial.print( " y: " );
-	Serial.print( vec[VEC3_Y] );
-	Serial.print( " z: " );
-	Serial.print( vec[VEC3_Z] );
-}
-
-void MPU9150Lib::printAngles( float* vec )
-{
-	Serial.print( "x: " );
-	Serial.print( vec[VEC3_X] * RAD_TO_DEGREE );
-	Serial.print( " y: " );
-	Serial.print( vec[VEC3_Y] * RAD_TO_DEGREE );
-	Serial.print( " z: " );
-	Serial.print( vec[VEC3_Z] * RAD_TO_DEGREE );
 }

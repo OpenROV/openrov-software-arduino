@@ -58,6 +58,39 @@ EI2CResult I2C::Reset()
 	return HANDLE_RESULT( EI2CResult::RESULT_SUCCESS );
 }
 
+bool I2C::LockAddress( uint8_t addressIn )
+{
+	// Validate address
+	if( addressIn >= 127 )
+	{
+		return false;
+	}
+
+	if( m_addressLocks[ addressIn ] == 1 )
+	{
+		// Address already locked
+		return false;
+	}
+	else
+	{
+		// Lock address
+		m_addressLocks[ addressIn ] = 1;
+		return true;
+	}
+}
+
+void I2C::FreeAddress( uint8_t addressIn )
+{
+	// Validate address
+	if( addressIn >= 127 )
+	{
+		return;
+	}
+
+	// Free the lock
+	m_addressLocks[ addressIn ] = 0;
+}
+
 bool I2C::IsAvailable()
 {
     return m_isEnabled;

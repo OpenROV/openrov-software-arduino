@@ -6,7 +6,7 @@
 #include "NVehicleManager.h"
 #include "NDataManager.h"
 #include "CMotor.h"
-#include "CTimer.h"
+#include <orutil.h>
 #include "CPin.h"
 
 // Static variable initialization
@@ -29,15 +29,15 @@ namespace
     int trg_motor_power;
 
 
-    CTimer controltime;
-    CTimer thrusterOutput;
-    boolean bypasssmoothing;
+    orutil::CTimer controltime;
+    orutil::CTimer thrusterOutput;
+    bool bypasssmoothing;
 
 #ifdef PIN_ENABLE_ESC
     bool canPowerESCs = true;
-    CPin escpower( "escpower", PIN_ENABLE_ESC, CPin::kDigital, CPin::kOutput );
+    CPin escpower( PIN_ENABLE_ESC, CPin::kDigital, CPin::kOutput );
 #else
-    boolean canPowerESCs = false;
+    bool canPowerESCs = false;
 #endif
 }
 
