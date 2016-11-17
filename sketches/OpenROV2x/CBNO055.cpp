@@ -52,6 +52,16 @@ void CBNO055::Update( CCommand &commandIn )
 			// Send ack
 			Serial.println( F( "imu_zYaw:ack;" ) );
 		}
+		// Zero the roll and pich values
+		else if( commandIn.Equals( "imu_level" ) )
+		{
+			// Set offsets based on current value
+			m_rollOffset 	= m_device.m_data.roll;
+			m_pitchOffset 	= m_device.m_data.pitch;
+
+			// Send ack
+			Serial.println( F( "imu_level:ack;" ) );
+		}
 		// Set the operating mode
 		else if( commandIn.Equals( "imu_mode" ) )
 		{
@@ -116,8 +126,8 @@ void CBNO055::Update( CCommand &commandIn )
 			NDataManager::m_navData.YAW	= NORMALIZE_ANGLE_360( m_device.m_data.yaw - m_yawOffset );
 		}
 		
-		NDataManager::m_navData.PITC	= m_device.m_data.pitch;
-		NDataManager::m_navData.ROLL	= m_device.m_data.roll;
+		NDataManager::m_navData.PITC	= m_device.m_data.pitch - m_pitchOffset;
+		NDataManager::m_navData.ROLL	= m_device.m_data.roll - m_rollOffset;
 
 		// Emit telemetry
 		if( m_telemetryTimer.HasElapsed( kTelemetryDelay_ms ) )

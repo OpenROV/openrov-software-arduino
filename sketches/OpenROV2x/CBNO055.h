@@ -21,7 +21,10 @@ private:
 	orutil::CTimer m_telemetryTimer;
 	orutil::CTimer m_calibTimer;
 
-	float m_yawOffset = 0.0f;
+	float m_yawOffset 	= 0.0f;
+	float m_rollOffset 	= 0.0f;
+	float m_pitchOffset = 0.0f;
+
 	uint32_t m_maxFailuresPerPeriod = 0;
 };
 

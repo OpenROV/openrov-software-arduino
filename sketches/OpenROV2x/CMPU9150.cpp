@@ -27,7 +27,7 @@
 #define  MPU_MAG_MIX_GYRO_AND_MAG       10                  // a good mix value
 #define  MPU_MAG_MIX_GYRO_AND_SOME_MAG  50                  // mainly gyros with a bit of mag correction
 
-//  MPU_LPF_RATE is the low pas filter rate and can be between 5 and 188Hz
+//  MPU_LPF_RATE is the low pass filter rate and can be between 5 and 188Hz
 #define MPU_LPF_RATE   40
 
 using namespace mpu9150;
@@ -115,10 +115,20 @@ void CMPU9150::Update( CCommand& commandIn )
 		if( commandIn.Equals( "imu_zYaw" ) )
 		{
 			// Set offset based on current value
-			m_yawOffset = NDataManager::m_navData.YAW;
+			m_yawOffset = m_device.m_data.yaw;
 
 			// Send ack
 			Serial.println( F( "imu_zYaw:ack;" ) );
+		}
+		// Zero the roll and pich values
+		else if( commandIn.Equals( "imu_level" ) )
+		{
+			// Set offsets based on current value
+			m_rollOffset 	= m_device.m_data.roll;
+			m_pitchOffset 	= m_device.m_data.pitch;
+
+			// Send ack
+			Serial.println( F( "imu_level:ack;" ) );
 		}
 		// Set the operating mode
 		else if( commandIn.Equals( "imu_mode" ) )
@@ -152,8 +162,8 @@ void CMPU9150::Update( CCommand& commandIn )
 		if( m_device.read() == true )
 		{
 			// Successfully got data, update shared state
-			NDataManager::m_navData.ROLL 	= m_device.m_fusedEulerPose[VEC3_X] * RAD_TO_DEGREE;
-			NDataManager::m_navData.PITC 	= m_device.m_fusedEulerPose[VEC3_Y] * RAD_TO_DEGREE;
+			NDataManager::m_navData.ROLL 	= m_device.m_fusedEulerPose[VEC3_X] * RAD_TO_DEGREE - m_rollOffset;
+			NDataManager::m_navData.PITC 	= m_device.m_fusedEulerPose[VEC3_Y] * RAD_TO_DEGREE - m_pitchOffset;
 			NDataManager::m_navData.YAW 	= NORMALIZE_ANGLE_180( ( m_device.m_fusedEulerPose[VEC3_Z] * RAD_TO_DEGREE ) - m_yawOffset );
 
 			// Handle telemetry updates

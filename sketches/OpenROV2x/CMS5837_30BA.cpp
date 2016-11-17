@@ -111,7 +111,7 @@ void CMS5837_30BA::Update( CCommand& commandIn )
 
 				// Ack
 				Serial.print( F( "depth_water:" ) );	
-				Serial.print( commandIn.m_arguments[1] ); 	
+				Serial.print( commandIn.m_arguments[1] );
 				Serial.println( ';' );
 			}
 		}
