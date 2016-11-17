@@ -133,7 +133,8 @@ void CMPU9150::Update( CCommand& commandIn )
 		// Set the operating mode
 		else if( commandIn.Equals( "imu_mode" ) )
 		{
-			// Does not support mode changes right now
+			// Does not support mode changes right now, send nack
+			Serial.println( F( "imu_level:nack;" ) );
 		}
 	}
 
