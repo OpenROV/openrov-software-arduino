@@ -115,7 +115,7 @@ void CMPU9150::Update( CCommand& commandIn )
 		if( commandIn.Equals( "imu_zYaw" ) )
 		{
 			// Set offset based on current value
-			m_yawOffset = m_device.m_data.yaw;
+			m_yawOffset = NDataManager::m_navData.YAW;
 
 			// Send ack
 			Serial.println( F( "imu_zYaw:ack;" ) );
@@ -124,8 +124,8 @@ void CMPU9150::Update( CCommand& commandIn )
 		else if( commandIn.Equals( "imu_level" ) )
 		{
 			// Set offsets based on current value
-			m_rollOffset 	= m_device.m_data.roll;
-			m_pitchOffset 	= m_device.m_data.pitch;
+			m_rollOffset 	= NDataManager::m_navData.ROLL;
+			m_pitchOffset 	= NDataManager::m_navData.PITC;
 
 			// Send ack
 			Serial.println( F( "imu_level:ack;" ) );
