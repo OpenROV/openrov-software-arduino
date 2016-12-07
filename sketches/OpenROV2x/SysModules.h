@@ -61,7 +61,7 @@ CDeadManSwitch m_deadManSwitch;
 // IMU1
 #if( HAS_MPU9150 )
 #include "CMPU9150.h"
-CMPU9150 m_mpu9150( mpu9150::EAddress::ADDRESS_A );
+CMPU9150 m_mpu9150( mpu9150::EAddress::ADDRESS_B );
 #endif
 
 #if(HAS_MS5803_14BA)
