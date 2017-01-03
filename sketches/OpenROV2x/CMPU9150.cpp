@@ -112,23 +112,24 @@ void CMPU9150::Update( CCommand& commandIn )
 	if( NCommManager::m_isCommandAvailable )
 	{
 		// Zero the yaw value
-		if( commandIn.Equals( "imu_zYaw" ) )
+		if( commandIn.Equals( "imu_zyaw" ) )
 		{
 			// Set offset based on current value
 			m_yawOffset = NDataManager::m_navData.YAW;
 
 			// Send ack
-			Serial.println( F( "imu_zYaw:ack;" ) );
+			Serial.println( F( "imu_zyaw:ack;" ) );
 		}
 		// Zero the roll and pich values
 		else if( commandIn.Equals( "imu_level" ) )
 		{
-			// Set offsets based on current value
-			m_rollOffset 	= NDataManager::m_navData.ROLL;
-			m_pitchOffset 	= NDataManager::m_navData.PITC;
+			// Set offsets based on request from cockpit
+			m_rollOffset 	= orutil::Decode1K( commandIn.m_arguments[1] );
+			m_pitchOffset 	= orutil::Decode1K( commandIn.m_arguments[2] );
 
-			// Send ack
-			Serial.println( F( "imu_level:ack;" ) );
+			// Report new settings
+			Serial.print( F( "imu_roff:" ) ); Serial.print( commandIn.m_arguments[1] ); Serial.println( ';' );
+			Serial.print( F( "imu_poff:" ) ); Serial.print( commandIn.m_arguments[2] ); Serial.println( ';' );
 		}
 		// Set the operating mode
 		else if( commandIn.Equals( "imu_mode" ) )

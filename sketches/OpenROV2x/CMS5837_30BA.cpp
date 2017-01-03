@@ -94,6 +94,16 @@ void CMS5837_30BA::Update( CCommand& commandIn )
 			// Send ack
 			Serial.println( F( "depth_zero:ack;" ) );
 		}
+		// Clear the depth offset
+		else if( commandIn.Equals( "depth_clroff" ) )
+		{
+			// Set offset based on current value
+			m_depthOffset_m = 0.0f;
+
+			// Send ack
+			Serial.println( F( "depth_clroff:ack;" ) );
+		}
+		// Change water type
 		else if( commandIn.Equals( "depth_water" ) )
 		{
 			if( commandIn.m_arguments[1] == (uint32_t)EWaterType::FRESH )

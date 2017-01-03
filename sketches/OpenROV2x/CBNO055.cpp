@@ -44,23 +44,24 @@ void CBNO055::Update( CCommand &commandIn )
 	if( NCommManager::m_isCommandAvailable )
 	{
 		// Zero the yaw value
-		if( commandIn.Equals( "imu_zYaw" ) )
+		if( commandIn.Equals( "imu_zyaw" ) )
 		{
 			// Set offset based on current value
 			m_yawOffset = m_device.m_data.yaw;
 
 			// Send ack
-			Serial.println( F( "imu_zYaw:ack;" ) );
+			Serial.println( F( "imu_zyaw:ack;" ) );
 		}
 		// Zero the roll and pich values
 		else if( commandIn.Equals( "imu_level" ) )
 		{
-			// Set offsets based on current value
-			m_rollOffset 	= m_device.m_data.roll;
-			m_pitchOffset 	= m_device.m_data.pitch;
+			// Set offsets based on request from cockpit
+			m_rollOffset 	= orutil::Decode1K( commandIn.m_arguments[1] );
+			m_pitchOffset 	= orutil::Decode1K( commandIn.m_arguments[2] );
 
-			// Send ack
-			Serial.println( F( "imu_level:ack;" ) );
+			// Report new settings
+			Serial.print( F( "imu_roff:" ) ); Serial.print( commandIn.m_arguments[1] ); Serial.println( ';' );
+			Serial.print( F( "imu_poff:" ) ); Serial.print( commandIn.m_arguments[2] ); Serial.println( ';' );
 		}
 		// Set the operating mode
 		else if( commandIn.Equals( "imu_mode" ) )
@@ -116,14 +117,13 @@ void CBNO055::Update( CCommand &commandIn )
 	// Update shared navdata 
 	if( m_device.m_data.SampleAvailable() )
 	{	
-		// Throw out exactly zero heading values that are all zeroes - necessary when switching modes
 		if( m_device.GetMode() == EMode::GYRO )
 		{
 			NDataManager::m_navData.YAW	= NORMALIZE_ANGLE_180( m_device.m_data.yaw - m_yawOffset );
 		}
 		else
 		{
-			NDataManager::m_navData.YAW	= NORMALIZE_ANGLE_360( m_device.m_data.yaw - m_yawOffset );
+			NDataManager::m_navData.YAW	= NORMALIZE_ANGLE_360( m_device.m_data.yaw );
 		}
 		
 		NDataManager::m_navData.PITC	= m_device.m_data.pitch - m_pitchOffset;
