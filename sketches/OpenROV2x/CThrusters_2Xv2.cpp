@@ -88,7 +88,7 @@ void CThrusters::Update( CCommand& command )
         starboard_motor.m_positiveModifier = command.m_arguments[3] / 100;
     }
 
-    if( command.Equals( "mtrmod2" ) )
+    else if( command.Equals( "mtrmod2" ) )
     {
         port_motor.m_negativeModifier = command.m_arguments[1] / 100;
         port_vertical_motor.m_negativeModifier = command.m_arguments[2] / 100;
@@ -96,7 +96,7 @@ void CThrusters::Update( CCommand& command )
         starboard_motor.m_negativeModifier = command.m_arguments[3] / 100;
     }
 
-    if( command.Equals( "rmtrmod" ) )
+    else if( command.Equals( "rmtrmod" ) )
     {
         Serial.print( F( "mtrmod:" ) );
         Serial.print( port_motor.m_positiveModifier );
@@ -117,7 +117,7 @@ void CThrusters::Update( CCommand& command )
         Serial.println( ";" );
     }
 
-    if( command.Equals( "port" ) )
+    else if( command.Equals( "port" ) )
     {
         //ignore corrupt data
         if( command.m_arguments[1] > 999 && command.m_arguments[1] < 2001 )
@@ -131,7 +131,7 @@ void CThrusters::Update( CCommand& command )
         }
     }
 
-    if( command.Equals( "vertical" ) )
+    else if( command.Equals( "vertical" ) )
     {
         //ignore corrupt data
         if( command.m_arguments[1] > 999 && command.m_arguments[1] < 2001 )
@@ -146,7 +146,7 @@ void CThrusters::Update( CCommand& command )
         }
     }
 
-    if( command.Equals( "starboard" ) )
+    else if( command.Equals( "starboard" ) )
     {
         //ignore corrupt data
         if( command.m_arguments[1] > 999 && command.m_arguments[1] < 2001 )
@@ -160,7 +160,7 @@ void CThrusters::Update( CCommand& command )
         }
     }
 
-    if( command.Equals( "thro" ) || command.Equals( "yaw" ) )
+    else if( command.Equals( "thro" ) || command.Equals( "yaw" ) )
     {
         if( command.Equals( "thro" ) )
         {
@@ -170,7 +170,7 @@ void CThrusters::Update( CCommand& command )
             }
         }
 
-        if( command.Equals( "yaw" ) )
+        else if( command.Equals( "yaw" ) )
         {
             //ignore corrupt data
             if( command.m_arguments[1] >= -100 && command.m_arguments[1] <= 100 ) //percent of max turn
@@ -224,7 +224,7 @@ void CThrusters::Update( CCommand& command )
 
     }
 
-    if( command.Equals( "lift" ) )
+    else if( command.Equals( "lift" ) )
     {
         if( command.m_arguments[1] >= -100 && command.m_arguments[1] <= 100 )
         {
@@ -233,7 +233,7 @@ void CThrusters::Update( CCommand& command )
             vs = vp;
         }
     }
-    if (command.Equals("lift") || command.Equals("strafe")  ){
+    else if (command.Equals("lift") || command.Equals("strafe")  ){
       if (command.Equals("lift")){
         if (command.m_arguments[1]>=-100 && command.m_arguments[1]<=100) {
           trg_lift = command.m_arguments[1]/100.0;
@@ -258,7 +258,7 @@ void CThrusters::Update( CCommand& command )
         }
       }
 
-      if (command.Equals("strafe")){
+      else if (command.Equals("strafe")){
         if (command.m_arguments[1]>=-100 && command.m_arguments[1]<=100) {
           trg_strafe = command.m_arguments[1]/100.0;
           //strafe (side motion) is limited to whatever thrust is still available

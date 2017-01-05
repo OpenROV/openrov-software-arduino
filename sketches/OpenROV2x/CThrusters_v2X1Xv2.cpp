@@ -95,7 +95,7 @@ void CThrusters::Update( CCommand& command )
         starboard_aft_motor.m_positiveModifier = port_aft_motor.m_positiveModifier;
     }
 
-    if( command.Equals( "mtrmod2" ) )
+    else if( command.Equals( "mtrmod2" ) )
     {
         port_forward_motor.m_negativeModifier = command.m_arguments[1] / 100;
         port_aft_motor.m_negativeModifier = port_forward_motor.m_negativeModifier;
@@ -104,7 +104,7 @@ void CThrusters::Update( CCommand& command )
         starboard_aft_motor.m_negativeModifier = port_aft_motor.m_negativeModifier;
     }
 
-    if( command.Equals( "rmtrmod" ) )
+    else if( command.Equals( "rmtrmod" ) )
     {
         Serial.print( F( "mtrmod:" ) );
         Serial.print( port_forward_motor.m_positiveModifier );
@@ -130,7 +130,7 @@ void CThrusters::Update( CCommand& command )
     }
 
     //Legacy Control just the port motors, only used for manual callibration
-    if( command.Equals( "port" ) )
+    else if( command.Equals( "port" ) )
     {
         //ignore corrupt data
         if( command.m_arguments[1] > 999 && command.m_arguments[1] < 2001 )
@@ -146,7 +146,7 @@ void CThrusters::Update( CCommand& command )
     }
 
     //Legacy Control, only used for manual callibration
-    if( command.Equals( "vertical" ) )
+    else if( command.Equals( "vertical" ) )
     {
         //ignore corrupt data
         if( command.m_arguments[1] > 999 && command.m_arguments[1] < 2001 )
@@ -161,7 +161,7 @@ void CThrusters::Update( CCommand& command )
     }
 
     //Legacy Control, only used for manual callibration
-    if( command.Equals( "starboard" ) )
+    else if( command.Equals( "starboard" ) )
     {
         //ignore corrupt data
         if( command.m_arguments[1] > 999 && command.m_arguments[1] < 2001 )
@@ -180,7 +180,7 @@ void CThrusters::Update( CCommand& command )
     //the controls.  In this case, Throttle is the primary which means yaw is limited to whatever power still
     //remains in the motor range after processing the thrust.  In other words, if your at full thrust you will not
     //have any turn authority remaining.
-    if( command.Equals( "thro" ) || command.Equals( "yaw" ) || command.Equals("strafe") )
+    else if( command.Equals( "thro" ) || command.Equals( "yaw" ) || command.Equals("strafe") )
     {
         if( command.Equals( "thro" ) )
         {
@@ -190,7 +190,7 @@ void CThrusters::Update( CCommand& command )
             }
         }
 
-        if( command.Equals( "yaw" ) )
+        else if( command.Equals( "yaw" ) )
         {
             //ignore corrupt data
             if( command.m_arguments[1] >= -100 && command.m_arguments[1] <= 100 ) //percent of max turn
@@ -199,7 +199,7 @@ void CThrusters::Update( CCommand& command )
             }
         }
 
-        if (command.Equals("strafe")){
+        else if (command.Equals("strafe")){
           if (command.m_arguments[1]>=-100 && command.m_arguments[1]<=100) {
             trg_strafe = command.m_arguments[1]/100.0;
           }
@@ -283,7 +283,7 @@ void CThrusters::Update( CCommand& command )
 
     }
 
-    if( command.Equals( "lift" ) )
+    else if( command.Equals( "lift" ) )
     {
         if( command.m_arguments[1] >= -100 && command.m_arguments[1] <= 100 )
         {
