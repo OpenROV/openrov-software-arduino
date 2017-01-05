@@ -43,6 +43,9 @@ namespace
     orutil::CTimer thrusterOutput;
     bool bypasssmoothing;
 
+    bool isGreeting = false;
+    const int greetDelay_ms = 100;
+
 #ifdef PIN_ENABLE_ESC
     bool canPowerESCs = true;
     CPin escpower( PIN_ENABLE_ESC, CPin::kDigital, CPin::kOutput );
@@ -301,6 +304,43 @@ void CThrusters::Update( CCommand& command )
         Serial.println( ';' );
     }
     #endif
+
+    else if( command.Equals( "wake" ) )
+    {
+        // Set greeting state to true and reset timer
+        isGreeting = true;
+        controltime.Reset();
+
+        // Turn off ESCs
+        #ifdef PIN_ENABLE_ESC
+            escpower.Write( 0 );
+        #else
+            port_motor.Deactivate();
+            vertical_motor.Deactivate();
+            port_motor.Deactivate();
+        #endif
+    }
+
+    if( isGreeting )
+    {
+        if( controltime.HasElapsed( greetDelay_ms ) )
+        {
+            // Turn on ESCs
+            #ifdef PIN_ENABLE_ESC
+                escpower.Write( 1 );
+            #else
+                port_motor.Activate();
+                vertical_motor.Activate();
+                port_motor.Activate();
+            #endif
+
+            isGreeting = false;
+        }
+        else
+        {
+            return;
+        }
+    }
 
     //to reduce AMP spikes, smooth large power adjustments out. This incirmentally adjusts the motors and servo
     //to their new positions in increments.  The incriment should eventually be adjustable from the cockpit so that
