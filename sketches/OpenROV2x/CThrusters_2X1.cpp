@@ -96,21 +96,6 @@ void CThrusters::Update( CCommand& command )
         Serial.print( starboard_motor.m_negativeModifier );
         Serial.println( ";" );
     }
-    else if( command.Equals( "go" ) )
-    {
-        //ignore corrupt data
-        if( command.m_arguments[1] > 999 && command.m_arguments[2] > 999 && command.m_arguments[3] > 999 && command.m_arguments[1] < 2001 && command.m_arguments[2] < 2001 && command.m_arguments[3] < 2001 )
-        {
-            p = command.m_arguments[1];
-            v = command.m_arguments[2];
-            s = command.m_arguments[3];
-
-            if( command.m_arguments[4] == 1 )
-            {
-                bypasssmoothing = true;
-            }
-        }
-    }
     else if( command.Equals( "port" ) )
     {
         //ignore corrupt data
@@ -229,29 +214,6 @@ void CThrusters::Update( CCommand& command )
         Serial.print( command.m_arguments[1] );
         Serial.println( ';' );
     }
-
-    #endif
-    else if( command.Equals( "start" ) )
-    {
-        port_motor.Activate();
-        vertical_motor.Activate();
-        starboard_motor.Activate();
-    }
-    else if( command.Equals( "stop" ) )
-    {
-        p = MOTOR_TARGET_NEUTRAL_US;
-        v = MOTOR_TARGET_NEUTRAL_US;
-        s = MOTOR_TARGET_NEUTRAL_US;
-    }
-
-    #ifdef PIN_ENABLE_ESC
-    else if( ( command.Equals( "mcal" ) ) && ( canPowerESCs ) )
-    {
-        Serial.println( F( "log:Motor Callibration Staring;" ) );
-        //Experimental. Add calibration code here
-        Serial.println( F( "log:Motor Callibration Complete;" ) );
-    }
-
     #endif
 
     //to reduce AMP spikes, smooth large power adjustments out. This incirmentally adjusts the motors and servo
