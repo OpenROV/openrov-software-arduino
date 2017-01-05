@@ -249,6 +249,10 @@ void CThrusters::Update( CCommand& command )
 
             isGreeting = false;
         }
+        else
+        {
+            return;
+        }
     }
 
     //to reduce AMP spikes, smooth large power adjustments out. This incirmentally adjusts the motors and servo

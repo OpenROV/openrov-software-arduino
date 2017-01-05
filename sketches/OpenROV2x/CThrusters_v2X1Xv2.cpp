@@ -129,25 +129,6 @@ void CThrusters::Update( CCommand& command )
         Serial.println( ";" );
     }
 
-    //This is a legacy command that allows individual direct control of a motor. Safe to ignore.
-    if( command.Equals( "go" ) )
-    {
-        //ignore corrupt data
-        if( command.m_arguments[1] > 999 && command.m_arguments[2] > 999 && command.m_arguments[3] > 999 && command.m_arguments[1] < 2001 && command.m_arguments[2] < 2001 && command.m_arguments[3] < 2001 )
-        {
-            pf = command.m_arguments[1];
-            pa = pf;
-            v = command.m_arguments[2];
-            sf = command.m_arguments[3];
-            sa = sf;
-
-            if( command.m_arguments[4] == 1 )
-            {
-                bypasssmoothing = true;
-            }
-        }
-    }
-
     //Legacy Control just the port motors, only used for manual callibration
     if( command.Equals( "port" ) )
     {
@@ -319,37 +300,6 @@ void CThrusters::Update( CCommand& command )
         Serial.print( command.m_arguments[1] );
         Serial.println( ';' );
     }
-
-    #endif
-    else if( command.Equals( "start" ) )
-    {
-        port_forward_motor.Activate();
-        port_aft_motor.Activate();
-        vertical_motor.Activate();
-        starboard_forward_motor.Activate();
-        starboard_aft_motor.Activate();
-    }
-    else if( command.Equals( "stop" ) )
-    {
-        pf = MOTOR_TARGET_NEUTRAL_US;
-        pa = MOTOR_TARGET_NEUTRAL_US;
-        v = MOTOR_TARGET_NEUTRAL_US;
-        sf = MOTOR_TARGET_NEUTRAL_US;
-        sa = MOTOR_TARGET_NEUTRAL_US;
-        // Not sure why the reset does not re-attach the servo.
-        //port_motor.stop();
-        //vertical_motor.stop();
-        //starboard_motor.stop();
-    }
-
-    #ifdef PIN_ENABLE_ESC
-    else if( ( command.Equals( "mcal" ) ) && ( canPowerESCs ) )
-    {
-        Serial.println( F( "log:Motor Callibration Staring;" ) );
-        //Experimental. Add calibration code here
-        Serial.println( F( "log:Motor Callibration Complete;" ) );
-    }
-
     #endif
 
     //to reduce AMP spikes, smooth large power adjustments out. This incirmentally adjusts the motors and servo
