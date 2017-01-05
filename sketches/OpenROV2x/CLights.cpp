@@ -11,6 +11,12 @@ namespace
 	// 1% per 10ms
 	const float kPowerDelta = 0.01f;
 
+	bool isGreeting 		= false;
+	bool greetState 		= false;
+	int greetCycle 			= 0;
+	const int cycleCount 	= 6;
+    const int greetDelay_ms = 600;
+
 	inline uint32_t PercentToAnalog( float x )
 	{	
 		if( x < 0.0f )
@@ -87,6 +93,45 @@ void CLights::Update( CCommand& commandIn )
 		Serial.print( orutil::Encode1K( m_currentPower ) );
 		Serial.print( ';' );
 	}
+	else if( command.Equals( "wake" ) )
+    {
+        // Set greeting state to true and reset timer
+        isGreeting = true;
+        m_controlTimer.Reset();
+
+		// Set light state to off
+		greetState = false;
+		m_pin.Write( 0 );
+    }
+
+    if( isGreeting )
+    {
+        if( controltime.HasElapsed( greetDelay_ms ) )
+        {
+           // Set to opposite state
+		   if( greetState )
+		   {
+			   greetState = false;
+			   m_pin.Write( 0 );
+		   }
+		   else
+		   {
+			   greetState = true;
+			   m_pin.Write( 1 );
+		   }
+
+		   greetCycle++;
+
+		   if( greetCycle >= cycleCount )
+		   {
+			   // Done blinking
+			   isGreeting = false;
+
+			   // Reset pin back to its original value
+			   m_pin.Write( m_currentPower_an );
+		   }
+        }
+    }
 }
 
 #endif
