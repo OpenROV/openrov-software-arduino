@@ -33,7 +33,11 @@ namespace NVehicleManager
 				// This gets automatically generated at compile time by the ArduinoBuilder library and appended to CompileOptions.h
 				Serial.println( VERSION_HASH );
 			}
-
+			else if( commandIn.Equals( "wake" ) )
+			{
+				// Acknowledge greeting
+				Serial.println( "awake:;" );
+			}
 			// TODO: These should be handled by the control module
 			else if( commandIn.Equals( "reportSetting" ) )
 			{
@@ -41,7 +45,6 @@ namespace NVehicleManager
 				Serial.print( F( "smoothingIncrement|" ) );		Serial.print( m_throttleSmoothingIncrement ); 	Serial.print( ',' );
 				Serial.print( F( "deadZone_min|" ) ); 			Serial.print( m_deadZoneMin ); 					Serial.print( ',' );
 				Serial.print( F( "deadZone_max|" ) );			Serial.print( m_deadZoneMax ); 					Serial.println( ';' );
-
 			}
 			else if( commandIn.Equals( "updateSetting" ) )
 			{
