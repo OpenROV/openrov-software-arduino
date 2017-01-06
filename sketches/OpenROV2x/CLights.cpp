@@ -93,7 +93,7 @@ void CLights::Update( CCommand& commandIn )
 		Serial.print( orutil::Encode1K( m_currentPower ) );
 		Serial.print( ';' );
 	}
-	else if( command.Equals( "wake" ) )
+	else if( commandIn.Equals( "wake" ) )
     {
         // Set greeting state to true and reset timer
         isGreeting = true;
