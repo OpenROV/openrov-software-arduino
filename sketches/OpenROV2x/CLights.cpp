@@ -106,7 +106,7 @@ void CLights::Update( CCommand& commandIn )
 
     if( isGreeting )
     {
-        if( controltime.HasElapsed( greetDelay_ms ) )
+        if( m_controlTimer.HasElapsed( greetDelay_ms ) )
         {
            // Set to opposite state
 		   if( greetState )
