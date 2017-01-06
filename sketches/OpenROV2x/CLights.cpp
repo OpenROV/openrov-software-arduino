@@ -117,7 +117,7 @@ void CLights::Update( CCommand& commandIn )
 		   else
 		   {
 			   greetState = true;
-			   m_pin.Write( 1 );
+			   m_pin.Write( 150 );
 		   }
 
 		   greetCycle++;
