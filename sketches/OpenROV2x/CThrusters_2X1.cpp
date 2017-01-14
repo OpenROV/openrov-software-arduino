@@ -98,40 +98,16 @@ void CThrusters::Update( CCommand& command )
         Serial.print( starboard_motor.m_negativeModifier );
         Serial.println( ";" );
     }
-    else if( command.Equals( "port" ) )
+    else if( command.Equals( "go" ) )
     {
         //ignore corrupt data
-        if( command.m_arguments[1] > 999 && command.m_arguments[1] < 2001 )
+        if( command.m_arguments[1] > 999 && command.m_arguments[2] > 999 && command.m_arguments[3] > 999 && command.m_arguments[1] < 2001 && command.m_arguments[2] < 2001 && command.m_arguments[3] < 2001 )
         {
             p = command.m_arguments[1];
+            v = command.m_arguments[2];
+            s = command.m_arguments[3];
 
-            if( command.m_arguments[2] == 1 )
-            {
-                bypasssmoothing = true;
-            }
-        }
-    }
-    else if( command.Equals( "vertical" ) )
-    {
-        //ignore corrupt data
-        if( command.m_arguments[1] > 999 && command.m_arguments[1] < 2001 )
-        {
-            v = command.m_arguments[1];
-
-            if( command.m_arguments[2] == 1 )
-            {
-                bypasssmoothing = true;
-            }
-        }
-    }
-    else if( command.Equals( "starboard" ) )
-    {
-        //ignore corrupt data
-        if( command.m_arguments[1] > 999 && command.m_arguments[1] < 2001 )
-        {
-            s = command.m_arguments[1];
-
-            if( command.m_arguments[2] == 1 )
+            if( command.m_arguments[4] == 1 )
             {
                 bypasssmoothing = true;
             }
